@@ -1,0 +1,48 @@
+/* Babs Butter - official brand typefaces (from supplied brand kit) */
+@font-face{
+  font-family:'Roketto';
+  src:url('fonts/Roketto.ttf') format('truetype');
+  font-weight:400;font-style:normal;font-display:swap;
+}
+@font-face{
+  font-family:'Public Sans';
+  src:url('fonts/PublicSans.ttf') format('truetype-variations');
+  font-weight:100 900;font-style:normal;font-display:swap;
+}
+@font-face{
+  font-family:'Public Sans';
+  src:url('fonts/PublicSans-Italic.ttf') format('truetype-variations');
+  font-weight:100 900;font-style:italic;font-display:swap;
+}
+@font-face{
+  font-family:'Miller Text';
+  src:url('fonts/MillerTextItalic.otf') format('opentype');
+  font-weight:400;font-style:italic;font-display:swap;
+}
+@font-face{
+  font-family:'Antique Olive Nord';
+  src:url('fonts/AntiqueOliveNord.ttf') format('truetype');
+  font-weight:400;font-style:normal;font-display:swap;
+}
+@font-face{
+  font-family:'Professor';
+  src:url('fonts/Professor.ttf') format('truetype');
+  font-weight:400;font-style:normal;font-display:swap;
+}
+
+:root{
+  /* Primary palette */
+  --tangerine:#E96224;
+  --butter:#F6E6A6;
+  --flour:#FCF7EB;
+  --biscuit:#F8C67D;
+  --butterfly-pea:#C3DBE7;
+  --dark-choc:#2F1D0F;
+  /* Secondary palette */
+  --plum:#7A3754;
+  --coffee-bean:#744D2F;
+  --raspberry:#8B231C;
+  --blueberry:#262A62;
+  --truffle:#DDDDD2;
+  --matcha:#3C431C;
+}

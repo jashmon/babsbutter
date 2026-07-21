@@ -1,0 +1,14 @@
+---
+interface Props {
+  colorClass: string;
+  image: string;
+  alt: string;
+  title: string;
+  subtitle: string;
+}
+const { colorClass, image, alt, title, subtitle } = Astro.props;
+---
+<article class:list={['flav-card', 'rv', colorClass]}>
+  <div class="ph"><img src={image} alt={alt} /></div>
+  <div class="meta"><div><h3>{title}</h3><span class="serif">{subtitle}</span></div><span class="arrow">→</span></div>
+</article>

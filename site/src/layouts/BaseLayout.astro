@@ -1,0 +1,50 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+}
+const { title } = Astro.props;
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{title}</title>
+<link rel="icon" href="/assets/logos/icon-tangerine.svg">
+<script is:inline>document.documentElement.classList.add("js","loading")</script>
+<link rel="stylesheet" href="/assets/fonts.css">
+</head>
+<body>
+
+<div class="loader" id="loader" aria-hidden="true" role="presentation">
+  <div class="loader-inner">
+    <img class="loader-icon" src="/assets/logos/icon-flour.svg" alt="">
+    <p class="loader-word">Churning</p>
+    <div class="loader-bar"><span class="loader-fill"></span></div>
+  </div>
+</div>
+
+<div class="scrollbar" aria-hidden="true"><span class="scrollbar-fill"></span></div>
+
+<nav>
+  <div class="bar">
+    <a class="logo" href="#"><img src="/assets/logos/lockup-tangerine.svg" alt="Babs Butter"></a>
+    <ul>
+      <li><a href="#flavours">Flavours</a></li>
+      <li><a href="#why">Why Babs</a></li>
+      <li><a href="#recipes">Recipes</a></li>
+      <li><a href="#quality">Quality</a></li>
+    </ul>
+    <a class="btn small" href="#stockists">Find Babs near you</a>
+  </div>
+</nav>
+
+<slot />
+
+<script>
+  import '../scripts/main.js';
+</script>
+</body>
+</html>

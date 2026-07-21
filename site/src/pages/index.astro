@@ -1,0 +1,193 @@
+---
+// TODO(image-optimization): assets/img/*.jpg,*.png are served as-is from public/assets/img/
+// via plain <img src>. A later pass should move them into src/assets/img/ and adopt Astro's
+// <Image> component for automatic resize/compression/format conversion (webp/avif).
+import BaseLayout from '../layouts/BaseLayout.astro';
+import FlavourCard from '../components/FlavourCard.astro';
+import WhyCard from '../components/WhyCard.astro';
+import RecipeCard from '../components/RecipeCard.astro';
+import { flavours } from '../data/flavours';
+import { why } from '../data/why';
+import { recipes } from '../data/recipes';
+---
+<BaseLayout title="Babs Butter · Concept 2 · Bold FMCG">
+
+<!-- HERO -->
+<header class="hero">
+  <div class="pw-a"><img class="shape-a" src="/assets/shapes/ribbed-circle.svg" alt=""></div>
+  <div class="pw-b"><img class="shape-b" src="/assets/shapes/flower.svg" alt=""></div>
+  <div class="wrap">
+    <div>
+      <h1>
+        <span class="line"><span>Healthy</span></span>
+        <span class="line"><span>never tasted</span></span>
+        <span class="line"><span>this rich.</span></span>
+      </h1>
+      <p class="sub">Slow-churned, clean-label butter with big flavour and nothing fake. Grab a tub, toast something.</p>
+      <div class="cta-row">
+        <a class="btn" href="#flavours">Pick your flavour</a>
+        <a class="btn orange" href="#why">Why it's better</a>
+      </div>
+    </div>
+    <div class="hero-pack">
+      <div class="disc-wrap">
+        <div class="disc"><img src="/assets/img/melting-butter.png" alt="Babs butter melting into gold"></div>
+        <img class="badge" src="/assets/logos/icon-flour.svg" alt="">
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- MARQUEE (the one and only) -->
+<div class="marquee" aria-hidden="true">
+  <div class="track">
+    <span>Slow-churned <img src="/assets/illus/butter-swirl.svg" alt=""> Clean label <img src="/assets/illus/bread-butter.svg" alt=""> Family approved <img src="/assets/illus/hearts.svg" alt=""> Plant-based too <img src="/assets/illus/vegan.svg" alt=""></span>
+    <span>Slow-churned <img src="/assets/illus/butter-swirl.svg" alt=""> Clean label <img src="/assets/illus/bread-butter.svg" alt=""> Family approved <img src="/assets/illus/hearts.svg" alt=""> Plant-based too <img src="/assets/illus/vegan.svg" alt=""></span>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<section class="about">
+  <div class="wrap">
+    <h2 class="rv">Butter with <em>everything</em> to brag about.</h2>
+    <p class="rv">Cultured cream, a slow churn, and a label so short it fits in a breath. That is the whole recipe, and it is why everything you cook with Babs tastes louder.</p>
+    <div class="ticker">
+      <div class="tick rv"><div class="num" data-count="82">0</div><p>% butterfat</p></div>
+      <div class="tick rv"><div class="num" data-count="3">0</div><p>ingredients</p></div>
+      <div class="tick rv"><div class="num" data-count="48">0</div><p>hrs churn to shelf</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- PRODUCTS -->
+<section class="prods" id="flavours">
+  <div class="wrap">
+    <h2 class="rv">Pick a flavour</h2>
+    <p class="lead rv">One consistent churn, a colour for every craving. Collect the whole shelf.</p>
+    <div class="flav">
+      {flavours.map((f) => <FlavourCard {...f} />)}
+    </div>
+  </div>
+</section>
+
+<!-- WHY -->
+<section class="why" id="why">
+  <div class="wrap">
+    <h2 class="rv">Why the fridge fights over it</h2>
+    <div class="why-grid">
+      {why.map((w) => <WhyCard {...w} />)}
+    </div>
+  </div>
+</section>
+
+<!-- VIDEO -->
+<section class="vband">
+  <video src="/assets/video/butter-table.mov" autoplay muted loop playsinline aria-label="Fresh butter on a wooden table, up close"></video>
+  <div class="overlay"><h2 class="rv">Look at <em>that.</em></h2></div>
+</section>
+
+<!-- RECIPES -->
+<section class="recipes" id="recipes">
+  <div class="wrap">
+    <div class="head">
+      <h2 class="rv">Cook something loud</h2>
+      <a class="btn rv" href="#cta">All recipes</a>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="r-track">
+      {recipes.map((r) => <RecipeCard {...r} />)}
+    </div>
+  </div>
+</section>
+
+<!-- QUALITY + INGREDIENTS -->
+<section class="quality" id="quality">
+  <div class="wrap grid">
+    <div>
+      <h2 class="rv">Held to a <em>higher</em> churn.</h2>
+      <p class="lead rv">Every batch starts with cultured cream and ends with a tub we would serve our own families. In between: cold rooms, small batches and people who taste everything.</p>
+      <div class="q-badges rv">
+        <span>Batch tasted</span><span>Cold chain kept</span><span>Clean label</span><span>Vegan options</span>
+      </div>
+    </div>
+    <div class="img-stack rv">
+      <div class="main"><img src="/assets/img/baking-bowl.jpg" alt="Butter cubes weighed for a small batch"></div>
+      <div class="float"><img src="/assets/img/img-borisenko.jpg" alt="Buttery crepe layers up close"></div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="quotes">
+  <div class="wrap">
+    <h2 class="rv">Word on the street</h2>
+    <div class="q-cards">
+      <div class="q-card rv"><blockquote>"The berry whipped one disappeared in a day. A single day."</blockquote><cite>Meera Krishnan<span>Bengaluru</span></cite></div>
+      <div class="q-card rv"><blockquote>"Our croissants have never laminated better. The unsalted is a workhorse."</blockquote><cite>Arjun Mehta<span>head baker, Fig &amp; Flour</span></cite></div>
+      <div class="q-card rv"><blockquote>"Rich enough for guests, clean enough for every day."</blockquote><cite>Ines Fernandes<span>food writer, Goa</span></cite></div>
+    </div>
+  </div>
+</section>
+
+<!-- AWARDS + PARTNERS + GALLERY -->
+<section class="shelf" id="stockists">
+  <div class="wrap">
+    <div class="grid">
+      <div>
+        <h2 class="rv">Shiny things</h2>
+        <div class="award rv"><span>Great Taste, two stars, Classic Salted</span><span class="yr">2026</span></div>
+        <div class="award rv"><span>Clean Label Pantry Award, Butter</span><span class="yr">2026</span></div>
+        <div class="award rv"><span>India Food Forum, Best New Dairy Brand</span><span class="yr">2026</span></div>
+      </div>
+      <div>
+        <h2 class="rv">On shelves at</h2>
+        <div class="partner-row rv">
+          <span>Nature's Basket</span><span>Foodhall</span><span>Le Marché</span><span>Modern Bazaar</span><span>babsbutter.in</span>
+        </div>
+      </div>
+    </div>
+    <div class="gal">
+      <div class="g rv"><img src="/assets/img/table-spread.jpg" alt="Breakfast flat lay with butter cubes"></div>
+      <div class="g rv"><img src="/assets/img/img-aristi.jpg" alt="Sliced butter with raspberries and seeded bread"></div>
+      <div class="g rv"><img src="/assets/img/scoops.jpg" alt="Scoops of churned cream"></div>
+      <div class="g rv"><img src="/assets/img/img-tkachenko.jpg" alt="Croissant in warm morning light"></div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq" id="faq">
+  <div class="inner">
+    <h2 class="rv">You asked</h2>
+    <details class="rv"><summary>What does "cultured" actually mean? <span class="x">+</span></summary><p>We ferment the cream with live cultures before churning, the old-world way. Deeper flavour, gentle tang, easier on the stomach.</p></details>
+    <details class="rv"><summary>Is the plant-based tub actually good? <span class="x">+</span></summary><p>It is churned like our dairy butter, from oat cream and cold-pressed oils. It browns, it bakes, it fools butter loyalists.</p></details>
+    <details class="rv"><summary>Where can I buy Babs? <span class="x">+</span></summary><p>Premium grocers across the metros, or straight from babsbutter.in in an insulated box, churn-fresh.</p></details>
+    <details class="rv"><summary>How long does a tub last? <span class="x">+</span></summary><p>Three months chilled, unopened. Opened, in our experience, about a week, and not because it spoils.</p></details>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta" id="cta">
+  <img class="q" src="/assets/shapes/quatrefoil.svg" alt="">
+  <img class="f" src="/assets/shapes/butter-curl.svg" alt="">
+  <div class="wrap">
+    <h2 class="rv">Go on, <em>butter</em> something.</h2>
+    <p class="rv">Find your nearest shelf or get it delivered cold, fast and fresh from the churn.</p>
+    <a class="btn rv" href="#stockists">Find Babs near you</a>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="f-grid">
+      <div><img src="/assets/logos/secondary-flour.svg" alt="Babs Butter"></div>
+      <div><h4>Shop</h4><ul><li><a href="#flavours">Classic Salted</a></li><li><a href="#flavours">Berry Whipped</a></li><li><a href="#flavours">Plant-Based</a></li></ul></div>
+      <div><h4>Explore</h4><ul><li><a href="#why">Why Babs</a></li><li><a href="#recipes">Recipes</a></li><li><a href="#faq">FAQ</a></li></ul></div>
+      <div><h4>Follow</h4><ul><li><a href="#">@babsbutterofficial</a></li><li><a href="#">babsbutter.in</a></li></ul></div>
+    </div>
+    <div class="f-base"><span>© 2026 Babs Butter. Healthy never tasted this rich.</span><span>Privacy · Terms</span></div>
+  </div>
+</footer>
+
+</BaseLayout>
