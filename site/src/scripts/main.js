@@ -9,6 +9,49 @@
 
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+// ---- preloader ("churning…") ------------------------------------------------
+// Adds `loaded` to <html> so the CSS sweeps the cover up, then removes the node.
+// Under reduced motion the blocking full-viewport cover is removed outright.
+const preloader = document.getElementById('preloader');
+if (preloader) {
+  let done = false;
+  const finish = () => {
+    if (done) return;
+    done = true;
+    document.documentElement.classList.add('loaded');
+    if (reduce) {
+      preloader.remove();
+      return;
+    }
+    let removed = false;
+    const remove = () => {
+      if (!removed) {
+        removed = true;
+        preloader.remove();
+      }
+    };
+    preloader.addEventListener(
+      'transitionend',
+      (e) => {
+        if (e.propertyName === 'transform') remove();
+      },
+      { once: true }
+    );
+    setTimeout(remove, 1400); // safety net if transitionend never fires
+  };
+
+  if (reduce) {
+    finish();
+  } else {
+    const MIN_MS = 1200; // let the churn play at least this long
+    const started = performance.now();
+    const go = () => setTimeout(finish, Math.max(0, MIN_MS - (performance.now() - started)));
+    if (document.readyState === 'complete') go();
+    else addEventListener('load', go, { once: true });
+    setTimeout(finish, 6000); // absolute fallback so scroll never stays locked
+  }
+}
+
 // ---- reveal on scroll -------------------------------------------------------
 const io = new IntersectionObserver(
   (entries) =>

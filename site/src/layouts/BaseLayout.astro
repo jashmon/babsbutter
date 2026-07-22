@@ -44,6 +44,15 @@ const {
     <link rel="stylesheet" href="/assets/fonts.css" />
   </head>
   <body>
+    <!-- Preloader: spinning Babs mark + "churning…", sweeps up on load (see global.css).
+         JS-gated (hidden without JS) and removed outright under reduced motion. -->
+    <div id="preloader" class="preloader" aria-hidden="true">
+      <div class="pl-inner">
+        <img class="mark" src="/assets/logos/icon-tangerine.svg" alt="" />
+        <p class="churn">churning<span class="d">.</span><span class="d">.</span><span class="d">.</span></p>
+      </div>
+    </div>
+
     <div id="blob" aria-hidden="true"></div>
 
     <nav>
