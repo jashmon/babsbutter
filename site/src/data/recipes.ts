@@ -1,26 +1,34 @@
-export const recipes = [
+// Horizontal-scroll recipe cards ("Cook something happy").
+export interface Recipe {
+  title: string;
+  meta: string;
+  img: string;
+  alt: string;
+}
+
+export const recipes: Recipe[] = [
   {
-    image: '/assets/img/img-igrejapreta.jpg',
-    alt: 'Pancakes with melting butter and syrup',
     title: 'Diner Pancakes',
     meta: '15 min · one pan',
+    img: '/assets/img/img-igrejapreta.jpg',
+    alt: 'Diner pancakes with butter and syrup',
   },
   {
-    image: '/assets/img/croissants.jpg',
-    alt: 'A pile of golden croissants',
-    title: 'All-Butter Croissants',
-    meta: 'weekend project',
+    title: 'Croissants',
+    meta: 'a weekend project',
+    img: '/assets/img/croissants.jpg',
+    alt: 'Golden all-butter croissants',
   },
   {
-    image: '/assets/img/tart.jpg',
-    alt: 'A mascarpone tart with buttery crust',
     title: 'Shortcrust Tart',
     meta: '90 min · showstopper',
+    img: '/assets/img/tart.jpg',
+    alt: 'Mascarpone tart with a buttery crust',
   },
   {
-    image: '/assets/img/spread-knife.jpg',
-    alt: 'Thick butter on seeded toast',
-    title: 'The Perfect Toast',
+    title: 'Perfect Toast',
     meta: '4 min · no excuses',
+    img: '/assets/img/spread-knife.jpg',
+    alt: 'Thick butter on seeded toast',
   },
 ];

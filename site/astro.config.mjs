@@ -1,5 +1,7 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 
-// https://astro.build/config
-export default defineConfig({});
+// Static, zero-JS-by-default marketing site. See CLAUDE.md for the project brief.
+export default defineConfig({
+  output: 'static',
+});

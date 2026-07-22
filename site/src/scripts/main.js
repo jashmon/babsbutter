@@ -1,168 +1,102 @@
-import Lenis from 'lenis';
+// Concept 7 · "Butter Playground" behaviour.
+// Everything here is transform/opacity only and degrades cleanly:
+//  - reveal-on-scroll (.rv -> .in), with an in-viewport "no-anim" fast path
+//  - count-up statistics
+//  - a soft cursor blob that eases toward the pointer (rAF-batched)
+//  - magnetic buttons (.magnetic)
+// The blob + magnetic effects, plus all motion, are disabled under
+// prefers-reduced-motion; content stays fully visible either way.
 
-const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-/* ---- existing: scroll-reveal ---- */
-const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.15});
-document.querySelectorAll('.rv').forEach(el=>io.observe(el));
+// ---- reveal on scroll -------------------------------------------------------
+const io = new IntersectionObserver(
+  (entries) =>
+    entries.forEach((e) => {
+      if (e.isIntersecting) {
+        e.target.classList.add('in');
+        io.unobserve(e.target);
+      }
+    }),
+  { threshold: 0.14 }
+);
 
-/* ---- existing: count-up ticker ---- */
-const cio=new IntersectionObserver(es=>es.forEach(e=>{
-  if(!e.isIntersecting)return;cio.unobserve(e.target);
-  const t=+e.target.dataset.count;
-  if(reduce){e.target.textContent=t;return}
-  const t0=performance.now();
-  (function tick(n){const p=Math.min(1,(n-t0)/1200);e.target.textContent=Math.round(t*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(tick)})(t0);
-}),{threshold:.6});
-document.querySelectorAll('[data-count]').forEach(el=>cio.observe(el));
-
-/* ---- lenis core (skipped entirely under reduced motion) ---- */
-let lenis=null;
-if(!reduce){
-  lenis=new Lenis({autoToggle:true,wheelMultiplier:1,touchMultiplier:1});
-  window.__lenis=lenis;
-}
-
-/* ---- loading screen ---- */
-const loader=document.querySelector('.loader');
-function releaseHero(){document.documentElement.classList.remove('loading')}
-if(loader){
-  if(reduce){
-    loader.remove();
-    releaseHero();
-  }else{
-    document.documentElement.classList.add('no-scroll');
-    if(lenis)lenis.stop();
-    setTimeout(()=>{
-      loader.classList.add('leaving');
-      releaseHero();
-      document.documentElement.classList.remove('no-scroll');
-      if(lenis)lenis.start();
-      setTimeout(()=>loader.remove(),650);
-    },1300);
+document.querySelectorAll('.rv').forEach((el) => {
+  const r = el.getBoundingClientRect();
+  if (r.top < innerHeight && r.bottom > 0) {
+    // Already on screen at load: show immediately without the entrance animation.
+    el.classList.add('no-anim', 'in');
+    requestAnimationFrame(() => requestAnimationFrame(() => el.classList.remove('no-anim')));
+  } else {
+    io.observe(el);
   }
-}else{
-  releaseHero();
-}
+});
 
-/* ---- scroll-progress bar (works with or without lenis) ---- */
-const scrollFill=document.querySelector('.scrollbar-fill');
-function updateScrollbar(progress){scrollFill.style.transform=`scaleX(${progress})`}
-if(reduce||!lenis){
-  const nativeUpdate=()=>{
-    const doc=document.documentElement;
-    updateScrollbar(doc.scrollTop/(doc.scrollHeight-doc.clientHeight||1));
-  };
-  window.addEventListener('scroll',nativeUpdate,{passive:true});
-  nativeUpdate();
-}
+// ---- count-up numbers -------------------------------------------------------
+const cio = new IntersectionObserver(
+  (entries) =>
+    entries.forEach((e) => {
+      if (!e.isIntersecting) return;
+      cio.unobserve(e.target);
+      const target = +e.target.dataset.count;
+      if (reduce) {
+        e.target.textContent = String(target);
+        return;
+      }
+      const t0 = performance.now();
+      (function tick(now) {
+        const p = Math.min(1, (now - t0) / 1200);
+        e.target.textContent = String(Math.round(target * (1 - Math.pow(1 - p, 3))));
+        if (p < 1) requestAnimationFrame(tick);
+      })(t0);
+    }),
+  { threshold: 0.6 }
+);
+document.querySelectorAll('[data-count]').forEach((el) => cio.observe(el));
 
-/* ---- marquee: speed reacts to scroll velocity ---- */
-const track=document.querySelector('.marquee .track');
-let mqReady=false,mqX=0,mqWidth=0,mqBase=0;
-function initMarquee(){
-  mqWidth=track.scrollWidth/2;
-  mqBase=mqWidth/26;
-  track.style.animation='none';
-  mqReady=true;
-}
-function tickMarquee(dt,velocity){
-  if(!mqReady)return;
-  const v=Math.min(Math.abs(velocity),60);
-  mqX-=(mqBase+v*8)*dt;
-  if(mqX<=-mqWidth)mqX+=mqWidth;
-  track.style.transform=`translateX(${mqX}px)`;
-}
-if(lenis){
-  initMarquee();
-  window.addEventListener('resize',initMarquee);
-  window.addEventListener('load',initMarquee);
-}
-
-/* ---- hero shapes: scroll-linked parallax on top of the idle css drift ---- */
-const pwA=document.querySelector('.pw-a'),pwB=document.querySelector('.pw-b');
-const heroEl=document.querySelector('.hero');
-let heroVisible=true;
-if(heroEl){
-  new IntersectionObserver(es=>{heroVisible=es[0].isIntersecting},{threshold:0}).observe(heroEl);
-}
-function tickParallax(scroll){
-  if(!pwA||!heroVisible)return;
-  pwA.style.transform=`translate3d(0, ${scroll*-0.12}px, 0)`;
-  pwB.style.transform=`translate3d(0, ${scroll*-0.22}px, 0)`;
-}
-
-/* ---- recipes track: draggable momentum carousel ---- */
-let cardsLenis=null;
-const rTrack=document.querySelector('.r-track');
-if(lenis&&rTrack){
-  cardsLenis=new Lenis({wrapper:rTrack,content:rTrack,orientation:'horizontal',gestureOrientation:'horizontal',smoothWheel:true,syncTouch:true});
-  rTrack.style.scrollSnapType='none';
-
-  let dragging=false,startX=0,startScroll=0;
-  rTrack.addEventListener('pointerdown',e=>{
-    dragging=true;rTrack.classList.add('dragging');
-    startX=e.clientX;startScroll=rTrack.scrollLeft;
-    rTrack.setPointerCapture(e.pointerId);
-  });
-  rTrack.addEventListener('pointermove',e=>{
-    if(!dragging)return;
-    rTrack.scrollLeft=startScroll-(e.clientX-startX);
-  });
-  ['pointerup','pointercancel'].forEach(evt=>rTrack.addEventListener(evt,()=>{
-    if(!dragging)return;
-    dragging=false;rTrack.classList.remove('dragging');
-    snapToNearest();
-  }));
-  cardsLenis.on('scroll',({velocity})=>{
-    if(!dragging&&Math.abs(velocity)<0.05)snapToNearest();
-  });
-
-  function snapToNearest(){
-    const cards=[...rTrack.querySelectorAll('.r-card')];
-    if(!cards.length)return;
-    const target=cards.reduce((a,b)=>
-      Math.abs(b.offsetLeft-rTrack.scrollLeft)<Math.abs(a.offsetLeft-rTrack.scrollLeft)?b:a
-    );
-    cardsLenis.scrollTo(target,{lerp:0.12});
-  }
-}
-
-/* ---- anchor links routed through lenis.scrollTo ---- */
-if(lenis){
-  document.querySelectorAll('a[href^="#"]').forEach(a=>{
-    a.addEventListener('click',e=>{
-      const id=a.getAttribute('href').slice(1);
-      const target=id&&document.getElementById(id);
-      if(!target)return;
-      e.preventDefault();
-      lenis.scrollTo(target,{offset:-96,duration:1.1});
+// ---- pointer flourishes (motion only) --------------------------------------
+if (!reduce) {
+  // soft cursor blob (transform-only, rAF-batched)
+  const blob = document.getElementById('blob');
+  if (blob) {
+    let tx = innerWidth / 2,
+      ty = innerHeight / 2,
+      bx = tx,
+      by = ty,
+      raf = null;
+    blob.style.transform = `translate(${bx}px,${by}px) translate(-50%,-50%)`;
+    const loop = () => {
+      bx += (tx - bx) * 0.12;
+      by += (ty - by) * 0.12;
+      blob.style.transform = `translate(${bx}px,${by}px) translate(-50%,-50%)`;
+      if (Math.abs(tx - bx) > 0.5 || Math.abs(ty - by) > 0.5) {
+        raf = requestAnimationFrame(loop);
+      } else {
+        raf = null;
+      }
+    };
+    addEventListener('pointermove', (e) => {
+      tx = e.clientX;
+      ty = e.clientY;
+      if (!raf) loop();
     });
-  });
-}
-
-/* ---- shared raf loop driving every lenis-dependent effect above ---- */
-let lastTime=0;
-let rafId=null;
-function raf(time){
-  if(lenis)lenis.raf(time);
-  if(cardsLenis)cardsLenis.raf(time);
-  const dt=Math.min((time-lastTime)/1000,0.05);
-  lastTime=time;
-  if(lenis){
-    updateScrollbar(lenis.progress);
-    tickMarquee(dt,lenis.velocity);
-    tickParallax(lenis.scroll);
   }
-  rafId=requestAnimationFrame(raf);
-}
-rafId=requestAnimationFrame(raf);
 
-/* ---- dev-mode HMR safety: tear down cleanly if this module is ever hot-replaced ---- */
-if (import.meta.hot) {
-  import.meta.hot.dispose(() => {
-    if(rafId)cancelAnimationFrame(rafId);
-    lenis?.destroy();
-    cardsLenis?.destroy();
+  // magnetic buttons
+  document.querySelectorAll('.magnetic').forEach((b) => {
+    let pending = null;
+    b.addEventListener('pointermove', (e) => {
+      const r = b.getBoundingClientRect();
+      const x = e.clientX - r.left - r.width / 2;
+      const y = e.clientY - r.top - r.height / 2;
+      if (!pending)
+        pending = requestAnimationFrame(() => {
+          b.style.transform = `translate(${x * 0.3}px,${y * 0.3}px)`;
+          pending = null;
+        });
+    });
+    b.addEventListener('pointerleave', () => {
+      b.style.transform = '';
+    });
   });
 }

@@ -1,13 +1,10 @@
 ---
-interface Props {
-  icon: string;
-  title: string;
-  text: string;
-}
-const { icon, title, text } = Astro.props;
+import type { Why } from '../data/why';
+type Props = Why;
+const { icon, title, body } = Astro.props;
 ---
 <div class="why-card rv">
-  <img src={icon} alt="" />
+  <img class="ic" src={icon} alt="" />
   <h3>{title}</h3>
-  <p>{text}</p>
+  <p>{body}</p>
 </div>

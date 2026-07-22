@@ -1,17 +1,24 @@
-export const why = [
+// "Why the fridge fights over it" — bouncy icon tiles.
+export interface Why {
+  icon: string;
+  title: string;
+  body: string;
+}
+
+export const why: Why[] = [
   {
     icon: '/assets/illus/butter-swirl.svg',
     title: 'Slow-churned',
-    text: "Low and slow keeps the cream's character. Fast factories can't say that.",
+    body: "Low and slow keeps the cream's character. Fast factories can't say that.",
   },
   {
     icon: '/assets/illus/exclamation.svg',
     title: 'Zero nasties',
-    text: 'No palm oil, no fillers, no flavourings pretending to be food.',
+    body: 'No palm oil, no fillers, no flavourings pretending to be food.',
   },
   {
     icon: '/assets/illus/hearts.svg',
     title: 'Family approved',
-    text: 'One tub the whole table agrees on, from toast kids to sourdough snobs.',
+    body: 'One tub the whole table agrees on. A genuine miracle.',
   },
 ];

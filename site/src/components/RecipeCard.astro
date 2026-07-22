@@ -1,13 +1,12 @@
 ---
-interface Props {
-  image: string;
-  alt: string;
-  title: string;
-  meta: string;
-}
-const { image, alt, title, meta } = Astro.props;
+import type { Recipe } from '../data/recipes';
+type Props = Recipe;
+const { title, meta, img, alt } = Astro.props;
 ---
 <article class="r-card">
-  <img src={image} alt={alt} />
-  <div class="cap"><h3>{title}</h3><span>{meta}</span></div>
+  <img src={img} alt={alt} loading="lazy" />
+  <div class="cap">
+    <h3>{title}</h3>
+    <span>{meta}</span>
+  </div>
 </article>

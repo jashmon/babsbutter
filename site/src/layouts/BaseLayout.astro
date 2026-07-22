@@ -2,49 +2,65 @@
 import '../styles/global.css';
 
 interface Props {
-  title: string;
+  title?: string;
+  description?: string;
 }
-const { title } = Astro.props;
+
+const {
+  title = 'Babs Butter · Big Butter Energy',
+  description = 'Slow-churned, clean-label butter that takes the cream seriously and nothing else. Come play.',
+} = Astro.props;
 ---
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{title}</title>
-<link rel="icon" href="/assets/logos/icon-tangerine.svg">
-<script is:inline>document.documentElement.classList.add("js","loading")</script>
-<link rel="stylesheet" href="/assets/fonts.css">
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" href="/favicon.svg" />
 
-<div class="loader" id="loader" aria-hidden="true" role="presentation">
-  <div class="loader-inner">
-    <img class="loader-icon" src="/assets/logos/icon-flour.svg" alt="">
-    <p class="loader-word">Churning</p>
-    <div class="loader-bar"><span class="loader-fill"></span></div>
-  </div>
-</div>
+    <!--
+      Runs synchronously before first paint. Two jobs:
+        1. Add `.js` (progressive-enhancement hook for any JS-gated CSS).
+        2. Set scroll restoration to manual so the browser doesn't animate a
+           scroll back to the previous position on reload — with
+           html{scroll-behavior:smooth} that restore is smooth, and reads as the
+           whole page sliding up on every refresh. Manual = load at top, instantly.
+      Must stay is:inline — an external fetch would run too late (after the
+      browser has already begun restoring scroll).
+    -->
+    <script is:inline>
+      (function () {
+        document.documentElement.classList.add('js');
+        try {
+          if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+        } catch (e) {}
+      })();
+    </script>
 
-<div class="scrollbar" aria-hidden="true"><span class="scrollbar-fill"></span></div>
+    <link rel="preload" href="/assets/fonts/Roketto.ttf" as="font" type="font/ttf" crossorigin />
+    <link rel="preload" href="/assets/fonts/PublicSans.ttf" as="font" type="font/ttf" crossorigin />
+    <link rel="stylesheet" href="/assets/fonts.css" />
+  </head>
+  <body>
+    <div id="blob" aria-hidden="true"></div>
 
-<nav>
-  <div class="bar">
-    <a class="logo" href="#"><img src="/assets/logos/lockup-tangerine.svg" alt="Babs Butter"></a>
-    <ul>
-      <li><a href="#flavours">Flavours</a></li>
-      <li><a href="#why">Why Babs</a></li>
-      <li><a href="#recipes">Recipes</a></li>
-      <li><a href="#quality">Quality</a></li>
-    </ul>
-    <a class="btn small" href="#stockists">Find Babs near you</a>
-  </div>
-</nav>
+    <nav>
+      <div class="bar">
+        <a class="logo" href="#top"><img src="/assets/logos/lockup-tangerine.svg" alt="Babs Butter" /></a>
+        <ul>
+          <li><a href="#flavs">Flavours</a></li>
+          <li><a href="#why">Why Babs</a></li>
+          <li><a href="#recipes">Recipes</a></li>
+          <li><a href="#faq">FAQ</a></li>
+        </ul>
+        <a class="btn small" href="#cta">Get Babs</a>
+      </div>
+    </nav>
 
-<slot />
+    <slot />
 
-<script>
-  import '../scripts/main.js';
-</script>
-</body>
+    <script src="../scripts/main.js"></script>
+  </body>
 </html>
