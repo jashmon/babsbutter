@@ -35,7 +35,7 @@ a {
   padding: 0 40px;
 }
 section {
-  padding: 120px 0;
+  padding: 184px 0;
   position: relative;
 }
 h1,
@@ -285,13 +285,24 @@ nav ul a:hover {
 .hero {
   min-height: 100dvh;
   display: flex;
-  align-items: center;
+  flex-direction: column;
   text-align: center;
   padding-top: 120px;
 }
+/* content grows to fill the space above the ticker and centres within it */
 .hero .wrap {
   position: relative;
   z-index: 2;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+/* ticker sits full-bleed at the base of the hero */
+.hero .mq {
+  flex: 0 0 auto;
+  width: 100%;
 }
 .hero .eyebrow {
   display: inline-flex;
@@ -413,6 +424,44 @@ nav ul a:hover {
 @media (prefers-reduced-motion: reduce) {
   .mq .track {
     animation: none;
+  }
+}
+
+/* ===== Lenis smooth scroll + scroll-depth =================================
+   Lenis toggles the .lenis / .lenis-smooth / .lenis-stopped classes on <html>.
+   The first rule blocks the site is:inline smooth-scroll so Lenis can drive it,
+   the last locks scroll while stopped (used under the preloader cover). */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
+/* Sections recede as they leave the viewport centre and rise forward as they
+   enter — depth is driven per frame from main.js via the --ds/--dy/--do custom
+   props. Applied to inner content only, so full-bleed bands/borders stay
+   seamless. The .depth-on opt-in class is never added under reduced motion. */
+html.depth-on section > .wrap {
+  transform: translate3d(0, var(--dy, 0), 0) scale(var(--ds, 1));
+  opacity: var(--do, 1);
+  transform-origin: 50% 50%;
+  will-change: transform, opacity;
+}
+@media (prefers-reduced-motion: reduce) {
+  html.depth-on section > .wrap {
+    transform: none;
+    opacity: 1;
   }
 }
 
@@ -1106,7 +1155,7 @@ footer {
     padding: 0 20px;
   }
   section {
-    padding: 88px 0;
+    padding: 120px 0;
   }
   .flav-grid,
   .why-grid {

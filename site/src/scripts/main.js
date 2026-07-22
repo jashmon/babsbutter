@@ -1,3 +1,5 @@
+import Lenis from 'lenis';
+
 // Concept 7 · "Butter Playground" behaviour.
 // Everything here is transform/opacity only and degrades cleanly:
 //  - reveal-on-scroll (.rv -> .in), with an in-viewport "no-anim" fast path
@@ -9,16 +11,96 @@
 
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+// ---- Lenis smooth scroll + scroll-linked depth -----------------------------
+// Native scroll stays the fallback: under reduced motion we skip Lenis and the
+// depth effect entirely, and CSS html{scroll-behavior:smooth} keeps anchor nav
+// pleasant. With motion allowed, Lenis eases the wheel/scroll, and each
+// section's inner content recedes (scale + fade + lift) as it passes above the
+// viewport centre while incoming content rises forward into place — so outgoing
+// sections fall back as new ones come to the front. The transform is applied to
+// the inner `.wrap` only, leaving the full-bleed section bands/borders seamless.
+let lenis = null;
+if (!reduce) {
+  lenis = new Lenis({ lerp: 0.12, wheelMultiplier: 1, smoothWheel: true });
+  const raf = (t) => {
+    lenis.raf(t);
+    requestAnimationFrame(raf);
+  };
+  requestAnimationFrame(raf);
+
+  // In-page anchors glide via Lenis instead of the native hash jump. The ids
+  // live on the <section>/<header> bands (never on the transformed .wrap), so
+  // scrollTo targets stay accurate.
+  document.querySelectorAll('a[href^="#"]').forEach((a) => {
+    a.addEventListener('click', (e) => {
+      const id = a.getAttribute('href');
+      if (id === '#') return;
+      const target = id === '#top' ? 0 : document.querySelector(id);
+      if (target === null) return;
+      e.preventDefault();
+      lenis.scrollTo(target, { offset: -12, duration: 1.1 });
+    });
+  });
+
+  // Depth: per-frame scale/fade/lift keyed off each block's distance from the
+  // viewport centre. Positions come from offsetTop/offsetHeight (layout metrics
+  // unaffected by transforms), so measuring can't feed back into the transform.
+  const items = [...document.querySelectorAll('section > .wrap')].map((el) => ({ el, top: 0, h: 0 }));
+  if (items.length) {
+    document.documentElement.classList.add('depth-on');
+    const measure = () => {
+      for (const it of items) {
+        let node = it.el,
+          y = 0;
+        it.h = it.el.offsetHeight;
+        while (node) {
+          y += node.offsetTop;
+          node = node.offsetParent;
+        }
+        it.top = y;
+      }
+    };
+    const update = () => {
+      const vc = innerHeight / 2,
+        sc = window.scrollY;
+      for (const it of items) {
+        let n = (it.top - sc + it.h / 2 - vc) / innerHeight;
+        n = n < -1 ? -1 : n > 1 ? 1 : n;
+        const a0 = Math.abs(n),
+          a = a0 * a0 * (3 - 2 * a0), // smoothstep so the centre band stays crisp
+          s = it.el.style;
+        s.setProperty('--ds', (1 - 0.12 * a).toFixed(4)); // scale → 0.88 at the edges
+        s.setProperty('--do', (1 - 0.5 * a).toFixed(4)); // opacity → 0.5 at the edges
+        s.setProperty('--dy', (n * 36).toFixed(2) + 'px'); // parallax lift, signed by side
+      }
+    };
+    measure();
+    update();
+    lenis.on('scroll', update);
+    addEventListener('resize', () => {
+      measure();
+      update();
+    });
+    // Late layout shifts (fonts, lazy images) move the anchors — remeasure once loaded.
+    addEventListener('load', () => {
+      measure();
+      update();
+    });
+  }
+}
+
 // ---- preloader ("churning…") ------------------------------------------------
 // Adds `loaded` to <html> so the CSS sweeps the cover up, then removes the node.
 // Under reduced motion the blocking full-viewport cover is removed outright.
 const preloader = document.getElementById('preloader');
 if (preloader) {
+  lenis?.stop(); // hold scroll under the cover while the churn plays
   let done = false;
   const finish = () => {
     if (done) return;
     done = true;
     document.documentElement.classList.add('loaded');
+    lenis?.start(); // hand scrolling back once the cover sweeps up
     if (reduce) {
       preloader.remove();
       return;
