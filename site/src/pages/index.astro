@@ -10,6 +10,11 @@ import RecipeCard from '../components/RecipeCard.astro';
 import { flavours } from '../data/flavours';
 import { why } from '../data/why';
 import { recipes } from '../data/recipes';
+import { testimonials } from '../data/testimonials';
+
+// Split into three columns for the auto-scrolling marquee. Each column's cards
+// are duplicated in the markup below so the vertical loop is seamless.
+const tCols = [testimonials.slice(0, 3), testimonials.slice(3, 6), testimonials.slice(6, 9)];
 ---
 <BaseLayout title="Babs Butter · Big Butter Energy">
   <!-- HERO -->
@@ -117,13 +122,31 @@ import { recipes } from '../data/recipes';
   </section>
 
   <!-- TESTIMONIALS -->
-  <section class="quotes">
+  <section class="quotes" aria-labelledby="quotes-heading">
     <div class="wrap">
-      <h2 class="rv">The group chat says</h2>
-      <div class="q-grid">
-        <div class="q-card rv"><blockquote>&ldquo;The berry whipped one disappeared in a day. A single day.&rdquo;</blockquote><cite>Meera Krishnan<span>Bengaluru</span></cite></div>
-        <div class="q-card rv"><blockquote>&ldquo;Our croissants have never laminated better. The unsalted is a workhorse.&rdquo;</blockquote><cite>Arjun Mehta<span>head baker, Fig &amp; Flour</span></cite></div>
-        <div class="q-card rv"><blockquote>&ldquo;The plant-based churn is the first one my dairy-free kid and I can share.&rdquo;</blockquote><cite>Ines Fernandes<span>food writer, Goa</span></cite></div>
+      <div class="q-head rv">
+        <span class="eyebrow">🧈 the group chat</span>
+        <h2 id="quotes-heading">Buttered up, in their own words</h2>
+        <p>Bakers, breakfast people and one dad who reads every label — here's what the churn does for them.</p>
+      </div>
+      <div class="q-cols" role="region" aria-label="Scrolling testimonials">
+        {tCols.map((col, c) => (
+          <div class={`q-col q-col-${c + 1}`}>
+            <ul class="q-track">
+              {[0, 1].map((dup) =>
+                col.map((t) => (
+                  <li class="q-card" aria-hidden={dup === 1 ? 'true' : 'false'}>
+                    <blockquote>{t.text}</blockquote>
+                    <figure class="q-who">
+                      <img src={t.image} alt={`Photo of ${t.name}`} width="44" height="44" loading="lazy" />
+                      <figcaption><cite>{t.name}<span>{t.role}</span></cite></figcaption>
+                    </figure>
+                  </li>
+                ))
+              )}
+            </ul>
+          </div>
+        ))}
       </div>
     </div>
   </section>

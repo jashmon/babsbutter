@@ -724,22 +724,88 @@ nav ul a:hover {
   font-size: 14px;
 }
 
-/* testimonials */
+/* testimonials — three auto-scrolling columns of avatar quote cards */
 .quotes {
   background: var(--butter);
   border-top: 3px solid var(--dark-choc);
   border-bottom: 3px solid var(--dark-choc);
+  overflow: hidden;
 }
-.quotes h2 {
+.q-head {
+  max-width: 620px;
+  margin: 0 auto 56px;
   text-align: center;
+}
+.q-head .eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: var(--flour);
+  border: 2px solid var(--dark-choc);
+  border-radius: 30px;
+  padding: 8px 18px;
+  margin-bottom: 24px;
+  box-shadow: 3px 3px 0 var(--dark-choc);
+}
+.q-head h2 {
   font-size: clamp(34px, 4.6vw, 64px);
-  margin-bottom: 56px;
 }
-.q-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+.q-head p {
+  margin-top: 18px;
+  font-size: 18px;
+  color: rgba(47, 29, 15, 0.7);
+}
+
+/* columns: masked, clipped viewport; each column scrolls on its own clock */
+.q-cols {
+  display: flex;
+  justify-content: center;
   gap: 24px;
+  max-height: 720px;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
 }
+.q-col {
+  width: 340px;
+  flex: 0 0 auto;
+}
+.q-col-2 {
+  display: none;
+}
+.q-col-3 {
+  display: none;
+}
+.q-track {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  list-style: none;
+  padding-bottom: 24px; /* keeps the seam gap even across the -50% loop */
+  animation: q-scroll var(--dur, 40s) linear infinite;
+}
+.q-col-1 .q-track {
+  --dur: 38s;
+}
+.q-col-2 .q-track {
+  --dur: 48s;
+}
+.q-col-3 .q-track {
+  --dur: 43s;
+}
+.q-cols:hover .q-track {
+  animation-play-state: paused;
+}
+@keyframes q-scroll {
+  to {
+    transform: translateY(-50%);
+  }
+}
+
 .q-card {
   background: var(--flour);
   border: 2px solid var(--dark-choc);
@@ -757,9 +823,22 @@ nav ul a:hover {
   font-size: 19px;
   line-height: 1.5;
 }
+.q-who {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 24px;
+}
+.q-who img {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--dark-choc);
+  box-shadow: 2px 2px 0 var(--dark-choc);
+}
 .q-card cite {
   display: block;
-  margin-top: 20px;
   font-style: normal;
   font-weight: 800;
   font-size: 14px;
@@ -773,6 +852,34 @@ nav ul a:hover {
   letter-spacing: 0;
   color: rgba(47, 29, 15, 0.65);
   margin-top: 2px;
+}
+
+@media (min-width: 900px) {
+  .q-col-2 {
+    display: block;
+  }
+}
+@media (min-width: 1140px) {
+  .q-col-3 {
+    display: block;
+  }
+}
+
+/* Motion-off: freeze the loop and reveal the full stack without a fade mask
+   so no card is trapped mid-scroll. */
+@media (prefers-reduced-motion: reduce) {
+  .q-track {
+    animation: none;
+  }
+  .q-cols {
+    -webkit-mask-image: none;
+    mask-image: none;
+    max-height: none;
+    flex-wrap: wrap;
+  }
+  .q-card[aria-hidden='true'] {
+    display: none;
+  }
 }
 
 /* awards + retail */
@@ -984,8 +1091,7 @@ footer {
     display: none;
   }
   .flav-grid,
-  .why-grid,
-  .q-grid {
+  .why-grid {
     grid-template-columns: 1fr 1fr;
   }
   .gal-grid {
@@ -1003,8 +1109,7 @@ footer {
     padding: 88px 0;
   }
   .flav-grid,
-  .why-grid,
-  .q-grid {
+  .why-grid {
     grid-template-columns: 1fr;
   }
   .gal-grid {
