@@ -225,3 +225,25 @@ if (!reduce) {
     });
   });
 }
+
+// ---- pause videos when off-screen (perf) -----------------------------------
+// Background videos are cheap once compressed, but decoding several at once
+// while Lenis drives the scroll-depth effect is what makes scrolling feel
+// heavy. Only play a video while it's actually on screen; pause the rest.
+const vids = document.querySelectorAll('video[autoplay]');
+if (vids.length && 'IntersectionObserver' in window) {
+  const vio = new IntersectionObserver(
+    (entries) =>
+      entries.forEach((e) => {
+        const v = e.target;
+        if (e.isIntersecting) {
+          const p = v.play();
+          if (p && p.catch) p.catch(() => {});
+        } else {
+          v.pause();
+        }
+      }),
+    { threshold: 0.2 }
+  );
+  vids.forEach((v) => vio.observe(v));
+}

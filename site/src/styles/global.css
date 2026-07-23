@@ -1377,7 +1377,7 @@ details {
   border-radius: 20px;
   overflow: hidden;
   box-shadow: 4px 4px 0 var(--dark-choc);
-  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s, background 0.45s ease;
 }
 details:hover {
   transform: translate(-2px, -2px);
@@ -1410,22 +1410,31 @@ summary .x {
 details[open] summary .x {
   transform: rotate(135deg);
 }
-/* animated reveal: grid-rows trick so height eases from 0 to auto */
+/* animated reveal: grid-rows trick so height eases from 0 to auto. Longer,
+   gently-eased so the panel glides rather than snaps. */
 details .a {
   display: grid;
   grid-template-rows: 0fr;
-  transition: grid-template-rows 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: grid-template-rows 0.55s cubic-bezier(0.22, 1, 0.36, 1);
 }
 details[open] .a {
   grid-template-rows: 1fr;
 }
+/* the answer text fades and slides in slightly after the panel starts opening
+   (and out first on close) for a softer, delayed feel */
 details .a p {
   overflow: hidden;
   padding: 0 26px;
   color: rgba(47, 29, 15, 0.78);
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: opacity 0.4s ease, transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), padding 0.5s ease;
 }
 details[open] .a p {
+  opacity: 1;
+  transform: translateY(0);
   padding-bottom: 22px;
+  transition: opacity 0.45s ease 0.12s, transform 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.12s, padding 0.5s ease;
 }
 @media (prefers-reduced-motion: reduce) {
   details .a {
