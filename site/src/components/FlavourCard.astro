@@ -1,15 +1,13 @@
 ---
 import type { Flavour } from '../data/flavours';
 type Props = Flavour;
-const { tone, name, tagline, img, alt } = Astro.props;
+const { tone, shape, name, tagline, img, alt } = Astro.props;
 ---
 <article class={`flav ${tone} rv`}>
-  <div class="ph"><img src={img} alt={alt} loading="lazy" /></div>
+  <div class="ph" style={`--shape:url('${shape}')`}><img src={img} alt={alt} loading="lazy" /></div>
   <div class="meta">
-    <div>
-      <h3>{name}</h3>
-      <span class="serif">{tagline}</span>
-    </div>
+    <h3>{name}</h3>
+    <span class="serif">{tagline}</span>
     <span class="chip"></span>
   </div>
 </article>

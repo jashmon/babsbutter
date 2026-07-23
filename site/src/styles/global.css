@@ -11,6 +11,16 @@
 }
 html {
   scroll-behavior: smooth;
+  /* Keep the vertical scrollbar always present so it never appears/disappears.
+     The preloader no longer toggles it (scroll is held by Lenis, not by an
+     overflow change), so the centered cover can't reflow sideways as it
+     sweeps up. */
+  overflow-y: scroll;
+}
+/* Keep the arrow cursor constant everywhere — including over text (no I-beam).
+   Only interactive elements switch to the hand pointer (see rule below). */
+body {
+  cursor: default;
 }
 body {
   font-family: 'Public Sans', sans-serif;
@@ -74,7 +84,7 @@ h3 {
   position: fixed;
   inset: 0;
   z-index: 9999;
-  background: var(--dark-choc);
+  background: var(--butter);
   will-change: transform;
 }
 /* convex "butter-drip" skirt below the cover — becomes the curved reveal edge */
@@ -85,22 +95,22 @@ h3 {
   left: 0;
   width: 100%;
   height: 14vh;
-  background: var(--dark-choc);
+  background: var(--butter);
   border-radius: 0 0 50% 50% / 0 0 100% 100%;
 }
 .pl-inner {
   text-align: center;
 }
 .preloader .mark {
-  width: 96px;
-  height: 96px;
+  width: 150px;
+  height: 150px;
   margin: 0 auto;
-  animation: spin 1.15s linear infinite;
+  animation: spin 8s linear infinite;
 }
 .preloader .churn {
   margin-top: 24px;
   font-family: 'Roketto', sans-serif;
-  color: var(--butter);
+  color: var(--tangerine);
   font-size: 22px;
   letter-spacing: 0.04em;
 }
@@ -128,10 +138,10 @@ h3 {
   transition: transform 1s cubic-bezier(0.76, 0, 0.24, 1);
   pointer-events: none;
 }
-/* lock scroll while the cover is up */
-.js:not(.loaded) {
-  overflow: hidden;
-}
+/* Scroll while the cover is up is held by Lenis (lenis.stop() in main.js). We
+   deliberately do NOT set overflow:hidden/clip here — any of those drop the
+   scrollbar, and its width change would reflow the centered cover sideways as
+   it sweeps up. html{overflow-y:scroll} keeps the bar present throughout. */
 @media (prefers-reduced-motion: reduce) {
   .preloader .mark,
   .preloader .churn .d {
@@ -190,8 +200,8 @@ nav .bar {
   align-items: center;
   justify-content: space-between;
   background: var(--flour);
-  border: 2px solid var(--dark-choc);
-  box-shadow: 5px 5px 0 var(--dark-choc);
+  border: 2px solid var(--tangerine);
+  box-shadow: 5px 5px 0 var(--tangerine);
 }
 nav .logo img {
   height: 26px;
@@ -209,7 +219,8 @@ nav ul a {
   transition: background 0.25s, color 0.25s, transform 0.25s;
 }
 nav ul a:hover {
-  background: var(--butterfly-pea);
+  background: var(--tangerine);
+  color: var(--flour);
   transform: translateY(-2px);
 }
 .btn {
@@ -288,6 +299,9 @@ nav ul a:hover {
   flex-direction: column;
   text-align: center;
   padding-top: 120px;
+  /* sits above the About section so the tilted marquee at the hero's base
+     paints over the pulled-up video rather than being covered by it */
+  z-index: 2;
 }
 /* content grows to fill the space above the ticker and centres within it */
 .hero .wrap {
@@ -388,7 +402,8 @@ nav ul a:hover {
   }
 }
 
-/* marquee */
+/* marquee — tilted sticker-tape bands. `.tilt-l`/.`tilt-r` lean the band a
+   touch either way; scale keeps the rotated corners off-canvas. */
 .mq {
   background: var(--dark-choc);
   color: var(--butter);
@@ -396,6 +411,18 @@ nav ul a:hover {
   padding: 16px 0;
   border-top: 3px solid var(--dark-choc);
   border-bottom: 3px solid var(--dark-choc);
+}
+.mq.tilt-l {
+  transform: rotate(-1.4deg) scale(1.03);
+}
+.mq.tilt-r {
+  transform: rotate(1.4deg) scale(1.03);
+}
+/* stand-alone band (not inside the hero) needs breathing room for the tilt */
+.mq.solo {
+  margin: -28px 0 0;
+  position: relative;
+  z-index: 2;
 }
 .mq .track {
   display: flex;
@@ -465,25 +492,83 @@ html.depth-on section > .wrap {
   }
 }
 
-/* about */
+/* ===== wave section breaks (Brand Elements – Shapes, Element 5) ============
+   Every straight section border is replaced by the brand's scalloped wave.
+   `.wv::before` paints a strip at the top of the lower section in the colour
+   of the section above (--wv-c), masked so its bottom edge is the wave —
+   reading as the upper section dipping into the lower one. */
+.wv::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 0;
+  width: 100%;
+  height: 42px;
+  background: var(--wv-c, var(--flour));
+  -webkit-mask: url('/assets/shapes/wave-divider.svg') repeat-x top / 140px 42px;
+  mask: url('/assets/shapes/wave-divider.svg') repeat-x top / 140px 42px;
+  transform: scaleY(-1);
+  z-index: 2;
+  pointer-events: none;
+}
+section > .wrap {
+  position: relative;
+  z-index: 1;
+}
+
+/* about — looping butter-scrape video background. Pulled up under the tilted
+   hero marquee so the video meets it flush (the rotation would otherwise leave
+   a thin flour wedge above the video). */
 .about {
   text-align: center;
+  overflow: hidden;
+  padding: 220px 0;
+  margin-top: -30px;
+}
+.about .bgvid {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+.about .scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(rgba(47, 29, 15, 0.6), rgba(47, 29, 15, 0.45));
+}
+/* flour wave cut along the video's bottom edge (into the flavours section) */
+.about::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  height: 42px;
+  background: var(--flour);
+  -webkit-mask: url('/assets/shapes/wave-divider.svg') repeat-x bottom / 140px 42px;
+  mask: url('/assets/shapes/wave-divider.svg') repeat-x bottom / 140px 42px;
+  z-index: 2;
+  pointer-events: none;
 }
 .about h2 {
   font-size: clamp(36px, 5vw, 72px);
   max-width: 20ch;
   margin: 0 auto;
+  color: var(--flour);
 }
 .about h2 em {
   font-family: 'Miller Text', serif;
   font-style: italic;
-  color: var(--tangerine);
+  color: var(--biscuit);
 }
 .about p {
   margin: 24px auto 0;
   font-size: 19px;
   max-width: 50ch;
-  color: rgba(47, 29, 15, 0.75);
+  color: rgba(252, 247, 235, 0.85);
 }
 
 /* flavours (products) */
@@ -501,41 +586,53 @@ html.depth-on section > .wrap {
 }
 .flav-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 28px;
 }
+/* Card is now open (no box) — the brand-shape holds the packaging photo, so the
+   silhouette itself reads as the flavour's "player token". */
 .flav {
-  border: 2px solid var(--dark-choc);
-  border-radius: 32px;
-  overflow: hidden;
-  background: var(--flour);
-  box-shadow: 6px 6px 0 var(--dark-choc);
-  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s;
+  text-align: center;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .flav:hover {
-  transform: translate(-3px, -3px) rotate(-1deg);
-  box-shadow: 9px 9px 0 var(--dark-choc);
+  transform: translateY(-8px);
 }
+/* the shape-masked photo well */
 .flav .ph {
   aspect-ratio: 1;
-  overflow: hidden;
-  border-bottom: 2px solid var(--dark-choc);
+  display: grid;
+  place-items: center;
+  -webkit-mask: var(--shape) center / 100% 100% no-repeat;
+  mask: var(--shape) center / 100% 100% no-repeat;
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.flav.c1 .ph {
+  background: var(--butter);
+}
+.flav.c2 .ph {
+  background: var(--butterfly-pea);
+}
+.flav.c3 .ph {
+  background: var(--biscuit);
+}
+.flav.c4 .ph {
+  background: var(--matcha);
+}
+.flav:hover .ph {
+  transform: rotate(-4deg) scale(1.03);
 }
 .flav .ph img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  width: 86%;
+  height: auto;
   transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .flav:hover .ph img {
-  transform: scale(1.08) rotate(1deg);
+  transform: scale(1.06);
 }
 .flav .meta {
-  padding: 24px 26px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  margin-top: 18px;
+  position: relative;
 }
 .flav .meta h3 {
   font-size: 24px;
@@ -544,39 +641,33 @@ html.depth-on section > .wrap {
   font-size: 15px;
   color: var(--coffee-bean);
   display: block;
-  margin-top: 2px;
+  margin-top: 4px;
 }
 .flav .chip {
-  width: 34px;
-  height: 34px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   border: 2px solid var(--dark-choc);
-  flex: none;
-}
-.flav.c1 {
-  background: var(--butter);
+  display: inline-block;
+  margin-top: 12px;
 }
 .flav.c1 .chip {
   background: var(--tangerine);
 }
-.flav.c2 {
-  background: var(--butterfly-pea);
-}
 .flav.c2 .chip {
   background: var(--blueberry);
 }
-.flav.c3 {
-  background: var(--biscuit);
-}
 .flav.c3 .chip {
+  background: var(--matcha);
+}
+.flav.c4 .chip {
   background: var(--raspberry);
 }
 
-/* why  -  bouncy icon tiles */
+/* why  -  bouncy icon tiles. Section breaks are the brand wave (.wv), so no
+   straight borders here. */
 .why {
   background: var(--butterfly-pea);
-  border-top: 3px solid var(--dark-choc);
-  border-bottom: 3px solid var(--dark-choc);
 }
 .why h2 {
   text-align: center;
@@ -616,6 +707,52 @@ html.depth-on section > .wrap {
 .why-card p {
   color: rgba(47, 29, 15, 0.72);
   font-size: 16px;
+}
+
+/* how it's churned — photo steps (more photography, concept-8 style) */
+.made {
+  text-align: center;
+}
+.made h2 {
+  font-size: clamp(34px, 4.6vw, 64px);
+  margin-bottom: 56px;
+}
+.made-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+  text-align: left;
+}
+.made-step .n {
+  font-family: 'Roketto', sans-serif;
+  font-size: 15px;
+  color: var(--tangerine);
+  letter-spacing: 0.08em;
+}
+.made-step .ph {
+  border: 2px solid var(--dark-choc);
+  border-radius: 22px;
+  overflow: hidden;
+  aspect-ratio: 4/3;
+  margin: 14px 0 20px;
+  box-shadow: 5px 5px 0 var(--dark-choc);
+}
+.made-step .ph img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.made-step:hover .ph img {
+  transform: scale(1.06);
+}
+.made-step h3 {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+.made-step p {
+  color: rgba(47, 29, 15, 0.7);
+  font-size: 15px;
 }
 
 /* count-up numbers */
@@ -703,12 +840,11 @@ html.depth-on section > .wrap {
   color: var(--coffee-bean);
 }
 
-/* ingredients playful */
+/* ingredients — floating playground */
 .ing {
   background: var(--biscuit);
-  border-top: 3px solid var(--dark-choc);
-  border-bottom: 3px solid var(--dark-choc);
   text-align: center;
+  overflow: hidden;
 }
 .ing h2 {
   font-size: clamp(34px, 4.6vw, 64px);
@@ -717,68 +853,145 @@ html.depth-on section > .wrap {
 .ing .lead {
   color: rgba(47, 29, 15, 0.78);
   max-width: 40ch;
-  margin: 0 auto 48px;
+  margin: 0 auto 64px;
   font-size: 18px;
 }
-.ing-pills {
+/* the three "real" ingredients sit on a stage and drift gently */
+.ing-stage {
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 20px;
+  position: relative;
+  z-index: 1;
 }
-.ing-pills .pill {
+.ing-stage .pill {
   display: flex;
   align-items: center;
   gap: 12px;
   background: var(--flour);
   border: 2px solid var(--dark-choc);
   border-radius: 40px;
-  padding: 14px 26px;
+  padding: 16px 30px;
   font-family: 'Roketto', sans-serif;
-  font-size: 20px;
+  font-size: 22px;
   box-shadow: 4px 4px 0 var(--dark-choc);
   transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-.ing-pills .pill:hover {
-  transform: translateY(-4px) rotate(-2deg);
+.ing-stage .pill img {
+  width: 40px;
+  height: 40px;
 }
-.ing-pills .pill img {
-  width: 36px;
-  height: 36px;
+.ing-stage .p1 {
+  animation: floaty 5.5s ease-in-out infinite;
+}
+.ing-stage .p2 {
+  animation: floaty 6.5s ease-in-out infinite 0.4s;
+}
+.ing-stage .p3 {
+  animation: floaty 5s ease-in-out infinite 0.8s;
+}
+.ing-stage .pill:hover {
+  transform: translateY(-8px) rotate(-2deg) scale(1.04);
+}
+/* decorative illustrations floating around behind the pills */
+.ing-float {
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.9;
+}
+.ing-float img {
+  width: 100%;
+  height: 100%;
+}
+.ing-float.i1 {
+  width: 90px;
+  height: 90px;
+  top: 20%;
+  left: 8%;
+  animation: floaty 7s ease-in-out infinite;
+}
+.ing-float.i2 {
+  width: 74px;
+  height: 74px;
+  top: 30%;
+  right: 10%;
+  animation: floaty 6s ease-in-out infinite 0.5s;
+}
+.ing-float.i3 {
+  width: 64px;
+  height: 64px;
+  bottom: 22%;
+  left: 16%;
+  animation: floaty 8s ease-in-out infinite 0.3s;
+}
+.ing-float.i4 {
+  width: 88px;
+  height: 88px;
+  bottom: 18%;
+  right: 18%;
+  animation: floaty 6.8s ease-in-out infinite 0.9s;
+}
+.ing-float.i5 {
+  width: 58px;
+  height: 58px;
+  top: 14%;
+  left: 44%;
+  animation: floaty 5.6s ease-in-out infinite 0.2s;
+}
+@keyframes floaty {
+  0%, 100% {
+    transform: translateY(0) rotate(-3deg);
+  }
+  50% {
+    transform: translateY(-22px) rotate(3deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ing-stage .pill,
+  .ing-float {
+    animation: none !important;
+  }
 }
 
-/* video */
-.vid .frame {
-  border: 3px solid var(--dark-choc);
-  border-radius: 36px;
-  overflow: hidden;
-  box-shadow: 8px 8px 0 var(--dark-choc);
+/* video — fills the whole section, no white space */
+.vid {
+  padding: 0;
+  height: 92vh;
   position: relative;
+  overflow: hidden;
+  border-top: none;
 }
 .vid video {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  height: 66vh;
+  height: 100%;
   object-fit: cover;
   display: block;
 }
 .vid .tag {
   position: absolute;
-  left: 20px;
-  bottom: 20px;
+  left: 32px;
+  bottom: 32px;
+  z-index: 2;
   background: var(--butter);
   border: 2px solid var(--dark-choc);
   border-radius: 30px;
-  padding: 10px 20px;
+  padding: 12px 24px;
   font-weight: 800;
-  font-size: 14px;
+  font-size: 15px;
+  box-shadow: 4px 4px 0 var(--dark-choc);
 }
 
-/* testimonials — three auto-scrolling columns of avatar quote cards */
+/* testimonials — three auto-scrolling columns of avatar quote cards. Pulled up
+   under the tilted banner reprise so its butter fills behind the banner's lean
+   (no flour wedge / white space), with the banner painting on top. */
 .quotes {
   background: var(--butter);
-  border-top: 3px solid var(--dark-choc);
-  border-bottom: 3px solid var(--dark-choc);
   overflow: hidden;
+  margin-top: -30px;
 }
 .q-head {
   max-width: 620px;
@@ -856,17 +1069,30 @@ html.depth-on section > .wrap {
 }
 
 .q-card {
+  position: relative;
   background: var(--flour);
   border: 2px solid var(--dark-choc);
   border-radius: 26px;
   padding: 32px;
+  overflow: hidden;
   box-shadow: 5px 5px 0 var(--dark-choc);
   transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .q-card:hover {
   transform: translateY(-5px) rotate(-1deg);
 }
+/* brand-element shape watermark in the corner of each review card */
+.q-card .q-shape {
+  position: absolute;
+  top: -22px;
+  right: -22px;
+  width: 96px;
+  height: 96px;
+  opacity: 0.16;
+  pointer-events: none;
+}
 .q-card blockquote {
+  position: relative;
   font-family: 'Miller Text', serif;
   font-style: italic;
   font-size: 19px;
@@ -878,13 +1104,20 @@ html.depth-on section > .wrap {
   gap: 14px;
   margin-top: 24px;
 }
-.q-who img {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
+/* avatar masked into a brand-element shape */
+.q-ava {
+  width: 52px;
+  height: 52px;
+  flex: none;
+  display: block;
+  background: var(--biscuit);
+  -webkit-mask: var(--shape) center / 100% 100% no-repeat;
+  mask: var(--shape) center / 100% 100% no-repeat;
+}
+.q-ava img {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  border: 2px solid var(--dark-choc);
-  box-shadow: 2px 2px 0 var(--dark-choc);
 }
 .q-card cite {
   display: block;
@@ -934,6 +1167,7 @@ html.depth-on section > .wrap {
 /* awards + retail */
 .shelf {
   text-align: center;
+  background: var(--butter);
 }
 .shelf h2 {
   font-size: clamp(30px, 4vw, 52px);
@@ -982,6 +1216,101 @@ html.depth-on section > .wrap {
   font-family: 'Roketto', sans-serif;
   font-size: 16px;
 }
+/* quick-commerce (Zepto + Blinkit) — delivered in minutes */
+.retail .quick {
+  margin-bottom: 28px;
+}
+.retail .quick .qcom {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--flour);
+  border: 2px solid var(--dark-choc);
+  border-radius: 18px;
+  padding: 14px 24px;
+  box-shadow: 4px 4px 0 var(--dark-choc);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
+}
+.retail .quick .qcom:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 var(--dark-choc);
+}
+.retail .quick .qcom img {
+  height: 26px;
+  width: auto;
+}
+.retail .quick .qcom img.bl {
+  height: 34px;
+}
+.retail .quick .qcom span {
+  font-family: 'Roketto', sans-serif;
+  font-size: 20px;
+  color: #f8cb46;
+  -webkit-text-stroke: 0.6px var(--dark-choc);
+  letter-spacing: -0.01em;
+}
+
+/* full-bleed photo panel (more photography, concept-8 style) */
+.ipanel {
+  padding: 0;
+  position: relative;
+  height: 88vh;
+  min-height: 520px;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+.ipanel > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* wave down into the FAQ (butterfly-pea) at the base of the photo panel */
+.ipanel::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  height: 42px;
+  background: var(--butterfly-pea);
+  -webkit-mask: url('/assets/shapes/wave-divider.svg') repeat-x bottom / 140px 42px;
+  mask: url('/assets/shapes/wave-divider.svg') repeat-x bottom / 140px 42px;
+  z-index: 2;
+  pointer-events: none;
+}
+.ipanel .scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(47, 29, 15, 0.78), transparent 62%);
+}
+.ipanel .txt {
+  position: relative;
+  z-index: 2;
+  padding: 64px;
+  color: var(--flour);
+  max-width: 640px;
+}
+.ipanel .idx {
+  font-size: 13px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--biscuit);
+  font-weight: 800;
+}
+.ipanel h3 {
+  font-size: clamp(38px, 6vw, 84px);
+  color: var(--flour);
+  margin-top: 12px;
+}
+.ipanel p {
+  margin-top: 16px;
+  font-size: 18px;
+  color: rgba(252, 247, 235, 0.9);
+  max-width: 44ch;
+}
 
 /* gallery */
 .gal-grid {
@@ -1009,27 +1338,53 @@ html.depth-on section > .wrap {
   object-fit: cover;
 }
 
-/* faq */
+/* faq — two-column layout, animated open/close */
 .faq {
   background: var(--butterfly-pea);
-  border-top: 3px solid var(--dark-choc);
 }
-.faq .inner {
-  max-width: 820px;
-  margin: 0 auto;
+.faq-grid {
+  display: grid;
+  grid-template-columns: 0.85fr 1.15fr;
+  gap: 64px;
+  align-items: start;
 }
-.faq h2 {
-  text-align: center;
-  font-size: clamp(30px, 4vw, 56px);
-  margin-bottom: 44px;
+.faq-side {
+  position: sticky;
+  top: 120px;
+}
+.faq-side h2 {
+  font-size: clamp(34px, 4.4vw, 64px);
+  margin-bottom: 18px;
+}
+.faq-side p {
+  color: rgba(47, 29, 15, 0.72);
+  font-size: 18px;
+  max-width: 34ch;
+}
+.faq-side .faq-illus {
+  width: 96px;
+  height: 96px;
+  margin-top: 36px;
+  animation: bob 5s ease-in-out infinite alternate;
+}
+.faq-list {
+  display: grid;
+  gap: 14px;
 }
 details {
   background: var(--flour);
   border: 2px solid var(--dark-choc);
   border-radius: 20px;
-  margin-bottom: 14px;
   overflow: hidden;
   box-shadow: 4px 4px 0 var(--dark-choc);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s;
+}
+details:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 var(--dark-choc);
+}
+details[open] {
+  background: var(--butter);
 }
 summary {
   cursor: pointer;
@@ -1037,6 +1392,7 @@ summary {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 20px;
   padding: 22px 26px;
   font-weight: 800;
   font-size: 17px;
@@ -1046,34 +1402,70 @@ summary::-webkit-details-marker {
 }
 summary .x {
   font-family: 'Roketto', sans-serif;
-  font-size: 24px;
+  font-size: 26px;
   color: var(--tangerine);
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  flex: none;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 details[open] summary .x {
   transform: rotate(135deg);
 }
-details p {
-  padding: 0 26px 22px;
-  color: rgba(47, 29, 15, 0.75);
+/* animated reveal: grid-rows trick so height eases from 0 to auto */
+details .a {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+details[open] .a {
+  grid-template-rows: 1fr;
+}
+details .a p {
+  overflow: hidden;
+  padding: 0 26px;
+  color: rgba(47, 29, 15, 0.78);
+}
+details[open] .a p {
+  padding-bottom: 22px;
+}
+@media (prefers-reduced-motion: reduce) {
+  details .a {
+    transition: none;
+  }
+  .faq-side .faq-illus {
+    animation: none;
+  }
 }
 
-/* CTA */
+/* CTA — full-bleed tangerine (concept 2) */
 .cta {
-  text-align: center;
-}
-.cta .card {
   background: var(--tangerine);
-  border: 3px solid var(--dark-choc);
-  border-radius: 44px;
-  padding: 88px 40px;
-  box-shadow: 10px 10px 0 var(--dark-choc);
-  position: relative;
+  color: var(--flour);
+  text-align: center;
   overflow: hidden;
 }
+.cta .q,
+.cta .f {
+  position: absolute;
+  pointer-events: none;
+}
+.cta .q {
+  width: 340px;
+  left: -110px;
+  top: -80px;
+  opacity: 0.35;
+  animation: bob 12s ease-in-out infinite alternate;
+}
+.cta .f {
+  width: 280px;
+  right: -90px;
+  bottom: -70px;
+  opacity: 0.35;
+  animation: bob 15s ease-in-out infinite alternate-reverse;
+}
 .cta h2 {
-  font-size: clamp(40px, 6vw, 92px);
+  font-size: clamp(44px, 7vw, 104px);
   color: var(--flour);
+  position: relative;
 }
 .cta h2 em {
   font-family: 'Miller Text', serif;
@@ -1081,9 +1473,9 @@ details p {
   color: var(--dark-choc);
 }
 .cta p {
-  margin: 20px auto 36px;
+  margin: 24px auto 44px;
   color: rgba(252, 247, 235, 0.92);
-  max-width: 38ch;
+  max-width: 40ch;
   font-size: 19px;
   position: relative;
   z-index: 2;
@@ -1093,8 +1485,12 @@ details p {
 footer {
   background: var(--dark-choc);
   color: var(--flour);
-  padding: 72px 0 40px;
-  border-top: 3px solid var(--dark-choc);
+  padding: 96px 0 40px;
+  position: relative;
+}
+footer .wrap {
+  position: relative;
+  z-index: 1;
 }
 .f-grid {
   display: grid;
@@ -1139,15 +1535,28 @@ footer {
   nav ul {
     display: none;
   }
-  .flav-grid,
+  .flav-grid {
+    grid-template-columns: 1fr 1fr;
+  }
   .why-grid {
     grid-template-columns: 1fr 1fr;
+  }
+  .made-grid {
+    grid-template-columns: 1fr;
+    gap: 40px;
   }
   .gal-grid {
     grid-template-columns: 1fr 1fr;
   }
   .f-grid {
     grid-template-columns: 1fr 1fr;
+  }
+  .faq-grid {
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+  .faq-side {
+    position: static;
   }
 }
 @media (max-width: 600px) {
@@ -1184,4 +1593,23 @@ footer {
   .hero .float-i {
     display: none;
   }
+  .ipanel .txt {
+    padding: 32px 24px;
+  }
+  .vid {
+    height: 70vh;
+  }
+}
+
+/* Keep the brand cursor over interactive elements too (pointer as fallback if
+   the image fails to load). Appended last so it wins over earlier
+   cursor:pointer declarations. */
+/* the hand pointer, only on interactive elements */
+a,
+button,
+.btn,
+summary,
+[role='button'],
+label {
+  cursor: pointer;
 }
