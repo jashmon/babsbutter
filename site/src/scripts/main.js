@@ -230,6 +230,10 @@ if (!reduce) {
 // Background videos are cheap once compressed, but decoding several at once
 // while Lenis drives the scroll-depth effect is what makes scrolling feel
 // heavy. Only play a video while it's actually on screen; pause the rest.
+// rootMargin gives a buffer so Lenis's inertia settling right at the 0.2
+// boundary doesn't repeatedly pause/resume the same video — each restart of
+// decode was showing as a visible dark flash. The paused/playing guards avoid
+// redundant play()/pause() calls when the state hasn't actually changed.
 const vids = document.querySelectorAll('video[autoplay]');
 if (vids.length && 'IntersectionObserver' in window) {
   const vio = new IntersectionObserver(
@@ -237,13 +241,29 @@ if (vids.length && 'IntersectionObserver' in window) {
       entries.forEach((e) => {
         const v = e.target;
         if (e.isIntersecting) {
-          const p = v.play();
-          if (p && p.catch) p.catch(() => {});
-        } else {
+          if (v.paused) {
+            const p = v.play();
+            if (p && p.catch) p.catch(() => {});
+          }
+        } else if (!v.paused) {
           v.pause();
         }
       }),
-    { threshold: 0.2 }
+    { threshold: 0.2, rootMargin: '200px 0px' }
   );
   vids.forEach((v) => vio.observe(v));
 }
+
+// ---- manual seamless loop -----------------------------------------------
+// The native `loop` attribute was showing a brief dark flash at the restart
+// point on some setups — the browser treats the loop boundary similarly to a
+// fresh load and can momentarily re-buffer even for tiny, fully-preloaded
+// files. Restarting manually on 'ended', a beat before frame 0, avoids that
+// hand-off hitch entirely.
+vids.forEach((v) => {
+  v.addEventListener('ended', () => {
+    v.currentTime = 0.01;
+    const p = v.play();
+    if (p && p.catch) p.catch(() => {});
+  });
+});

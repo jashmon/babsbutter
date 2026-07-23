@@ -9,6 +9,16 @@
   padding: 0;
   box-sizing: border-box;
 }
+/* Materiality tokens — soft, warm-tinted shadows and a calm ease replace the
+   hard offset drop-shadows + overshoot-bounce that read as generic/templated.
+   Borders drop to a faint warm hairline; elevation is carried by shadow. */
+:root {
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --sh-sm: 0 4px 16px -8px rgba(47, 29, 15, 0.22), 0 1px 2px rgba(47, 29, 15, 0.06);
+  --sh-md: 0 16px 36px -14px rgba(47, 29, 15, 0.24), 0 2px 6px rgba(47, 29, 15, 0.07);
+  --sh-lg: 0 34px 64px -24px rgba(47, 29, 15, 0.30), 0 4px 10px rgba(47, 29, 15, 0.08);
+  --hair: 1px solid rgba(47, 29, 15, 0.12);
+}
 html {
   scroll-behavior: smooth;
   /* Keep the vertical scrollbar always present so it never appears/disappears.
@@ -153,18 +163,36 @@ h3 {
   }
 }
 
-/* soft cursor blob */
+/* soft cursor blob. Softness comes from the gradient's own falloff, not a
+   CSS `filter: blur()` — a filter forces a separate GPU compositing layer,
+   and that layer's blur was bleeding through the anti-aliased edges of the
+   wave-divider masks wherever the cursor passed near a section seam. */
+/* Composited ON TOP of the page (not behind it) via mix-blend-mode, so it
+   tints whatever is already rendered there instead of relying on section
+   transparency to "peek through". That was the real, root cause of the wave
+   seam artifact: any patch of the page the blob rendered BEHIND that wasn't
+   fully opaque (a wave mask's transparent cutout, a section with no declared
+   background) let the blob's glow bleed through in a hard, mask-shaped patch.
+   Rendering above everything and blending removes that dependency entirely —
+   the glow is now visually consistent everywhere, waves included, with
+   nothing to patch section-by-section. */
 #blob {
   position: fixed;
   top: 0;
   left: 0;
-  width: 340px;
-  height: 340px;
+  width: 400px;
+  height: 400px;
   border-radius: 50%;
   pointer-events: none;
-  z-index: 0;
-  background: radial-gradient(circle, rgba(248, 198, 125, 0.55), transparent 68%);
-  filter: blur(10px);
+  z-index: 40;
+  mix-blend-mode: screen;
+  background: radial-gradient(
+    circle,
+    rgba(248, 198, 125, 0.4) 0%,
+    rgba(248, 198, 125, 0.22) 30%,
+    rgba(248, 198, 125, 0.08) 50%,
+    transparent 72%
+  );
   transform: translate(-50%, -50%);
   transition: opacity 0.4s;
   will-change: transform;
@@ -200,8 +228,8 @@ nav .bar {
   align-items: center;
   justify-content: space-between;
   background: var(--flour);
-  border: 2px solid var(--tangerine);
-  box-shadow: 5px 5px 0 var(--tangerine);
+  border: 1.5px solid var(--tangerine);
+  box-shadow: var(--sh-sm);
 }
 nav .logo img {
   height: 26px;
@@ -232,18 +260,18 @@ nav ul a:hover {
   border-radius: 40px;
   background: var(--tangerine);
   color: var(--dark-choc);
-  border: 2px solid var(--dark-choc);
-  box-shadow: 4px 4px 0 var(--dark-choc);
-  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s;
+  border: var(--hair);
+  box-shadow: var(--sh-sm);
+  transition: transform 0.18s var(--ease), box-shadow 0.18s;
   cursor: pointer;
 }
 .btn:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 6px 6px 0 var(--dark-choc);
+  transform: translateY(-2px);
+  box-shadow: var(--sh-md);
 }
 .btn:active {
-  transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0 var(--dark-choc);
+  transform: translateY(0);
+  box-shadow: var(--sh-sm);
 }
 .btn.small {
   padding: 10px 20px;
@@ -327,11 +355,11 @@ nav ul a:hover {
   letter-spacing: 0.04em;
   text-transform: uppercase;
   background: var(--butter);
-  border: 2px solid var(--dark-choc);
+  border: var(--hair);
   border-radius: 30px;
   padding: 8px 18px;
   margin-bottom: 28px;
-  box-shadow: 3px 3px 0 var(--dark-choc);
+  box-shadow: var(--sh-sm);
 }
 .hero h1 {
   font-size: clamp(56px, 10vw, 150px);
@@ -497,6 +525,20 @@ html.depth-on section > .wrap {
    `.wv::before` paints a strip at the top of the lower section in the colour
    of the section above (--wv-c), masked so its bottom edge is the wave —
    reading as the upper section dipping into the lower one. */
+/* waved sections overlap the previous one by 1px so no sub-pixel seam can open
+   between the two full-width bands during smooth-scroll repaints */
+.wv {
+  margin-top: -1px;
+  /* Opaque fallback so the wave mask's transparent trough cutouts reveal a
+     solid colour instead of the page's fixed cursor glow bleeding through in
+     a hard, wave-shaped patch. Sections with their own colour (why, ing,
+     shelf, faq, cta, footer) override this further down the sheet — same
+     specificity, later wins. Sections that rely on this fallback (stats, the
+     gallery) simply get flour, matching what they'd show anyway; the ambient
+     cursor glow is intentionally left visible on every OTHER (non-wv)
+     section, so this fix is scoped rather than page-wide. */
+  background: var(--flour);
+}
 .wv::before {
   content: '';
   position: absolute;
@@ -505,9 +547,11 @@ html.depth-on section > .wrap {
   width: 100%;
   height: 42px;
   background: var(--wv-c, var(--flour));
-  -webkit-mask: url('/assets/shapes/wave-divider.svg') repeat-x top / 140px 42px;
-  mask: url('/assets/shapes/wave-divider.svg') repeat-x top / 140px 42px;
-  transform: scaleY(-1);
+  /* pre-flipped wave (solid top, wavy bottom) so no scaleY(-1) transform is
+     needed — the transform promoted this strip to its own layer, which is what
+     flickered a hairline at the divider while scrolling */
+  -webkit-mask: url('/assets/shapes/wave-down.svg') repeat-x top / 140px 42px;
+  mask: url('/assets/shapes/wave-down.svg') repeat-x top / 140px 42px;
   z-index: 2;
   pointer-events: none;
 }
@@ -523,7 +567,13 @@ section > .wrap {
   text-align: center;
   overflow: hidden;
   padding: 220px 0;
-  margin-top: -30px;
+  /* Pulled up under the tilted hero marquee. The marquee's rotation lifts its
+     visual edges by an amount proportional to viewport width (roughly
+     halfWidth * sin(1.4deg)), so a small fixed offset was only safe on
+     narrower screens — on wide monitors the edges dipped further than the
+     pull-up covered, reopening a flour-coloured gap. -110px comfortably
+     covers rotation dip even on 5K-class widths. */
+  margin-top: -110px;
 }
 .about .bgvid {
   position: absolute;
@@ -532,6 +582,10 @@ section > .wrap {
   height: 100%;
   object-fit: cover;
   z-index: 0;
+  /* slight extra zoom so the frame always overflows its own box a bit, a
+     safety margin against the pull-up above and any sub-pixel rounding */
+  transform: scale(1.08);
+  transform-origin: center;
 }
 .about .scrim {
   position: absolute;
@@ -593,7 +647,7 @@ section > .wrap {
    silhouette itself reads as the flavour's "player token". */
 .flav {
   text-align: center;
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.3s var(--ease);
 }
 .flav:hover {
   transform: translateY(-8px);
@@ -605,7 +659,7 @@ section > .wrap {
   place-items: center;
   -webkit-mask: var(--shape) center / 100% 100% no-repeat;
   mask: var(--shape) center / 100% 100% no-repeat;
-  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.5s var(--ease);
 }
 .flav.c1 .ph {
   background: var(--butter);
@@ -625,7 +679,7 @@ section > .wrap {
 .flav .ph img {
   width: 86%;
   height: auto;
-  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.5s var(--ease);
 }
 .flav:hover .ph img {
   transform: scale(1.06);
@@ -647,7 +701,7 @@ section > .wrap {
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  border: 2px solid var(--dark-choc);
+  border: var(--hair);
   display: inline-block;
   margin-top: 12px;
 }
@@ -681,21 +735,21 @@ section > .wrap {
 }
 .why-card {
   background: var(--flour);
-  border: 2px solid var(--dark-choc);
+  border: var(--hair);
   border-radius: 28px;
   padding: 36px;
   text-align: center;
-  box-shadow: 5px 5px 0 var(--dark-choc);
-  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: var(--sh-md);
+  transition: transform 0.25s var(--ease);
 }
 .why-card:hover {
-  transform: translateY(-6px) rotate(1deg);
+  transform: translateY(-6px);
 }
 .why-card .ic {
   width: 88px;
   height: 88px;
   margin: 0 auto 20px;
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.3s var(--ease);
 }
 .why-card:hover .ic {
   transform: scale(1.12) rotate(-8deg);
@@ -730,12 +784,12 @@ section > .wrap {
   letter-spacing: 0.08em;
 }
 .made-step .ph {
-  border: 2px solid var(--dark-choc);
+  border: var(--hair);
   border-radius: 22px;
   overflow: hidden;
   aspect-ratio: 4/3;
   margin: 14px 0 20px;
-  box-shadow: 5px 5px 0 var(--dark-choc);
+  box-shadow: var(--sh-md);
 }
 .made-step .ph img {
   width: 100%;
@@ -806,13 +860,13 @@ section > .wrap {
 }
 .r-card {
   scroll-snap-align: center;
-  border: 2px solid var(--dark-choc);
+  border: var(--hair);
   border-radius: 28px;
   overflow: hidden;
   position: relative;
   aspect-ratio: 3/4;
-  box-shadow: 5px 5px 0 var(--dark-choc);
-  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: var(--sh-md);
+  transition: transform 0.25s var(--ease);
 }
 .r-card:hover {
   transform: translateY(-6px);
@@ -828,7 +882,7 @@ section > .wrap {
   right: 12px;
   bottom: 12px;
   background: var(--flour);
-  border: 2px solid var(--dark-choc);
+  border: var(--hair);
   border-radius: 18px;
   padding: 14px 18px;
 }
@@ -870,13 +924,13 @@ section > .wrap {
   align-items: center;
   gap: 12px;
   background: var(--flour);
-  border: 2px solid var(--dark-choc);
+  border: var(--hair);
   border-radius: 40px;
   padding: 16px 30px;
   font-family: 'Roketto', sans-serif;
   font-size: 22px;
-  box-shadow: 4px 4px 0 var(--dark-choc);
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: var(--sh-sm);
+  transition: transform 0.2s var(--ease);
 }
 .ing-stage .pill img {
   width: 40px;
@@ -892,7 +946,7 @@ section > .wrap {
   animation: floaty 5s ease-in-out infinite 0.8s;
 }
 .ing-stage .pill:hover {
-  transform: translateY(-8px) rotate(-2deg) scale(1.04);
+  transform: translateY(-6px) scale(1.02);
 }
 /* decorative illustrations floating around behind the pills */
 .ing-float {
@@ -977,12 +1031,12 @@ section > .wrap {
   bottom: 32px;
   z-index: 2;
   background: var(--butter);
-  border: 2px solid var(--dark-choc);
+  border: var(--hair);
   border-radius: 30px;
   padding: 12px 24px;
   font-weight: 800;
   font-size: 15px;
-  box-shadow: 4px 4px 0 var(--dark-choc);
+  box-shadow: var(--sh-sm);
 }
 
 /* testimonials — three auto-scrolling columns of avatar quote cards. Pulled up
@@ -1007,11 +1061,11 @@ section > .wrap {
   letter-spacing: 0.04em;
   text-transform: uppercase;
   background: var(--flour);
-  border: 2px solid var(--dark-choc);
+  border: var(--hair);
   border-radius: 30px;
   padding: 8px 18px;
   margin-bottom: 24px;
-  box-shadow: 3px 3px 0 var(--dark-choc);
+  box-shadow: var(--sh-sm);
 }
 .q-head h2 {
   font-size: clamp(34px, 4.6vw, 64px);
@@ -1071,15 +1125,15 @@ section > .wrap {
 .q-card {
   position: relative;
   background: var(--flour);
-  border: 2px solid var(--dark-choc);
+  border: var(--hair);
   border-radius: 26px;
   padding: 32px;
   overflow: hidden;
-  box-shadow: 5px 5px 0 var(--dark-choc);
-  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: var(--sh-md);
+  transition: transform 0.25s var(--ease);
 }
 .q-card:hover {
-  transform: translateY(-5px) rotate(-1deg);
+  transform: translateY(-5px);
 }
 /* brand-element shape watermark in the corner of each review card */
 .q-card .q-shape {
@@ -1185,10 +1239,10 @@ section > .wrap {
   flex-direction: column;
   gap: 4px;
   background: var(--flour);
-  border: 2px solid var(--dark-choc);
+  border: var(--hair);
   border-radius: 24px;
   padding: 20px 28px;
-  box-shadow: 4px 4px 0 var(--dark-choc);
+  box-shadow: var(--sh-sm);
 }
 .badges .b .yr {
   font-family: 'Roketto', sans-serif;
@@ -1210,7 +1264,7 @@ section > .wrap {
   gap: 12px;
 }
 .retail .row span {
-  border: 2px solid var(--dark-choc);
+  border: var(--hair);
   border-radius: 30px;
   padding: 11px 22px;
   font-family: 'Roketto', sans-serif;
@@ -1225,15 +1279,15 @@ section > .wrap {
   align-items: center;
   gap: 10px;
   background: var(--flour);
-  border: 2px solid var(--dark-choc);
+  border: var(--hair);
   border-radius: 18px;
   padding: 14px 24px;
-  box-shadow: 4px 4px 0 var(--dark-choc);
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
+  box-shadow: var(--sh-sm);
+  transition: transform 0.2s var(--ease), box-shadow 0.2s;
 }
 .retail .quick .qcom:hover {
   transform: translate(-2px, -2px);
-  box-shadow: 6px 6px 0 var(--dark-choc);
+  box-shadow: var(--sh-md);
 }
 .retail .quick .qcom img {
   height: 26px;
@@ -1319,18 +1373,18 @@ section > .wrap {
   gap: 16px;
 }
 .gal-grid .g {
-  border: 2px solid var(--dark-choc);
+  border: var(--hair);
   border-radius: 22px;
   overflow: hidden;
   aspect-ratio: 1;
-  box-shadow: 4px 4px 0 var(--dark-choc);
-  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: var(--sh-sm);
+  transition: transform 0.25s var(--ease);
 }
 .gal-grid .g:nth-child(even) {
   transform: translateY(20px);
 }
 .gal-grid .g:hover {
-  transform: translateY(-4px) rotate(-2deg);
+  transform: translateY(-4px);
 }
 .gal-grid img {
   width: 100%;
@@ -1373,15 +1427,15 @@ section > .wrap {
 }
 details {
   background: var(--flour);
-  border: 2px solid var(--dark-choc);
+  border: var(--hair);
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: 4px 4px 0 var(--dark-choc);
-  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s, background 0.45s ease;
+  box-shadow: var(--sh-sm);
+  transition: transform 0.25s var(--ease), box-shadow 0.25s, background 0.45s ease;
 }
 details:hover {
   transform: translate(-2px, -2px);
-  box-shadow: 6px 6px 0 var(--dark-choc);
+  box-shadow: var(--sh-md);
 }
 details[open] {
   background: var(--butter);
@@ -1405,7 +1459,7 @@ summary .x {
   font-size: 26px;
   color: var(--tangerine);
   flex: none;
-  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.35s var(--ease);
 }
 details[open] summary .x {
   transform: rotate(135deg);
@@ -1457,18 +1511,24 @@ details[open] .a p {
   position: absolute;
   pointer-events: none;
 }
+/* Both shapes sit fully inside the card now (was bleeding past the section's
+   own edge). overflow:hidden always clips to a straight rectangle, and this
+   section's top and bottom neighbours are wave dividers — a shape clipped
+   flat right where the boundary curves looked like a jagged, unfinished cut.
+   Keeping clearance (plus the small bob range) means nothing ever crosses
+   into a wave zone to be clipped in the first place. */
 .cta .q {
-  width: 340px;
-  left: -110px;
-  top: -80px;
-  opacity: 0.35;
+  width: 300px;
+  left: -40px;
+  top: 30px;
+  opacity: 0.3;
   animation: bob 12s ease-in-out infinite alternate;
 }
 .cta .f {
-  width: 280px;
-  right: -90px;
-  bottom: -70px;
-  opacity: 0.35;
+  width: 240px;
+  right: -20px;
+  bottom: 40px;
+  opacity: 0.3;
   animation: bob 15s ease-in-out infinite alternate-reverse;
 }
 .cta h2 {
@@ -1496,6 +1556,14 @@ footer {
   color: var(--flour);
   padding: 96px 0 40px;
   position: relative;
+  isolation: isolate;
+}
+/* `footer` is an element selector (specificity 0,1) which the .wv class
+   selector's flour fallback (specificity 1,0) always beats regardless of
+   source order — that's what was silently overriding footer's own dark-choc
+   background. This compound selector matches the class specificity to win. */
+footer.wv {
+  background: var(--dark-choc);
 }
 footer .wrap {
   position: relative;
