@@ -300,9 +300,17 @@ nav ul {
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
+  /* Sized to its content, not to the space left of `left:50%`. Without this an
+     absolutely-positioned box shrink-to-fits into (container − 450px), which
+     drops to 450px once the bar contracts on scroll — narrower than the links
+     need, so labels wrapped onto two lines mid-transition. */
+  width: max-content;
   display: flex;
   gap: 8px;
   list-style: none;
+}
+nav ul a {
+  white-space: nowrap; /* a label must never split across lines */
 }
 /* shared pill indicator — position/width driven by main.js (Motion One),
    left as inline 0/0 until JS sets a real target so it never flashes at the
@@ -1914,6 +1922,7 @@ html.nav-locked body {
     top: calc(100% + 10px);
     left: 0;
     right: 0;
+    width: auto; /* the panel spans the bar; max-content is desktop-only */
     transform: translateY(-8px) scale(0.98);
     transform-origin: top center;
     flex-direction: column;
