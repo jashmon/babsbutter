@@ -14,6 +14,7 @@
    Borders drop to a faint warm hairline; elevation is carried by shadow. */
 :root {
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --nav-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --sh-sm: 0 4px 16px -8px rgba(47, 29, 15, 0.22), 0 1px 2px rgba(47, 29, 15, 0.06);
   --sh-md: 0 16px 36px -14px rgba(47, 29, 15, 0.24), 0 2px 6px rgba(47, 29, 15, 0.07);
   --sh-lg: 0 34px 64px -24px rgba(47, 29, 15, 0.30), 0 4px 10px rgba(47, 29, 15, 0.08);
@@ -218,38 +219,133 @@ nav {
   justify-content: center;
   padding: 0 20px;
 }
+/* ===== scroll-reactive navbar ===========================================
+   At the top the bar is taller and airier with the full lockup (icon +
+   "babs"). Once scrolled, `.navbar--scrolled` (set from main.js) shrinks the
+   height ~18%, tightens padding, eases the logo down a touch and fades the
+   wordmark out so only the icon remains. The wordmark keeps its layout box
+   while fading, so the centred nav links never move — no layout shift. */
 nav .bar {
+  position: relative;
   width: 100%;
   max-width: 1280px;
-  height: 64px;
+  height: 78px;
   border-radius: 40px;
-  padding: 0 12px 0 26px;
+  padding: 0 14px 0 28px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: var(--flour);
-  border: 1.5px solid var(--tangerine);
+  background: rgba(252, 247, 235, 0.82);
+  -webkit-backdrop-filter: blur(10px) saturate(150%);
+  backdrop-filter: blur(10px) saturate(150%);
+  border: 1px solid rgba(233, 98, 36, 0.55);
+  box-shadow: none;
+  transition: max-width 0.5s var(--nav-ease), height 0.5s var(--nav-ease),
+    padding 0.5s var(--nav-ease), background 0.5s var(--nav-ease),
+    box-shadow 0.5s var(--nav-ease), -webkit-backdrop-filter 0.5s var(--nav-ease),
+    backdrop-filter 0.5s var(--nav-ease);
+}
+/* the bar contracts inward to a compact centred pill (the dominant move in the
+   reference), with a slighter height reduction alongside it */
+nav.navbar--scrolled .bar {
+  max-width: 900px;
+  height: 66px;
+  padding: 0 12px 0 24px;
+  background: rgba(252, 247, 235, 0.92);
+  -webkit-backdrop-filter: blur(18px) saturate(170%);
+  backdrop-filter: blur(18px) saturate(170%);
   box-shadow: var(--sh-sm);
 }
-nav .logo img {
-  height: 26px;
+nav .logo {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  transform-origin: left center;
+  transition: transform 0.4s var(--nav-ease);
 }
+nav.navbar--scrolled .logo {
+  transform: scale(0.92);
+}
+nav .logo-icon {
+  height: 30px;
+  width: auto;
+  flex: none;
+}
+/* the "babs" wordmark — fades and slides out on scroll. Its layout box is
+   deliberately left in place (no width/margin animation) so nothing else in
+   the bar shifts when it goes. */
+nav .logo-word {
+  height: 23px;
+  width: auto;
+  flex: none;
+  transform-origin: left center;
+  transition: opacity 0.35s var(--nav-ease), transform 0.4s var(--nav-ease);
+}
+nav.navbar--scrolled .logo-word {
+  opacity: 0;
+  transform: translateX(-6px) scale(0.94);
+}
+@media (prefers-reduced-motion: reduce) {
+  nav .bar,
+  nav .logo,
+  nav .logo-word {
+    transition: none;
+  }
+}
+/* Centred on the bar (not laid out by space-between) so that when the bar
+   contracts on scroll the links stay pinned to the same screen position —
+   the bar narrows around them, exactly like the reference. */
 nav ul {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
   display: flex;
   gap: 8px;
   list-style: none;
 }
+/* shared pill indicator — position/width driven by main.js (Motion One),
+   left as inline 0/0 until JS sets a real target so it never flashes at the
+   wrong spot before the first measurement */
+.nav-pill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 0;
+  border-radius: 999px;
+  background: rgba(233, 98, 36, 0.14);
+  border: 1px solid rgba(233, 98, 36, 0.4);
+  box-shadow: var(--sh-sm);
+  pointer-events: none;
+  opacity: 0;
+  z-index: 0;
+  will-change: transform, width;
+}
 nav ul a {
+  position: relative;
+  z-index: 1;
   font-size: 14px;
   font-weight: 700;
   padding: 8px 16px;
   border-radius: 30px;
-  transition: background 0.25s, color 0.25s, transform 0.25s;
+  transition: color 0.25s, transform 0.3s var(--ease);
 }
 nav ul a:hover {
-  background: var(--tangerine);
-  color: var(--flour);
+  color: var(--tangerine);
   transform: translateY(-2px);
+}
+nav ul a:active {
+  transform: translateY(-2px) scale(0.97);
+}
+@media (prefers-reduced-motion: reduce) {
+  nav ul a {
+    transition: color 0.25s;
+  }
+  nav ul a:hover,
+  nav ul a:active {
+    transform: none;
+  }
 }
 .btn {
   display: inline-block;
@@ -645,21 +741,34 @@ section > .wrap {
 }
 /* Card is now open (no box) — the brand-shape holds the packaging photo, so the
    silhouette itself reads as the flavour's "player token". */
+/* Hover "pop" (reference-style): the whole card — blob plus its label —
+   inflates to 1.5x as one unit and lifts above its neighbours, which stay
+   perfectly still. Scaling the card rather than just the blob keeps the label
+   correctly placed under the shape at any viewport width, with no hardcoded
+   offsets. The z-index swap is delayed on the way out (0s duration, 0.42s
+   delay) so the card stays on top for the whole shrink-back instead of
+   dropping behind its neighbours mid-animation. */
 .flav {
   text-align: center;
-  transition: transform 0.3s var(--ease);
+  position: relative;
+  z-index: 1;
+  transform-origin: center center;
+  will-change: transform;
+  transition: transform 0.42s var(--ease), z-index 0s linear 0.42s;
 }
 .flav:hover {
-  transform: translateY(-8px);
+  transform: scale(1.5);
+  z-index: 5;
+  transition: transform 0.42s var(--ease), z-index 0s;
 }
-/* the shape-masked photo well */
+/* the shape-masked photo well — scaled by the parent card on hover, so it
+   needs no transform of its own */
 .flav .ph {
   aspect-ratio: 1;
   display: grid;
   place-items: center;
   -webkit-mask: var(--shape) center / 100% 100% no-repeat;
   mask: var(--shape) center / 100% 100% no-repeat;
-  transition: transform 0.5s var(--ease);
 }
 .flav.c1 .ph {
   background: var(--butter);
@@ -673,16 +782,17 @@ section > .wrap {
 .flav.c4 .ph {
   background: var(--matcha);
 }
-.flav:hover .ph {
-  transform: rotate(-4deg) scale(1.03);
-}
 .flav .ph img {
   width: 86%;
   height: auto;
-  transition: transform 0.5s var(--ease);
 }
-.flav:hover .ph img {
-  transform: scale(1.06);
+@media (prefers-reduced-motion: reduce) {
+  .flav {
+    transition: none;
+  }
+  .flav:hover {
+    transform: none;
+  }
 }
 .flav .meta {
   margin-top: 18px;
@@ -860,31 +970,30 @@ section > .wrap {
 }
 .r-card {
   scroll-snap-align: center;
-  border: var(--hair);
-  border-radius: 28px;
-  overflow: hidden;
-  position: relative;
-  aspect-ratio: 3/4;
-  box-shadow: var(--sh-md);
   transition: transform 0.25s var(--ease);
 }
 .r-card:hover {
   transform: translateY(-6px);
 }
-.r-card img {
+/* photo clipped directly into the quatrefoil brand shape (Brand Elements –
+   Shapes), matching the flavour cards' use of shape outlines elsewhere */
+.r-card .ph {
+  aspect-ratio: 1;
+  -webkit-mask: url('/assets/shapes/quatrefoil.svg') center / 100% 100% no-repeat;
+  mask: url('/assets/shapes/quatrefoil.svg') center / 100% 100% no-repeat;
+}
+.r-card .ph img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.5s var(--ease);
+}
+.r-card:hover .ph img {
+  transform: scale(1.06);
 }
 .r-card .cap {
-  position: absolute;
-  left: 12px;
-  right: 12px;
-  bottom: 12px;
-  background: var(--flour);
-  border: var(--hair);
-  border-radius: 18px;
-  padding: 14px 18px;
+  margin-top: 16px;
+  padding: 0 8px;
 }
 .r-card .cap h3 {
   font-size: 19px;

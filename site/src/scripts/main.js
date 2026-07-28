@@ -1,4 +1,5 @@
 import Lenis from 'lenis';
+import { animate } from 'motion';
 
 // Concept 7 · "Butter Playground" behaviour.
 // Everything here is transform/opacity only and degrades cleanly:
@@ -267,3 +268,85 @@ vids.forEach((v) => {
     if (p && p.catch) p.catch(() => {});
   });
 });
+
+// ---- nav pill indicator ------------------------------------------------
+// A single shared pill glides between nav links (hover, keyboard focus, and
+// the last-clicked "active" link) instead of each link getting its own
+// hover background. Position/width are driven by Motion's spring easing for
+// the premium settle-with-a-touch-of-overshoot feel; everything collapses to
+// an instant, non-animated jump under prefers-reduced-motion.
+const navUl = document.querySelector('nav ul');
+const navPill = document.querySelector('.nav-pill');
+if (navUl && navPill) {
+  const navLinks = [...navUl.querySelectorAll('a')];
+  let activeLink = null;
+  let pillShown = false;
+
+  const rectFor = (el) => ({ x: el.offsetLeft, width: el.offsetWidth });
+
+  const movePillTo = (el, instant) => {
+    if (!el) {
+      if (pillShown) {
+        animate(navPill, { opacity: 0 }, { duration: instant || reduce ? 0 : 0.2 });
+        pillShown = false;
+      }
+      return;
+    }
+    const { x, width } = rectFor(el);
+    animate(
+      navPill,
+      { x, width, opacity: 1 },
+      instant || reduce ? { duration: 0 } : { type: 'spring', duration: 0.62, bounce: 0.08 }
+    );
+    pillShown = true;
+  };
+
+  navLinks.forEach((a) => {
+    a.addEventListener('pointerenter', () => movePillTo(a));
+    a.addEventListener('focus', () => movePillTo(a));
+    a.addEventListener('click', () => {
+      activeLink = a;
+    });
+  });
+
+  navUl.addEventListener('pointerleave', () => movePillTo(activeLink));
+  navUl.addEventListener('focusout', (e) => {
+    if (!navUl.contains(e.relatedTarget)) movePillTo(activeLink);
+  });
+
+  // Link positions shift on resize (nav can reflow at narrower widths) —
+  // snap the visible pill back into place without animating the jump.
+  addEventListener('resize', () => {
+    const current = navUl.matches(':hover') ? null : activeLink;
+    if (pillShown) movePillTo(current, true);
+  });
+}
+
+// ---- scroll-reactive navbar --------------------------------------------
+// Toggles a single `.navbar--scrolled` class and lets CSS drive every
+// transition (height, padding, blur, shadow, logo scale, wordmark fade).
+// Reads are rAF-batched and the class is only touched when the state
+// actually flips, so scrolling never thrashes layout.
+const navEl = document.querySelector('nav');
+if (navEl) {
+  const SCROLL_TRIGGER = 12;
+  let navScrolled = null;
+  let navTicking = false;
+
+  const syncNav = () => {
+    navTicking = false;
+    const next = window.scrollY > SCROLL_TRIGGER;
+    if (next === navScrolled) return;
+    navScrolled = next;
+    navEl.classList.toggle('navbar--scrolled', next);
+  };
+
+  const onNavScroll = () => {
+    if (navTicking) return;
+    navTicking = true;
+    requestAnimationFrame(syncNav);
+  };
+
+  syncNav();
+  addEventListener('scroll', onNavScroll, { passive: true });
+}

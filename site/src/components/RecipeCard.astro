@@ -4,7 +4,7 @@ type Props = Recipe;
 const { title, meta, img, alt } = Astro.props;
 ---
 <article class="r-card">
-  <img src={img} alt={alt} loading="lazy" />
+  <div class="ph"><img src={img} alt={alt} loading="lazy" /></div>
   <div class="cap">
     <h3>{title}</h3>
     <span>{meta}</span>

@@ -57,8 +57,12 @@ const {
 
     <nav>
       <div class="bar">
-        <a class="logo" href="#top"><img src="/assets/logos/lockup-tangerine.svg" alt="Babs Butter" /></a>
+        <a class="logo" href="#top" aria-label="Babs Butter">
+          <img class="logo-icon" src="/assets/logos/icon-tangerine.svg" alt="" />
+          <img class="logo-word" src="/assets/logos/primary-tangerine.svg" alt="" />
+        </a>
         <ul>
+          <span class="nav-pill" aria-hidden="true"></span>
           <li><a href="#flavs">Flavours</a></li>
           <li><a href="#why">Why Babs</a></li>
           <li><a href="#recipes">Recipes</a></li>

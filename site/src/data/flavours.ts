@@ -14,7 +14,7 @@ export interface Flavour {
 export const flavours: Flavour[] = [
   {
     tone: 'c1',
-    shape: '/assets/shapes/quatrefoil.svg',
+    shape: '/assets/shapes/ribbed-circle.svg',
     name: 'Classic Salted',
     tagline: 'the everyday hero',
     img: '/assets/img/tubs/tub-salted.jpg',
@@ -30,7 +30,7 @@ export const flavours: Flavour[] = [
   },
   {
     tone: 'c3',
-    shape: '/assets/shapes/butter-curl.svg',
+    shape: '/assets/shapes/ribbed-circle.svg',
     name: 'Plant Based',
     tagline: 'dairy-free, still rich',
     img: '/assets/img/tubs/tub-plant.jpg',
@@ -38,7 +38,7 @@ export const flavours: Flavour[] = [
   },
   {
     tone: 'c4',
-    shape: '/assets/shapes/flower.svg',
+    shape: '/assets/shapes/ribbed-circle.svg',
     name: 'Dairy Free',
     tagline: 'cruelty-free and proud',
     img: '/assets/img/tubs/tub-dairyfree.jpg',
