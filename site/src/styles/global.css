@@ -2247,3 +2247,88 @@ html.nav-locked body {
     display: none;
   }
 }
+
+/* ==========================================================================
+   GSAP ANIMATION SUPPORT
+   Structural hooks only — no colours, type, spacing or layout values here.
+   GSAP owns the motion; these give it something correct to animate against.
+   ========================================================================== */
+
+/* SplitText line wrappers. GSAP sets overflow inline per split; this keeps
+   descenders from being clipped by that mask. */
+.sp-line {
+  display: block;
+  will-change: transform;
+}
+
+/* Button shine sweep (element injected by anim/ui.js so markup is untouched). */
+.btn {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.btn-shine {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 42%;
+  height: 100%;
+  z-index: -1;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-130%);
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.55) 50%,
+    transparent 100%
+  );
+}
+
+/* The nav is transformed by GSAP (hide-on-scroll) — its own transform must not
+   be overwritten by the layout, and it needs its own compositing layer. */
+nav {
+  will-change: transform;
+}
+
+/* Cards tilt in 3D on hover; without a backface/AA hint Safari shows seams on
+   the masked shapes mid-rotation. */
+.flav,
+.why-card,
+.r-card,
+.q-card,
+.pb-ben,
+.pb-use,
+.gal-grid .g {
+  backface-visibility: hidden;
+}
+
+/* GSAP drives card hover entirely, so the CSS hover transforms would fight it.
+   Neutralised only where a pointer exists — touch keeps its CSS press states. */
+@media (hover: hover) and (pointer: fine) {
+  .flav:hover,
+  .why-card:hover,
+  .r-card:hover,
+  .q-card:hover,
+  .gal-grid .g:hover,
+  .pb-ben:hover,
+  .pb-use:hover,
+  .flav:hover .ph,
+  .why-card:hover .ic,
+  .r-card:hover .ph img,
+  .pb-ben:hover .pb-ben-ic,
+  .pb-step:hover .pb-step-ph {
+    transform: none;
+  }
+  .btn:hover,
+  .btn:active {
+    transform: none;
+  }
+}
+
+/* The old CSS scroll-depth driver is superseded by ScrollTrigger; `depth-on`
+   is never applied now, but pin the transform off in case of a stale class. */
+html.depth-on section > .wrap {
+  transform: none;
+  opacity: 1;
+}
