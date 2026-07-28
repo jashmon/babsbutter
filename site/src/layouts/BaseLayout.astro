@@ -61,7 +61,7 @@ const {
           <img class="logo-icon" src="/assets/logos/icon-tangerine.svg" alt="" />
           <img class="logo-word" src="/assets/logos/primary-tangerine.svg" alt="" />
         </a>
-        <ul>
+        <ul id="nav-links">
           <span class="nav-pill" aria-hidden="true"></span>
           <li><a href="#flavs">Flavours</a></li>
           <li><a href="#why">Why Babs</a></li>
@@ -69,6 +69,17 @@ const {
           <li><a href="#faq">FAQ</a></li>
         </ul>
         <a class="btn small" href="#cta">Get Babs</a>
+        <!-- mobile only (hidden ≥1025px); drives the dropdown panel above -->
+        <button
+          id="nav-toggle"
+          class="nav-toggle"
+          type="button"
+          aria-label="Open menu"
+          aria-expanded="false"
+          aria-controls="nav-links"
+        >
+          <span class="nav-toggle-box" aria-hidden="true"><span></span><span></span><span></span></span>
+        </button>
       </div>
     </nav>
 

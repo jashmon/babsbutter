@@ -283,8 +283,12 @@ if (navUl && navPill) {
   let pillShown = false;
 
   const rectFor = (el) => ({ x: el.offsetLeft, width: el.offsetWidth });
+  // the pill is a desktop pointer affordance; below 1025px the links stack
+  // into the mobile panel where a horizontal indicator makes no sense
+  const pillActive = () => matchMedia('(min-width: 1025px)').matches;
 
   const movePillTo = (el, instant) => {
+    if (!pillActive()) return;
     if (!el) {
       if (pillShown) {
         animate(navPill, { opacity: 0 }, { duration: instant || reduce ? 0 : 0.2 });
@@ -349,4 +353,52 @@ if (navEl) {
 
   syncNav();
   addEventListener('scroll', onNavScroll, { passive: true });
+}
+
+// ---- mobile menu --------------------------------------------------------
+// The bar keeps its desktop markup; below 1025px the same <ul> becomes a
+// glass dropdown panel (see global.css) and this toggles `.nav-open` on the
+// <nav>. Scroll is locked while open — both natively and via Lenis, which
+// drives scrolling when motion is allowed.
+const navToggle = document.getElementById('nav-toggle');
+if (navEl && navToggle) {
+  const navLinksEl = document.getElementById('nav-links');
+  const isMobileNav = () => matchMedia('(max-width: 1024px)').matches;
+  let navOpen = false;
+
+  const setNav = (open) => {
+    if (open === navOpen) return;
+    navOpen = open;
+    navEl.classList.toggle('nav-open', open);
+    navToggle.setAttribute('aria-expanded', String(open));
+    navToggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    document.documentElement.classList.toggle('nav-locked', open);
+    if (open) lenis?.stop();
+    else lenis?.start();
+  };
+
+  navToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    setNav(!navOpen);
+  });
+
+  // close after choosing a destination (the anchor scroll still runs)
+  navLinksEl?.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => setNav(false)));
+
+  addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && navOpen) {
+      setNav(false);
+      navToggle.focus();
+    }
+  });
+
+  // tap anywhere outside the bar dismisses the panel
+  addEventListener('click', (e) => {
+    if (navOpen && !navEl.contains(e.target)) setNav(false);
+  });
+
+  // never leave the panel open (or scroll locked) when returning to desktop
+  addEventListener('resize', () => {
+    if (navOpen && !isMobileNav()) setNav(false);
+  });
 }

@@ -1718,9 +1718,6 @@ footer .wrap {
 }
 
 @media (max-width: 1024px) {
-  nav ul {
-    display: none;
-  }
   .flav-grid {
     grid-template-columns: 1fr 1fr;
   }
@@ -1798,4 +1795,348 @@ summary,
 [role='button'],
 label {
   cursor: pointer;
+}
+
+/* ==========================================================================
+   MOBILE / TABLET OPTIMISATION
+   Everything below is scoped to max-width or coarse-pointer queries, so the
+   desktop rendering is untouched. Same palette, type stack, glassmorphism and
+   motion language as desktop — only sizes, stacking and input affordances
+   change.
+   ========================================================================== */
+
+/* ---- hamburger toggle (mobile only) ------------------------------------ */
+.nav-toggle {
+  display: none;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.nav-toggle-box {
+  position: relative;
+  display: block;
+  width: 20px;
+  height: 14px;
+}
+.nav-toggle-box span {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--tangerine);
+  transition: transform 0.38s var(--nav-ease), opacity 0.2s var(--nav-ease);
+}
+.nav-toggle-box span:nth-child(1) {
+  top: 0;
+}
+.nav-toggle-box span:nth-child(2) {
+  top: 6px;
+}
+.nav-toggle-box span:nth-child(3) {
+  top: 12px;
+}
+nav.nav-open .nav-toggle-box span:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+nav.nav-open .nav-toggle-box span:nth-child(2) {
+  opacity: 0;
+}
+nav.nav-open .nav-toggle-box span:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+/* scroll lock while the menu is open (JS also stops Lenis) */
+html.nav-locked,
+html.nav-locked body {
+  overflow: hidden;
+}
+
+@media (max-width: 1024px) {
+  nav {
+    padding: 0 14px;
+  }
+  nav .bar {
+    height: 64px;
+    padding: 0 10px 0 20px;
+  }
+  nav.navbar--scrolled .bar {
+    height: 58px;
+    max-width: none; /* no width contraction on small screens */
+  }
+  .nav-toggle {
+    display: inline-flex;
+    margin-left: 10px;
+  }
+  /* with the links pulled out of the flow, space-between would strand the CTA
+     mid-bar — group it with the toggle on the right instead */
+  nav .bar > .btn.small {
+    margin-left: auto;
+  }
+  .nav-pill {
+    display: none; /* shared pill is a desktop pointer affordance */
+  }
+
+  /* links become a glass dropdown panel under the bar, same material as the
+     bar itself so the premium look carries over */
+  nav ul {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 0;
+    right: 0;
+    transform: translateY(-8px) scale(0.98);
+    transform-origin: top center;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2px;
+    padding: 10px;
+    border-radius: 26px;
+    /* more opaque than the bar: this panel sits over dense hero type, so the
+       links need to stay crisp even where backdrop-filter is unsupported */
+    background: rgba(252, 247, 235, 0.97);
+    -webkit-backdrop-filter: blur(20px) saturate(170%);
+    backdrop-filter: blur(20px) saturate(170%);
+    border: 1px solid rgba(233, 98, 36, 0.55);
+    box-shadow: var(--sh-md);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.32s var(--nav-ease), transform 0.38s var(--nav-ease),
+      visibility 0s linear 0.38s;
+  }
+  nav.nav-open ul {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+    transition: opacity 0.32s var(--nav-ease), transform 0.38s var(--nav-ease), visibility 0s;
+  }
+  nav ul a {
+    display: block;
+    padding: 14px 18px;
+    font-size: 15px;
+    border-radius: 18px;
+    transition: background 0.25s var(--ease), color 0.25s var(--ease);
+  }
+  nav ul a:active {
+    background: rgba(233, 98, 36, 0.12);
+    color: var(--tangerine);
+    transform: none;
+  }
+}
+
+/* ---- layout + rhythm ---------------------------------------------------- */
+@media (max-width: 768px) {
+  section {
+    padding: 104px 0;
+  }
+  .hero {
+    padding-top: 96px;
+  }
+  /* the tilted marquee dips far less at narrow widths, so the About video
+     needs only a small pull-up to stay seamless (‑110px is tuned for desktop) */
+  .about {
+    margin-top: -40px;
+    padding: 132px 0;
+  }
+  .mq span {
+    font-size: 18px;
+    gap: 28px;
+  }
+  .mq .track {
+    gap: 28px;
+  }
+  .mq img {
+    height: 20px;
+  }
+  .made-step .ph {
+    aspect-ratio: 16/10;
+  }
+  .ipanel {
+    height: auto;
+    min-height: 78vh;
+  }
+  .ipanel .txt {
+    padding: 40px 22px;
+  }
+  .cta .q {
+    width: 200px;
+    left: -70px;
+  }
+  .cta .f {
+    width: 170px;
+    right: -55px;
+  }
+  /* decorative floaters shrink rather than disappear, so the section keeps its
+     playful motion without crowding the copy */
+  .ing-float {
+    opacity: 0.5;
+    transform-origin: center;
+  }
+  .ing-float.i1 {
+    width: 56px;
+    height: 56px;
+  }
+  .ing-float.i2 {
+    width: 48px;
+    height: 48px;
+  }
+  .ing-float.i3 {
+    width: 42px;
+    height: 42px;
+  }
+  .ing-float.i4 {
+    width: 54px;
+    height: 54px;
+  }
+  .ing-float.i5 {
+    display: none;
+  }
+  .ing-stage .pill {
+    font-size: 18px;
+    padding: 13px 22px;
+  }
+  .ing-stage .pill img {
+    width: 32px;
+    height: 32px;
+  }
+  .q-card {
+    padding: 26px;
+  }
+  .q-col {
+    width: min(340px, 86vw);
+  }
+  .faq-side {
+    text-align: center;
+  }
+  .faq-side p {
+    margin: 0 auto;
+  }
+  .faq-side .faq-illus {
+    margin: 24px auto 0;
+  }
+}
+
+/* very narrow phones: the bar holds logo + CTA + toggle, so trim each a
+   little rather than dropping any of them */
+@media (max-width: 400px) {
+  nav .bar {
+    padding: 0 8px 0 16px;
+  }
+  nav .logo {
+    gap: 7px;
+  }
+  nav .logo-icon {
+    height: 26px;
+  }
+  nav .logo-word {
+    height: 20px;
+  }
+  .btn.small {
+    padding: 9px 15px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  section {
+    padding: 88px 0;
+  }
+  .about {
+    padding: 112px 0;
+  }
+  .badges .b {
+    width: 100%;
+  }
+  .retail .quick {
+    flex-direction: column;
+    align-items: center;
+  }
+  .retail .quick .qcom {
+    width: 100%;
+    justify-content: center;
+  }
+  .f-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .cta .card,
+  .made-step .ph {
+    border-radius: 24px;
+  }
+}
+
+/* ---- touch input adaptations ------------------------------------------- */
+/* Hover-only affordances are gated to real pointers. On touch, `:hover`
+   sticks after a tap, which would leave a card frozen mid-effect — so those
+   get a press state instead, keeping the same motion language. */
+@media (hover: none) {
+  #blob {
+    display: none; /* cursor glow has no meaning without a cursor */
+  }
+  .flav:hover {
+    transform: none;
+    z-index: 1;
+  }
+  .flav:active {
+    transform: scale(1.04);
+    z-index: 5;
+    transition: transform 0.22s var(--ease), z-index 0s;
+  }
+  .r-card:hover,
+  .why-card:hover,
+  .q-card:hover,
+  .gal-grid .g:hover,
+  .ing-stage .pill:hover,
+  .badges .b:hover,
+  details:hover {
+    transform: none;
+  }
+  .r-card:active,
+  .why-card:active,
+  .q-card:active,
+  .gal-grid .g:active,
+  .ing-stage .pill:active {
+    transform: scale(0.985);
+    transition: transform 0.18s var(--ease);
+  }
+  .btn:hover {
+    transform: none;
+    box-shadow: var(--sh-sm);
+  }
+  .btn:active {
+    transform: scale(0.97);
+    box-shadow: var(--sh-sm);
+  }
+  nav ul a:hover {
+    background: transparent;
+    color: inherit;
+    transform: none;
+  }
+}
+
+/* comfortable tap targets + no tap flash, without touching desktop sizing */
+@media (pointer: coarse) {
+  a,
+  button,
+  summary,
+  .btn,
+  [role='button'] {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  summary {
+    padding: 20px 22px;
+    min-height: 44px;
+  }
+  .retail .row span,
+  .badges .b {
+    min-height: 44px;
+  }
 }
