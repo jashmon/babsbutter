@@ -126,7 +126,7 @@ if (preloader) {
   if (reduce) {
     finish();
   } else {
-    const MIN_MS = 1200; // let the churn play at least this long
+    const MIN_MS = 500; // let the churn play at least this long
     const started = performance.now();
     const go = () => setTimeout(finish, Math.max(0, MIN_MS - (performance.now() - started)));
     if (document.readyState === 'complete') go();
