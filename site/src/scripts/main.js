@@ -222,6 +222,13 @@ if (!reduce) {
         });
     });
     b.addEventListener('pointerleave', () => {
+      // Cancel any frame still queued from the last pointermove — otherwise it
+      // runs after this reset and re-applies the offset, leaving the button
+      // stuck off-centre next to its non-magnetic neighbour.
+      if (pending) {
+        cancelAnimationFrame(pending);
+        pending = null;
+      }
       b.style.transform = '';
     });
   });

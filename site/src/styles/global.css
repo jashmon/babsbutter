@@ -9,16 +9,20 @@
   padding: 0;
   box-sizing: border-box;
 }
-/* Materiality tokens — soft, warm-tinted shadows and a calm ease replace the
-   hard offset drop-shadows + overshoot-bounce that read as generic/templated.
-   Borders drop to a faint warm hairline; elevation is carried by shadow. */
+/* Materiality tokens. Each elevation pairs a solid offset "lift" — the layered
+   3D depth the cards had in the early iterations — with a soft ambient shadow
+   underneath it. The offset is tinted and semi-transparent rather than the
+   original hard black, so the dimensionality comes back without returning to
+   the flat sticker outline that read as templated. Every surface on the site
+   draws from these three tokens, so depth stays consistent (and adjustable)
+   in one place. */
 :root {
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
   --nav-ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --sh-sm: 0 4px 16px -8px rgba(47, 29, 15, 0.22), 0 1px 2px rgba(47, 29, 15, 0.06);
-  --sh-md: 0 16px 36px -14px rgba(47, 29, 15, 0.24), 0 2px 6px rgba(47, 29, 15, 0.07);
-  --sh-lg: 0 34px 64px -24px rgba(47, 29, 15, 0.30), 0 4px 10px rgba(47, 29, 15, 0.08);
-  --hair: 1px solid rgba(47, 29, 15, 0.12);
+  --sh-sm: 3px 3px 0 rgba(47, 29, 15, 0.16), 0 6px 16px -8px rgba(47, 29, 15, 0.2);
+  --sh-md: 5px 6px 0 rgba(47, 29, 15, 0.18), 0 16px 34px -14px rgba(47, 29, 15, 0.24);
+  --sh-lg: 8px 10px 0 rgba(47, 29, 15, 0.2), 0 34px 60px -24px rgba(47, 29, 15, 0.28);
+  --hair: 1px solid rgba(47, 29, 15, 0.18);
 }
 html {
   scroll-behavior: smooth;
@@ -2194,5 +2198,52 @@ html.nav-locked body {
   .retail .row span,
   .badges .b {
     min-height: 44px;
+  }
+}
+
+/* ---- short viewports ----------------------------------------------------
+   The hero needs ~700px of height to seat its content above the ticker. On a
+   laptop with several browser toolbars the viewport drops below that, which
+   squeezed the CTA row down against (or past) the fold. These compact the
+   hero's vertical rhythm by height only, so viewports tall enough to render
+   the design as drawn are untouched. */
+@media (max-height: 780px) {
+  .hero {
+    padding-top: 96px;
+  }
+  .hero .eyebrow {
+    margin-bottom: 18px;
+  }
+  .hero h1 {
+    font-size: clamp(44px, 7.6vw, 104px);
+  }
+  .hero p {
+    margin: 18px auto 28px;
+    font-size: 18px;
+  }
+}
+@media (max-height: 640px) {
+  .hero {
+    padding-top: 82px;
+  }
+  .hero .eyebrow {
+    margin-bottom: 12px;
+    font-size: 12px;
+    padding: 6px 15px;
+  }
+  .hero h1 {
+    font-size: clamp(34px, 6vw, 76px);
+  }
+  .hero p {
+    margin: 13px auto 20px;
+    font-size: 16px;
+    max-width: 52ch;
+  }
+  .hero .cta-row .btn {
+    padding: 11px 22px;
+    font-size: 14px;
+  }
+  .hero .float-i {
+    display: none;
   }
 }
