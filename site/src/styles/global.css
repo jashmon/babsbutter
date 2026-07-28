@@ -1749,7 +1749,8 @@ footer .wrap {
   section {
     padding: 120px 0;
   }
-  .flav-grid,
+  /* the why cards are text-heavy so they stack, but the flavour tubs stay
+     two-up — full width made each blob far too large on a phone */
   .why-grid {
     grid-template-columns: 1fr;
   }
@@ -1868,9 +1869,30 @@ html.nav-locked body {
     height: 64px;
     padding: 0 10px 0 20px;
   }
+  /* Scrolled on mobile: drop to the smallest useful bar — the CTA collapses
+     away (it's still reachable from the menu and the page's own CTA section)
+     leaving just the mark and the toggle, and the pill narrows where there's
+     room to. min() keeps it full-bleed on phones and a compact centred pill on
+     tablets, so it never looks stranded. */
   nav.navbar--scrolled .bar {
-    height: 58px;
-    max-width: none; /* no width contraction on small screens */
+    height: 52px;
+    max-width: min(100%, 440px);
+  }
+  nav .bar > .btn.small {
+    max-width: 220px;
+    overflow: hidden;
+    white-space: nowrap;
+    transition: opacity 0.28s var(--nav-ease), transform 0.34s var(--nav-ease),
+      max-width 0.42s var(--nav-ease), padding 0.42s var(--nav-ease);
+  }
+  nav.navbar--scrolled .bar > .btn.small {
+    opacity: 0;
+    transform: scale(0.9);
+    max-width: 0;
+    padding-left: 0;
+    padding-right: 0;
+    border-width: 0;
+    pointer-events: none;
   }
   .nav-toggle {
     display: inline-flex;
@@ -1957,6 +1979,31 @@ html.nav-locked body {
   }
   .made-step .ph {
     aspect-ratio: 16/10;
+  }
+  /* flavour tubs: two-up with tighter gutters and proportionally smaller
+     labels, so the blobs read as product cards rather than full-bleed images */
+  .flav-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 18px 16px;
+  }
+  .flav .ph {
+    width: 88%;
+    margin: 0 auto;
+  }
+  .flav .meta {
+    margin-top: 12px;
+  }
+  .flav .meta h3 {
+    font-size: 19px;
+  }
+  .flav .meta .serif {
+    font-size: 13px;
+    margin-top: 3px;
+  }
+  .flav .chip {
+    width: 18px;
+    height: 18px;
+    margin-top: 9px;
   }
   .ipanel {
     height: auto;

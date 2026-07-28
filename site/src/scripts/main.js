@@ -382,8 +382,19 @@ if (navEl && navToggle) {
     setNav(!navOpen);
   });
 
-  // close after choosing a destination (the anchor scroll still runs)
-  navLinksEl?.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => setNav(false)));
+  // Close after choosing a destination. This MUST run before the anchor
+  // handler registered further up (which calls lenis.scrollTo): while the menu
+  // is open Lenis is stopped and scroll is locked, so a scrollTo issued first
+  // would be discarded and the link would appear to do nothing. Listening on
+  // the <ul> in the capture phase gets us in ahead of the <a>'s own listeners,
+  // so scrolling is unlocked by the time the anchor handler fires.
+  navLinksEl?.addEventListener(
+    'click',
+    (e) => {
+      if (e.target.closest('a')) setNav(false);
+    },
+    true
+  );
 
   addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && navOpen) {
