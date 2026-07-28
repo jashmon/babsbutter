@@ -10,6 +10,13 @@ const {
   title = 'Babs Butter · Big Butter Energy',
   description = 'Slow-churned, clean-label butter that takes the cream seriously and nothing else. Come play.',
 } = Astro.props;
+
+// The nav lives here, so its in-page anchors have to resolve from any route.
+// On the homepage they stay bare hashes (main.js hands those to Lenis for the
+// smooth scroll); anywhere else they're prefixed so they navigate home first.
+const isHome = Astro.url.pathname === '/' || Astro.url.pathname === '';
+const to = (hash: string) => (isHome ? hash : `/${hash}`);
+const onPlantPage = Astro.url.pathname.replace(/\/$/, '') === '/plant-based';
 ---
 <!doctype html>
 <html lang="en">
@@ -57,18 +64,21 @@ const {
 
     <nav>
       <div class="bar">
-        <a class="logo" href="#top" aria-label="Babs Butter">
+        <a class="logo" href={isHome ? '#top' : '/'} aria-label="Babs Butter">
           <img class="logo-icon" src="/assets/logos/icon-tangerine.svg" alt="" />
           <img class="logo-word" src="/assets/logos/primary-tangerine.svg" alt="" />
         </a>
         <ul id="nav-links">
           <span class="nav-pill" aria-hidden="true"></span>
-          <li><a href="#flavs">Flavours</a></li>
-          <li><a href="#why">Why Babs</a></li>
-          <li><a href="#recipes">Recipes</a></li>
-          <li><a href="#faq">FAQ</a></li>
+          <li><a href={to('#flavs')}>Flavours</a></li>
+          <li>
+            <a href="/plant-based" aria-current={onPlantPage ? 'page' : undefined}>Plant-Based</a>
+          </li>
+          <li><a href={to('#why')}>Why Babs</a></li>
+          <li><a href={to('#recipes')}>Recipes</a></li>
+          <li><a href={to('#faq')}>FAQ</a></li>
         </ul>
-        <a class="btn small" href="#cta">Get Babs</a>
+        <a class="btn small" href={to('#cta')}>Get Babs</a>
         <!-- mobile only (hidden ≥1025px); drives the dropdown panel above -->
         <button
           id="nav-toggle"
