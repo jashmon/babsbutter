@@ -109,7 +109,7 @@ const qShapes = ['/assets/shapes/quatrefoil.svg', '/assets/shapes/flower.svg', '
       <p class="lead rv">Flick through. Get hungry. Repeat.</p>
     </div>
     <div class="wrap">
-      <div class="r-track">
+      <div class="r-track" data-lenis-prevent>
         {recipes.map((r) => <RecipeCard {...r} />)}
       </div>
     </div>
