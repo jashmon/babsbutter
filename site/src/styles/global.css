@@ -274,6 +274,12 @@ nav .logo-icon {
   height: 30px;
   width: auto;
   flex: none;
+  transition: transform 0.5s var(--nav-ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  nav .logo:hover .logo-icon {
+    transform: rotate(22deg);
+  }
 }
 /* the "babs" wordmark — fades and slides out on scroll. Its layout box is
    deliberately left in place (no width/margin animation) so nothing else in
@@ -292,6 +298,7 @@ nav.navbar--scrolled .logo-word {
 @media (prefers-reduced-motion: reduce) {
   nav .bar,
   nav .logo,
+  nav .logo-icon,
   nav .logo-word {
     transition: none;
   }

@@ -315,8 +315,11 @@ if (navUl && navPill) {
   navLinks.forEach((a) => {
     a.addEventListener('pointerenter', () => movePillTo(a));
     a.addEventListener('focus', () => movePillTo(a));
+    // Clicking navigates to the section — the pill shouldn't stay parked on
+    // the clicked link afterwards, only reappear on a fresh hover/focus.
     a.addEventListener('click', () => {
-      activeLink = a;
+      activeLink = null;
+      movePillTo(null);
     });
   });
 
