@@ -95,15 +95,23 @@ function flavours() {
 
   // Belt-and-braces: whatever the cause, no flavour card should ever be
   // left visibly stuck. A short while after the section is first in view,
-  // force every card to its natural resting state regardless of tween
-  // status — a no-op if everything already landed cleanly.
+  // sweep for any card whose entrance genuinely never finished (opacity
+  // still short of 1 — hover never touches opacity, so this can't mistake
+  // a card the user is mid-hovering for a stuck one) and force it to rest.
+  // Untouched, correctly-landed cards are left completely alone.
   ScrollTrigger.create({
     trigger: sec,
     start: 'top 70%',
     once: true,
     onEnter: () => {
       setTimeout(() => {
-        gsap.set([cards, $$('.flav .ph, .flav .meta', sec)], { clearProps: 'transform,opacity,clipPath' });
+        cards.forEach((card) => {
+          if (parseFloat(getComputedStyle(card).opacity) < 0.99) {
+            gsap.set([card, card.querySelector('.ph'), card.querySelector('.meta')], {
+              clearProps: 'transform,opacity,clipPath',
+            });
+          }
+        });
       }, 2500);
     },
   });
@@ -326,10 +334,24 @@ function gallery() {
     grid.addEventListener('pointerleave', onLeave);
     addEventListener('resize', onResize);
 
+    // The filmstrip has no reason to keep animating (and costing a tick of
+    // work every frame, forever) while it's nowhere near the viewport —
+    // pause it off-screen the same way a video element would.
+    const visTrigger = ScrollTrigger.create({
+      trigger: grid,
+      start: 'top bottom',
+      end: 'bottom top',
+      onEnter: () => tween?.resume(),
+      onLeave: () => tween?.pause(),
+      onEnterBack: () => tween?.resume(),
+      onLeaveBack: () => tween?.pause(),
+    });
+
     return () => {
       grid.removeEventListener('pointerenter', onEnter);
       grid.removeEventListener('pointerleave', onLeave);
       removeEventListener('resize', onResize);
+      visTrigger.kill();
       tween?.kill();
       gsap.set(track, { clearProps: 'transform' });
     };
@@ -610,7 +632,21 @@ function marquee() {
         modifiers: { x: gsap.utils.unitize((x) => parseFloat(x) % distance) },
       });
 
+      // Same reasoning as the gallery filmstrip: don't keep paying for a
+      // per-frame tick on a band that's scrolled well out of view.
+      const band = track.closest('.mq') || track;
+      const visTrigger = ScrollTrigger.create({
+        trigger: band,
+        start: 'top bottom',
+        end: 'bottom top',
+        onEnter: () => tween.resume(),
+        onLeave: () => tween.pause(),
+        onEnterBack: () => tween.resume(),
+        onLeaveBack: () => tween.pause(),
+      });
+
       cleanups.push(() => {
+        visTrigger.kill();
         tween.kill();
         track.style.animation = '';
         gsap.set(track, { clearProps: 'transform' });
