@@ -72,28 +72,41 @@ function flavours() {
   const cards = $$('.flav', sec);
   if (!cards.length) return;
 
-  gsap.timeline({
-    scrollTrigger: inView(sec, { start: 'top 70%' }),
-    // land on the authored grid position with no inline transform left over
-    onComplete: () => gsap.set([cards, $$('.flav .ph, .flav .meta', sec)], { clearProps: 'transform,opacity' }),
-  })
-    .from(cards, {
-      y: 46,
-      opacity: 0,
-      duration: 1,
-      ease: EASE.out,
-      stagger: 0.09,
-    })
-    .from(
-      $$('.flav .ph', sec),
-      { clipPath: 'inset(0% 0% 100% 0%)', duration: 0.95, ease: EASE.out, stagger: 0.09 },
-      0.05
-    )
-    .from(
-      $$('.flav .meta', sec),
-      { y: 20, opacity: 0, duration: 0.7, stagger: 0.08 },
-      0.32
-    );
+  // Each card gets its own independent timeline/trigger rather than sharing
+  // one multi-target tween — a single shared tween means a single shared
+  // onComplete, so if any one card's stagger slot is ever interrupted
+  // (backgrounded tab, a resize mid-flight) the *whole* card set stays
+  // uncleared, not just the affected one. Independent per-card timelines
+  // mean a hiccup on one card can never strand its neighbours, and each
+  // clears its own transform/opacity/clip-path the moment IT finishes.
+  cards.forEach((card, i) => {
+    const ph = card.querySelector('.ph');
+    const meta = card.querySelector('.meta');
+    gsap
+      .timeline({
+        scrollTrigger: inView(sec, { start: 'top 70%' }),
+        delay: i * 0.09,
+        onComplete: () => gsap.set([card, ph, meta], { clearProps: 'transform,opacity,clipPath' }),
+      })
+      .from(card, { y: 46, opacity: 0, duration: 1, ease: EASE.out })
+      .from(ph, { clipPath: 'inset(0% 0% 100% 0%)', duration: 0.95, ease: EASE.out }, 0.05)
+      .from(meta, { y: 20, opacity: 0, duration: 0.7 }, 0.32);
+  });
+
+  // Belt-and-braces: whatever the cause, no flavour card should ever be
+  // left visibly stuck. A short while after the section is first in view,
+  // force every card to its natural resting state regardless of tween
+  // status — a no-op if everything already landed cleanly.
+  ScrollTrigger.create({
+    trigger: sec,
+    start: 'top 70%',
+    once: true,
+    onEnter: () => {
+      setTimeout(() => {
+        gsap.set([cards, $$('.flav .ph, .flav .meta', sec)], { clearProps: 'transform,opacity,clipPath' });
+      }, 2500);
+    },
+  });
 }
 
 function why() {
