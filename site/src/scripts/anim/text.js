@@ -1,110 +1,73 @@
 /* ===========================================================================
    TEXT
-   SplitText-based reveals. Headings animate per-character or per-word with a
-   rotateX tilt; body copy reveals line by line behind a mask.
+   Headings and body copy reveal by rising into place, line by line, from
+   behind a mask. Deliberately NOT per-character: character stagger reads as a
+   shimmer sweeping across the words, which fights the calm of the brand. One
+   clean upward move per line, softly staggered, is the whole language.
 
    Two rules keep this from wrecking the page:
    1. Split AFTER fonts resolve — splitting on fallback metrics gives wrong
       line boxes that never re-flow.
-   2. Always revert() the split on cleanup, so the DOM (and screen readers /
-      text selection) get the original nodes back.
+   2. Every tween clears its transform on completion, so text ends at exactly
+      its natural CSS position and can never be left stranded mid-animation.
    =========================================================================== */
 import { gsap, SplitText, EASE, inView, reduced, $$ } from './core.js';
 
-/** Split a heading into lines>chars, each line clipped so chars rise out of it. */
-export function splitHeading(el) {
-  const split = new SplitText(el, {
-    type: 'lines,chars',
-    linesClass: 'sp-line',
-    // aria-label on the element keeps the original string for assistive tech
-    autoSplit: true,
-  });
-  gsap.set(split.lines, { overflow: 'hidden', paddingBottom: '0.1em', marginBottom: '-0.1em' });
-  return split;
-}
-
-/** Split a paragraph into masked lines. */
+/** Split into lines, each clipped so the line rises out of its own mask. */
 export function splitLines(el) {
   const split = new SplitText(el, { type: 'lines', linesClass: 'sp-line' });
-  gsap.set(split.lines, { overflow: 'hidden', paddingBottom: '0.12em', marginBottom: '-0.12em' });
+  // room for descenders so the mask never shears a 'y' or 'g'
+  gsap.set(split.lines, {
+    overflow: 'hidden',
+    paddingBottom: '0.14em',
+    marginBottom: '-0.14em',
+  });
   return split;
 }
 
-/**
- * Build the char-reveal tween for a heading without playing it — the caller
- * decides whether it runs on scroll or inside the load timeline.
- */
-export function headingTween(el, vars = {}) {
-  const split = splitHeading(el);
-  return gsap.from(split.chars, {
-    yPercent: 118,
-    rotateX: -78,
-    opacity: 0,
-    transformOrigin: '50% 100% -30px',
-    duration: 1.05,
-    ease: EASE.out,
-    stagger: { each: 0.016, from: 'start' },
-    ...vars,
-  });
-}
+// kept as an alias so the loader can share one vocabulary with this module
+export const splitHeading = splitLines;
 
+/** The one reveal: rise from below, fade in, settle. */
 export function linesTween(el, vars = {}) {
   const split = splitLines(el);
   return gsap.from(split.lines, {
-    yPercent: 110,
+    yPercent: 115,
     opacity: 0,
-    duration: 0.9,
+    duration: 0.95,
     ease: EASE.out,
-    stagger: 0.075,
+    stagger: 0.09,
     ...vars,
   });
 }
 
-/**
- * Wire every heading/paragraph on the page to its own scroll trigger.
- * `skip` lets the loader claim the hero so it isn't animated twice.
- */
 export function initText(scope = document, skip = []) {
-  // Reduced motion: never split, never hide. Splitting alone is harmless, but
-  // the from() tweens set opacity:0 immediately and would leave headings
-  // invisible until scrolled to — the exact thing the preference asks us to
-  // avoid. Text simply renders as authored.
+  // Reduced motion: never split, never hide. The from() tweens set opacity:0
+  // immediately and would leave text invisible until scrolled to — exactly
+  // what the preference asks us to avoid.
   if (reduced) return;
 
   const skipSet = new Set(skip);
-  const perspective = (el) => gsap.set(el, { perspective: 800 });
 
-  $$('h2, h3.anim-h, .pb-hero h1', scope).forEach((el) => {
-    if (skipSet.has(el) || el.dataset.split === 'done') return;
-    el.dataset.split = 'done';
-    perspective(el);
-    ScrollTriggerHeading(el);
-  });
+  // Footer copy is deliberately excluded — the footer reveals as layered
+  // blocks (see sections.js) and animating its text as well made arriving at
+  // the bottom of the page feel busy rather than settled.
+  const targets = $$('h2, .anim-lines', scope).filter(
+    (el) => !skipSet.has(el) && !el.closest('footer') && el.dataset.split !== 'done'
+  );
 
-  $$('.anim-lines', scope).forEach((el) => {
-    if (skipSet.has(el) || el.dataset.split === 'done') return;
+  targets.forEach((el) => {
     el.dataset.split = 'done';
-    gsap.from(splitLines(el).lines, {
-      yPercent: 110,
+    const split = splitLines(el);
+    gsap.from(split.lines, {
+      yPercent: 115,
       opacity: 0,
-      duration: 0.85,
+      duration: 0.95,
       ease: EASE.out,
-      stagger: 0.07,
-      scrollTrigger: inView(el, { start: 'top 84%' }),
+      stagger: 0.09,
+      scrollTrigger: inView(el, { start: 'top 82%' }),
+      // land on the authored position, leaving no inline transform behind
+      onComplete: () => gsap.set(split.lines, { clearProps: 'transform,opacity' }),
     });
-  });
-}
-
-function ScrollTriggerHeading(el) {
-  const split = splitHeading(el);
-  gsap.from(split.chars, {
-    yPercent: 118,
-    rotateX: -78,
-    opacity: 0,
-    transformOrigin: '50% 100% -30px',
-    duration: 1,
-    ease: EASE.out,
-    stagger: { each: 0.015 },
-    scrollTrigger: inView(el),
   });
 }

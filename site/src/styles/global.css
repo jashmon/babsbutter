@@ -120,7 +120,9 @@ h3 {
   width: 150px;
   height: 150px;
   margin: 0 auto;
-  animation: spin 8s linear infinite;
+  /* rotation is driven by GSAP (anim/loader.js). A CSS keyframe here wrote to
+     the same transform every frame and fought the tween, which is what made
+     the spin stutter. */
 }
 .preloader .churn {
   margin-top: 24px;
@@ -1488,21 +1490,29 @@ section > .wrap {
 }
 
 /* gallery */
+/* Gallery is an auto-rotating filmstrip: the grid just clips, and the JS-
+   built `.gal-track` (flex row, frames duplicated once for a seamless loop)
+   drifts sideways on its own — no manual scrolling required. Bleeds to the
+   viewport edges so it still reads as a filmstrip rather than a cropped
+   grid. */
 .gal-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  overflow: hidden;
+  padding: 10px 40px 26px;
+  margin: 0 -40px;
+}
+.gal-track {
+  display: flex;
   gap: 16px;
+  width: max-content;
 }
 .gal-grid .g {
+  flex: 0 0 min(300px, 66vw);
   border: var(--hair);
   border-radius: 22px;
   overflow: hidden;
   aspect-ratio: 1;
   box-shadow: var(--sh-sm);
   transition: transform 0.25s var(--ease);
-}
-.gal-grid .g:nth-child(even) {
-  transform: translateY(20px);
 }
 .gal-grid .g:hover {
   transform: translateY(-4px);
@@ -1740,9 +1750,6 @@ footer .wrap {
     grid-template-columns: 1fr;
     gap: 40px;
   }
-  .gal-grid {
-    grid-template-columns: 1fr 1fr;
-  }
   .f-grid {
     grid-template-columns: 1fr 1fr;
   }
@@ -1767,10 +1774,11 @@ footer .wrap {
     grid-template-columns: 1fr;
   }
   .gal-grid {
-    grid-template-columns: 1fr 1fr;
+    padding: 10px 20px 24px;
+    margin: 0 -20px;
   }
-  .gal-grid .g:nth-child(even) {
-    transform: none;
+  .gal-grid .g {
+    flex: 0 0 72vw;
   }
   .stats .row {
     gap: 36px;
@@ -2271,9 +2279,9 @@ html.nav-locked body {
   position: absolute;
   top: 0;
   left: 0;
-  width: 42%;
+  width: 45%;
   height: 100%;
-  z-index: -1;
+  z-index: 1;
   opacity: 0;
   pointer-events: none;
   transform: translateX(-130%);

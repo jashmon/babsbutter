@@ -20,7 +20,7 @@
    Plus layered parallax (foreground/mid/background move at different rates)
    and mask reveals for images and video.
    =========================================================================== */
-import { gsap, ScrollTrigger, EASE, mm, MQ, inView, $, $$ } from './core.js';
+import { gsap, ScrollTrigger, EASE, mm, MQ, inView, reduced, $, $$ } from './core.js';
 
 /* --------------------------------------------------------------------------
    Reusable primitives
@@ -72,15 +72,16 @@ function flavours() {
   const cards = $$('.flav', sec);
   if (!cards.length) return;
 
-  gsap.set(cards, { transformPerspective: 900 });
-  gsap.timeline({ scrollTrigger: inView(sec, { start: 'top 70%' }) })
+  gsap.timeline({
+    scrollTrigger: inView(sec, { start: 'top 70%' }),
+    // land on the authored grid position with no inline transform left over
+    onComplete: () => gsap.set([cards, $$('.flav .ph, .flav .meta', sec)], { clearProps: 'transform,opacity' }),
+  })
     .from(cards, {
-      yPercent: 22,
+      y: 46,
       opacity: 0,
-      rotate: (i) => (i % 2 ? 4 : -4),
-      scale: 0.92,
-      duration: 1.05,
-      ease: EASE.over,
+      duration: 1,
+      ease: EASE.out,
       stagger: 0.09,
     })
     .from(
@@ -101,7 +102,14 @@ function why() {
   const cards = $$('.why-card', sec);
   if (!cards.length) return;
 
-  gsap.timeline({ scrollTrigger: inView(sec, { start: 'top 72%' }) })
+  const icons = $$('.why-card .ic', sec);
+  gsap.timeline({
+    scrollTrigger: inView(sec, { start: 'top 72%' }),
+    // guaranteed landing at the authored layout, transform-free — without
+    // this, anything that interrupts the tween (a backgrounded tab, a fast
+    // resize) can strand a card mid-skew.
+    onComplete: () => gsap.set([cards, icons], { clearProps: 'transform,opacity' }),
+  })
     .from(cards, {
       skewY: 7,
       yPercent: 28,
@@ -110,13 +118,14 @@ function why() {
       ease: EASE.out,
       stagger: { each: 0.1, from: 'center' },
     })
-    .from($$('.why-card .ic', sec), { scale: 0.5, rotate: -35, opacity: 0, duration: 0.8, ease: EASE.over, stagger: 0.09 }, 0.2);
+    .from(icons, { scale: 0.5, rotate: -35, opacity: 0, duration: 0.8, ease: EASE.over, stagger: 0.09 }, 0.2);
 }
 
 function stats() {
   const sec = $('.stats');
   if (!sec) return;
-  gsap.from($$('.stat', sec), {
+  const items = $$('.stat', sec);
+  gsap.from(items, {
     scale: 0.72,
     yPercent: 30,
     opacity: 0,
@@ -124,6 +133,7 @@ function stats() {
     ease: EASE.over,
     stagger: 0.11,
     scrollTrigger: inView(sec, { start: 'top 76%' }),
+    onComplete: () => gsap.set(items, { clearProps: 'transform,opacity' }),
   });
 }
 
@@ -134,7 +144,12 @@ function made() {
   if (!steps.length) return;
 
   steps.forEach((step, i) => {
-    gsap.timeline({ scrollTrigger: inView(step, { start: 'top 80%' }) })
+    const ph = step.querySelector('.ph');
+    const copy = step.querySelectorAll('h3, p, .n');
+    gsap.timeline({
+      scrollTrigger: inView(step, { start: 'top 80%' }),
+      onComplete: () => gsap.set([step, ph, copy], { clearProps: 'transform,opacity,clipPath' }),
+    })
       .from(step, {
         xPercent: i % 2 ? 9 : -9,
         rotate: i % 2 ? 2.2 : -2.2,
@@ -142,15 +157,16 @@ function made() {
         duration: 1,
         ease: EASE.out,
       })
-      .from(step.querySelector('.ph'), { clipPath: 'inset(0% 0% 100% 0%)', scale: 1.14, duration: 1.1, ease: EASE.out }, 0)
-      .from(step.querySelectorAll('h3, p, .n'), { y: 22, opacity: 0, duration: 0.7, stagger: 0.07 }, 0.25);
+      .from(ph, { clipPath: 'inset(0% 0% 100% 0%)', scale: 1.14, duration: 1.1, ease: EASE.out }, 0)
+      .from(copy, { y: 22, opacity: 0, duration: 0.7, stagger: 0.07 }, 0.25);
   });
 }
 
 function recipes() {
   const sec = $('.recipes');
   if (!sec) return;
-  gsap.from($$('.r-card', sec), {
+  const cards = $$('.r-card', sec);
+  gsap.from(cards, {
     xPercent: 14,
     opacity: 0,
     rotate: 2.5,
@@ -158,14 +174,20 @@ function recipes() {
     ease: EASE.out,
     stagger: 0.1,
     scrollTrigger: inView(sec, { start: 'top 74%' }),
+    onComplete: () => gsap.set(cards, { clearProps: 'transform,opacity' }),
   });
 }
 
 function ingredients() {
   const sec = $('.ing');
   if (!sec) return;
-  gsap.timeline({ scrollTrigger: inView(sec, { start: 'top 72%' }) })
-    .from($$('.ing-stage .pill', sec), {
+  const pills = $$('.ing-stage .pill', sec);
+  const floats = $$('.ing-float', sec);
+  gsap.timeline({
+    scrollTrigger: inView(sec, { start: 'top 72%' }),
+    onComplete: () => gsap.set([pills, floats], { clearProps: 'transform,opacity' }),
+  })
+    .from(pills, {
       scale: 0.6,
       yPercent: 60,
       rotate: (i) => (i - 1) * 9,
@@ -175,7 +197,7 @@ function ingredients() {
       stagger: 0.1,
     })
     .from(
-      $$('.ing-float', sec),
+      floats,
       { scale: 0.4, opacity: 0, rotate: -30, duration: 1, ease: EASE.over, stagger: { each: 0.08, from: 'random' } },
       0.1
     );
@@ -184,13 +206,15 @@ function ingredients() {
 function quotes() {
   const sec = $('.quotes');
   if (!sec) return;
-  gsap.from($$('.q-head > *', sec), {
+  const head = $$('.q-head > *', sec);
+  gsap.from(head, {
     yPercent: 40,
     opacity: 0,
     duration: 0.9,
     ease: EASE.out,
     stagger: 0.08,
     scrollTrigger: inView(sec, { start: 'top 76%' }),
+    onComplete: () => gsap.set(head, { clearProps: 'transform,opacity' }),
   });
   // columns rise at slightly different rates — depth without parallax scrub
   $$('.q-col', sec).forEach((col, i) => {
@@ -200,6 +224,7 @@ function quotes() {
       duration: 1.1 + i * 0.12,
       ease: EASE.soft,
       scrollTrigger: inView(sec, { start: 'top 74%' }),
+      onComplete: () => gsap.set(col, { clearProps: 'transform,opacity' }),
     });
   });
 }
@@ -207,8 +232,14 @@ function quotes() {
 function shelf() {
   const sec = $('.shelf');
   if (!sec) return;
-  gsap.timeline({ scrollTrigger: inView(sec, { start: 'top 74%' }) })
-    .from($$('.badges .b', sec), {
+  const badges = $$('.badges .b', sec);
+  const qcoms = $$('.retail .qcom', sec);
+  const rowSpans = $$('.retail .row:last-of-type span', sec);
+  gsap.timeline({
+    scrollTrigger: inView(sec, { start: 'top 74%' }),
+    onComplete: () => gsap.set([badges, qcoms, rowSpans], { clearProps: 'transform,opacity' }),
+  })
+    .from(badges, {
       yPercent: 45,
       opacity: 0,
       rotate: (i) => (i - 1) * 3,
@@ -216,21 +247,79 @@ function shelf() {
       ease: EASE.over,
       stagger: 0.09,
     })
-    .from($$('.retail .qcom', sec), { scale: 0.8, opacity: 0, duration: 0.7, ease: EASE.over, stagger: 0.09 }, 0.25)
-    .from($$('.retail .row:last-of-type span', sec), { yPercent: 60, opacity: 0, duration: 0.6, stagger: 0.045 }, 0.35);
+    .from(qcoms, { scale: 0.8, opacity: 0, duration: 0.7, ease: EASE.over, stagger: 0.09 }, 0.25)
+    .from(rowSpans, { yPercent: 60, opacity: 0, duration: 0.6, stagger: 0.045 }, 0.35);
 }
 
 function gallery() {
   const grid = $('.gal-grid');
   if (!grid) return;
-  gsap.from($$('.g', grid), {
-    scale: 0.82,
-    opacity: 0,
-    yPercent: 16,
-    duration: 1,
-    ease: EASE.out,
-    stagger: { each: 0.07, from: 'random' },
-    scrollTrigger: inView(grid, { start: 'top 80%' }),
+  const originals = $$('.g', grid);
+  if (!originals.length) return;
+
+  // Auto-rotating filmstrip: wrap the frames in their own track and duplicate
+  // the set once, so there's a seamless second copy to hand off to. Structural,
+  // so it happens once regardless of breakpoint or motion preference.
+  const track = document.createElement('div');
+  track.className = 'gal-track';
+  grid.insertBefore(track, originals[0]);
+  originals.forEach((el) => track.appendChild(el));
+  originals.forEach((el) => track.appendChild(el.cloneNode(true)));
+
+  // Self-contained motion context: reruns (and cleanly reverts) on its own
+  // whenever prefers-reduced-motion changes, independent of the desktop/
+  // tablet/mobile split above.
+  mm.add(MQ.motion, () => {
+    // frames drift in from the right, reading as a filmstrip already in
+    // motion rather than a grid popping into place
+    gsap.from(originals, {
+      xPercent: 16,
+      opacity: 0,
+      scale: 0.94,
+      duration: 0.95,
+      ease: EASE.out,
+      stagger: 0.08,
+      scrollTrigger: inView(grid, { start: 'top 82%' }),
+      onComplete: () => gsap.set(originals, { clearProps: 'transform,opacity' }),
+    });
+
+    // Distance is measured as the real on-screen offset of the first
+    // duplicate rather than computed from widths/gaps — the same rect-diff
+    // trick the nav pill needed, for the same reason: width/gap math drifts
+    // by fractions of a pixel and shows up as a visible hitch at the seam.
+    const play = () => {
+      const trackRect = track.getBoundingClientRect();
+      const firstClone = track.children[originals.length];
+      const distance = firstClone.getBoundingClientRect().left - trackRect.left;
+      if (!distance) return null;
+      return gsap.to(track, {
+        x: `-=${distance}`,
+        duration: distance / 50,
+        ease: 'none',
+        repeat: -1,
+        modifiers: { x: gsap.utils.unitize((x) => parseFloat(x) % distance) },
+      });
+    };
+
+    let tween = play();
+    const onEnter = () => tween?.pause();
+    const onLeave = () => tween?.resume();
+    const onResize = () => {
+      tween?.kill();
+      gsap.set(track, { x: 0 });
+      tween = play();
+    };
+    grid.addEventListener('pointerenter', onEnter);
+    grid.addEventListener('pointerleave', onLeave);
+    addEventListener('resize', onResize);
+
+    return () => {
+      grid.removeEventListener('pointerenter', onEnter);
+      grid.removeEventListener('pointerleave', onLeave);
+      removeEventListener('resize', onResize);
+      tween?.kill();
+      gsap.set(track, { clearProps: 'transform' });
+    };
   });
 }
 
@@ -261,7 +350,8 @@ function photoPanel() {
 function faq() {
   const sec = $('.faq') || $('.pb-faq');
   if (!sec) return;
-  gsap.from($$('details', sec), {
+  const items = $$('details', sec);
+  gsap.from(items, {
     xPercent: -4,
     skewY: 2.5,
     opacity: 0,
@@ -269,16 +359,21 @@ function faq() {
     ease: EASE.out,
     stagger: 0.08,
     scrollTrigger: inView(sec, { start: 'top 76%' }),
+    // details cards must land with zero leftover transform — a stray skew
+    // reads as a badly broken layout, not a subtle motion cue.
+    onComplete: () => gsap.set(items, { clearProps: 'transform,opacity' }),
   });
   const side = sec.querySelector('.faq-side');
   if (side) {
-    gsap.from(side.children, {
+    const kids = [...side.children];
+    gsap.from(kids, {
       x: -26,
       opacity: 0,
       duration: 0.9,
       ease: EASE.out,
       stagger: 0.1,
       scrollTrigger: inView(sec, { start: 'top 78%' }),
+      onComplete: () => gsap.set(kids, { clearProps: 'transform,opacity' }),
     });
   }
 }
@@ -288,8 +383,15 @@ function ctaSection() {
   if (!sec) return;
   const shapes = $$('.q, .f, .pb-cta-shape', sec);
 
-  gsap.timeline({ scrollTrigger: inView(sec, { start: 'top 78%' }) })
-    .from(sec.querySelector('.wrap'), { scale: 0.94, opacity: 0, duration: 1.1, ease: EASE.out })
+  const wrap = sec.querySelector('.wrap');
+  gsap.timeline({
+    scrollTrigger: inView(sec, { start: 'top 78%' }),
+    // clearing rotate here is safe even though the shapes are rotated — the
+    // scrub tween below owns rotation continuously and repaints it on the
+    // very next scroll tick.
+    onComplete: () => gsap.set([wrap, shapes], { clearProps: 'transform,opacity' }),
+  })
+    .from(wrap, { scale: 0.94, opacity: 0, duration: 1.1, ease: EASE.out })
     .from(shapes, { scale: 0.5, rotate: -50, opacity: 0, duration: 1.3, ease: EASE.over, stagger: 0.12 }, 0.1);
 
   // shapes keep turning slowly with scroll
@@ -302,22 +404,16 @@ function ctaSection() {
   );
 }
 
-function footer() {
-  const f = $('footer');
-  if (!f) return;
-  // deliberately late — the footer should feel like an arrival, not a preview
-  gsap.timeline({ scrollTrigger: inView(f, { start: 'top 92%' }) })
-    .from(f.querySelector('.f-grid > div:first-child'), { y: 34, opacity: 0, duration: 0.9, ease: EASE.out })
-    .from($$('.f-grid > div:not(:first-child)', f), { y: 26, opacity: 0, duration: 0.75, stagger: 0.09 }, 0.12)
-    .from($$('.f-grid ul li', f), { y: 14, opacity: 0, duration: 0.5, stagger: 0.03 }, 0.22)
-    .from(f.querySelector('.f-base'), { opacity: 0, y: 16, duration: 0.7 }, 0.42);
-}
-
+// Footer intentionally has NO text animation. Arriving at the bottom of a
+// long page should feel like settling, not like another reveal firing — and
+// animating the link columns made the last screen feel busy.
 /* --- plant-based page ----------------------------------------------------- */
 function plantPage() {
   const ben = $('.pb-ben-grid');
   if (ben) {
-    gsap.from($$('.pb-ben', ben), {
+    const cards = $$('.pb-ben', ben);
+    const icons = $$('.pb-ben-ic', ben);
+    gsap.from(cards, {
       yPercent: 26,
       opacity: 0,
       scale: 0.93,
@@ -326,8 +422,9 @@ function plantPage() {
       ease: EASE.over,
       stagger: 0.09,
       scrollTrigger: inView(ben, { start: 'top 78%' }),
+      onComplete: () => gsap.set(cards, { clearProps: 'transform,opacity' }),
     });
-    gsap.from($$('.pb-ben-ic', ben), {
+    gsap.from(icons, {
       scale: 0.4,
       rotate: -40,
       opacity: 0,
@@ -335,24 +432,31 @@ function plantPage() {
       ease: EASE.over,
       stagger: 0.09,
       scrollTrigger: inView(ben, { start: 'top 76%' }),
+      onComplete: () => gsap.set(icons, { clearProps: 'transform,opacity' }),
     });
   }
 
   $$('.pb-step').forEach((step, i) => {
-    gsap.timeline({ scrollTrigger: inView(step, { start: 'top 80%' }) })
-      .from(step.querySelector('.pb-step-ph'), {
+    const ph = step.querySelector('.pb-step-ph');
+    const copy = step.querySelectorAll('.pb-step-n, h3, p');
+    gsap.timeline({
+      scrollTrigger: inView(step, { start: 'top 80%' }),
+      onComplete: () => gsap.set([ph, copy], { clearProps: 'transform,opacity,clipPath' }),
+    })
+      .from(ph, {
         clipPath: 'inset(0% 0% 100% 0%)',
         scale: 1.1,
         rotate: i % 2 ? 3 : -3,
         duration: 1.15,
         ease: EASE.out,
       })
-      .from(step.querySelectorAll('.pb-step-n, h3, p'), { y: 24, opacity: 0, duration: 0.75, stagger: 0.08 }, 0.28);
+      .from(copy, { y: 24, opacity: 0, duration: 0.75, stagger: 0.08 }, 0.28);
   });
 
   const uses = $('.pb-use-grid');
   if (uses) {
-    gsap.from($$('.pb-use', uses), {
+    const cards = $$('.pb-use', uses);
+    gsap.from(cards, {
       yPercent: 40,
       opacity: 0,
       skewY: 4,
@@ -360,17 +464,20 @@ function plantPage() {
       ease: EASE.out,
       stagger: 0.08,
       scrollTrigger: inView(uses, { start: 'top 80%' }),
+      onComplete: () => gsap.set(cards, { clearProps: 'transform,opacity' }),
     });
   }
 
   const statement = $('.pb-statement');
   if (statement) {
-    gsap.from(statement.querySelector('p'), {
+    const p = statement.querySelector('p');
+    gsap.from(p, {
       y: 30,
       opacity: 0,
       duration: 0.9,
       ease: EASE.out,
       scrollTrigger: inView(statement, { start: 'top 78%' }),
+      onComplete: () => gsap.set(p, { clearProps: 'transform,opacity' }),
     });
   }
 }
@@ -403,6 +510,7 @@ function videos() {
         duration: 0.8,
         ease: EASE.over,
         scrollTrigger: inView(sec, { start: 'top 70%' }),
+        onComplete: () => gsap.set(tag, { clearProps: 'transform,opacity' }),
       });
     }
   });
@@ -454,10 +562,62 @@ function decorations() {
   });
 }
 
+/* --- hero/reprise ticker banner --------------------------------------------
+   The old CSS `@keyframes` loop moved the track to translateX(-50%), which is
+   only a correct halfway point when the gap between the two authored copies
+   happens to divide evenly into the total width — off by even a few
+   sub-pixels and the loop visibly hitches or "restarts" at the seam, which is
+   exactly what was reported. Handing the loop to GSAP with a measured pixel
+   distance (rect-diff, not a percentage) and a modulo wrap makes the seam
+   pixel-perfect and genuinely endless. The CSS animation is switched off so
+   the two never fight over the same transform. */
+function marquee() {
+  const tracks = $$('.mq .track');
+  if (!tracks.length) return;
+
+  mm.add(MQ.motion, () => {
+    const cleanups = [];
+
+    tracks.forEach((track) => {
+      const spans = $$('span', track);
+      if (spans.length < 2) return;
+
+      track.style.animation = 'none';
+      gsap.set(track, { x: 0 });
+
+      const trackRect = track.getBoundingClientRect();
+      const distance = spans[1].getBoundingClientRect().left - trackRect.left;
+      if (!distance) return;
+
+      const tween = gsap.to(track, {
+        x: `-=${distance}`,
+        duration: distance / 55,
+        ease: 'none',
+        repeat: -1,
+        modifiers: { x: gsap.utils.unitize((x) => parseFloat(x) % distance) },
+      });
+
+      cleanups.push(() => {
+        tween.kill();
+        track.style.animation = '';
+        gsap.set(track, { clearProps: 'transform' });
+      });
+    });
+
+    return () => cleanups.forEach((fn) => fn());
+  });
+}
+
 /* --------------------------------------------------------------------------
    init
    -------------------------------------------------------------------------- */
 export function initSections() {
+  // Breakpoint- and motion-independent: these manage their own lifecycle
+  // internally (each wraps its own mm.add), so they run once, not once per
+  // outer breakpoint block below.
+  gallery();
+  marquee();
+
   // Full cinematic pass — desktop and tablet.
   mm.add('(min-width: 769px) and (prefers-reduced-motion: no-preference)', () => {
     flavours();
@@ -468,11 +628,9 @@ export function initSections() {
     ingredients();
     quotes();
     shelf();
-    gallery();
     photoPanel();
     faq();
     ctaSection();
-    footer();
     plantPage();
     videos();
     decorations();
@@ -481,7 +639,10 @@ export function initSections() {
     parallax('.gal-grid .g', 46);
     parallax('.made-step .ph', 34);
 
-    return () => ScrollTrigger.getAll().forEach((t) => t.kill());
+    // No manual teardown: gsap.matchMedia() reverts every animation and
+    // ScrollTrigger created inside this context automatically. Killing them by
+    // hand here also destroyed the other breakpoint's triggers (and the text /
+    // counter ones), which is what stranded cards mid-entrance on resize.
   });
 
   // Mobile: same language, less work. No scrubbed parallax (it's the most
@@ -495,14 +656,15 @@ export function initSections() {
     ingredients();
     quotes();
     shelf();
-    gallery();
     photoPanel();
     faq();
     ctaSection();
-    footer();
     plantPage();
 
-    return () => ScrollTrigger.getAll().forEach((t) => t.kill());
+    // No manual teardown: gsap.matchMedia() reverts every animation and
+    // ScrollTrigger created inside this context automatically. Killing them by
+    // hand here also destroyed the other breakpoint's triggers (and the text /
+    // counter ones), which is what stranded cards mid-entrance on resize.
   });
 
   // Reduced motion: everything is already at its natural state; nothing to do.

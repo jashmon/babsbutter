@@ -45,23 +45,37 @@ export function runLoader() {
   const h1Split = heroH1 ? splitHeading(heroH1) : null;
   const pSplit = heroP ? splitLines(heroP) : null;
 
-  if (h1Split) gsap.set(heroH1, { perspective: 900 });
-  if (h1Split) gsap.set(h1Split.chars, { yPercent: 120, rotateX: -80, opacity: 0 });
+  // set() only where the target actually exists — the two pages share this
+  // loader and each lacks some of the other's elements, which was emitting
+  // "GSAP target not found" noise on every load
+  const setIf = (t, vars) => {
+    const list = (Array.isArray(t) ? t : [t]).filter(Boolean);
+    if (list.length) gsap.set(list, vars);
+  };
+
+  if (h1Split) {
+    gsap.set(heroH1, { perspective: 900 });
+    gsap.set(h1Split.lines, { yPercent: 115, opacity: 0 });
+  }
   if (pSplit) gsap.set(pSplit.lines, { yPercent: 110, opacity: 0 });
-  gsap.set(eyebrow, { opacity: 0, y: 18, scale: 0.94 });
-  gsap.set(buttons, { opacity: 0, y: 26, rotate: -3.5 });
-  gsap.set(floaters, { opacity: 0, scale: 0.5, rotate: -18 });
-  gsap.set(blobs, { opacity: 0, scale: 0.82 });
-  gsap.set(heroMedia, { opacity: 0, scale: 0.86 });
-  gsap.set(marquee, { opacity: 0, yPercent: 40 });
-  gsap.set(navBar, { opacity: 0, y: -26 });
-  gsap.set(navLogo, { opacity: 0, x: -14 });
-  gsap.set(navItems, { opacity: 0, y: -12 });
-  gsap.set([navCta, navToggle], { opacity: 0, scale: 0.86 });
+  setIf(eyebrow, { opacity: 0, y: 18, scale: 0.94 });
+  setIf(buttons, { opacity: 0, y: 26, rotate: -3.5 });
+  setIf(floaters, { opacity: 0, scale: 0.5, rotate: -18 });
+  setIf(blobs, { opacity: 0, scale: 0.82 });
+  setIf(heroMedia, { opacity: 0, scale: 0.86 });
+  setIf(marquee, { opacity: 0, yPercent: 40 });
+  setIf(navBar, { opacity: 0, y: -26 });
+  setIf(navLogo, { opacity: 0, x: -14 });
+  setIf(navItems, { opacity: 0, y: -12 });
+  setIf([navCta, navToggle], { opacity: 0, scale: 0.86 });
+
+  // declared up front so the timeline's onComplete can stop it
+  let spin = null;
 
   const tl = gsap.timeline({
     defaults: { ease: EASE.out },
     onComplete: () => {
+      spin?.kill();
       pre?.remove();
       // hand measurements back to ScrollTrigger now that the hero is settled
       ScrollTrigger.refresh();
@@ -71,13 +85,20 @@ export function runLoader() {
   /* --- 1. logo reveal ---------------------------------------------------- */
   if (pre) {
     const mark = pre.querySelector('.mark');
-    const churn = pre.querySelector('.churn');
-    tl.from(mark, { scale: 0.6, opacity: 0, rotate: -40, duration: 0.85, ease: EASE.over }, 0)
-      .from(churn, { opacity: 0, y: 14, duration: 0.5 }, 0.18)
+
+    /* Continuous spin on its own linear tween, separate from the entrance.
+       Previously a CSS keyframe animation drove this while GSAP tweened
+       `rotate` on the same element — two writers on one transform, which is
+       what made it judder. One owner, constant velocity, no stutter. */
+    spin = gsap.to(mark, { rotation: '+=360', duration: 3.2, ease: 'none', repeat: -1 });
+
+    // The "churning..." caption stays fully static — no rise, no fade of its
+    // own. It rides along only because the whole cover sweeps away as one
+    // unit in the next beat.
+    tl.from(mark, { scale: 0.6, opacity: 0, duration: 0.85, ease: EASE.over }, 0)
       .to({}, { duration: MIN_HOLD }) // guaranteed presence
       /* --- 2. background morph: the cover sweeps off on its curved edge --- */
       .to(mark, { scale: 0.82, opacity: 0, duration: 0.4, ease: EASE.in }, '>-0.1')
-      .to(churn, { opacity: 0, y: -10, duration: 0.35, ease: EASE.in }, '<')
       .to(
         pre,
         {
@@ -93,18 +114,12 @@ export function runLoader() {
   const revealAt = pre ? '-=0.72' : 0; // hero starts while the cover is still moving
 
   /* --- 3. headline ------------------------------------------------------- */
-  tl.to(eyebrow, { opacity: 1, y: 0, scale: 1, duration: 0.7 }, revealAt);
+  tl.to(eyebrow || [], { opacity: 1, y: 0, scale: 1, duration: 0.7 }, revealAt);
 
   if (h1Split) {
     tl.to(
-      h1Split.chars,
-      {
-        yPercent: 0,
-        rotateX: 0,
-        opacity: 1,
-        duration: 1.15,
-        stagger: { each: 0.018, from: 'start' },
-      },
+      h1Split.lines,
+      { yPercent: 0, opacity: 1, duration: 1.05, stagger: 0.09 },
       '<+0.08'
     );
   }
@@ -145,28 +160,32 @@ export function runLoader() {
   }
 
   /* --- marquee rides up from the fold ----------------------------------- */
-  tl.to(marquee, { opacity: 1, yPercent: 0, duration: 1, ease: EASE.soft }, '<+0.1');
+  tl.to(marquee || [], { opacity: 1, yPercent: 0, duration: 1, ease: EASE.soft }, '<+0.1');
 
   /* --- 7. navigation ----------------------------------------------------- */
-  tl.to(navBar, { opacity: 1, y: 0, duration: 0.9 }, '<-0.35')
-    .to(navLogo, { opacity: 1, x: 0, duration: 0.7 }, '<+0.12')
-    .to(navItems, { opacity: 1, y: 0, duration: 0.6, stagger: 0.055 }, '<+0.05')
-    .to([navCta, navToggle], { opacity: 1, scale: 1, duration: 0.6, ease: EASE.over }, '<+0.08');
+  tl.to(navBar || [], { opacity: 1, y: 0, duration: 0.9 }, '<-0.35')
+    .to(navLogo || [], { opacity: 1, x: 0, duration: 0.7 }, '<+0.12')
+    .to(navItems || [], { opacity: 1, y: 0, duration: 0.6, stagger: 0.055 }, '<+0.05')
+    .to([navCta, navToggle].filter(Boolean), { opacity: 1, scale: 1, duration: 0.6, ease: EASE.over }, '<+0.08');
 
   /* --- 8. hand scrolling back ------------------------------------------- */
   // Released a beat before the timeline ends: by this point the hero is fully
   // legible, and waiting for the last nav tween would feel like a locked page.
   tl.call(() => lenis?.start(), null, '>-0.5');
 
-  // Safety net — if anything above throws or a tween never resolves, the page
-  // must never be left unscrollable behind a cover.
-  gsap.delayedCall(6, () => {
+  /* Safety net — the page must never be left unscrollable behind the cover.
+     Deliberately setTimeout, not gsap.delayedCall: delayedCall runs on the
+     GSAP ticker, which is driven by requestAnimationFrame and is frozen
+     whenever the tab is in the background. A rescue that depends on the same
+     stalled clock it's meant to rescue isn't a rescue. */
+  setTimeout(() => {
     if (tl.progress() < 1) {
       tl.progress(1);
+      spin?.kill();
       pre?.remove();
       lenis?.start();
     }
-  });
+  }, 6000);
 
   return tl;
 }

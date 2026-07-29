@@ -52,30 +52,40 @@ export function initNav() {
     let active = links.find((a) => a.getAttribute('aria-current') === 'page') || null;
     let shown = false;
 
-    const xTo = gsap.quickTo(pill, 'x', { duration: 0.55, ease: EASE.out });
-    const wTo = gsap.quickTo(pill, 'width', { duration: 0.55, ease: EASE.out });
+    /* Measured from rects, not offsetLeft. The <a>'s offsetParent is its <li>,
+       so a.offsetLeft is always 0 — every link reported the same position and
+       the pill never moved. Rects are relative to the viewport, so the
+       difference against the <ul> gives the true offset regardless of which
+       ancestor happens to be positioned (and stays correct while the nav
+       itself is transformed by hide-on-scroll). */
+    const measure = (el) => {
+      const u = ul.getBoundingClientRect();
+      const r = el.getBoundingClientRect();
+      return { x: r.left - u.left, width: r.width };
+    };
 
     const moveTo = (el, instant) => {
       if (!el) {
         if (shown) {
-          gsap.to(pill, { opacity: 0, duration: instant ? 0 : 0.25, ease: EASE.out });
+          gsap.to(pill, { opacity: 0, duration: instant ? 0 : 0.25, ease: EASE.out, overwrite: 'auto' });
           shown = false;
         }
         return;
       }
+
+      const m = measure(el);
+      const to = { x: m.x, width: m.width, opacity: 1 };
+
       if (instant || reduced) {
-        gsap.set(pill, { x: el.offsetLeft, width: el.offsetWidth, opacity: 1 });
+        gsap.set(pill, { ...to, scaleY: 1 });
+      } else if (!shown) {
+        // first appearance: place it and fade up, no flight across the bar
+        gsap.set(pill, { x: m.x, width: m.width, opacity: 0, scaleY: 1 });
+        gsap.to(pill, { opacity: 1, duration: 0.3, ease: EASE.out, overwrite: 'auto' });
       } else {
-        if (!shown) gsap.set(pill, { x: el.offsetLeft, width: el.offsetWidth });
-        xTo(el.offsetLeft);
-        wTo(el.offsetWidth);
-        gsap.to(pill, { opacity: 1, duration: 0.3, ease: EASE.out });
-        // squash-and-settle: the pill compresses slightly as it travels
-        gsap.fromTo(
-          pill,
-          { scaleY: 0.82 },
-          { scaleY: 1, duration: 0.6, ease: EASE.over, overwrite: 'auto' }
-        );
+        gsap.to(pill, { ...to, duration: 0.5, ease: EASE.out, overwrite: 'auto' });
+        // squash-and-settle as it travels
+        gsap.fromTo(pill, { scaleY: 0.84 }, { scaleY: 1, duration: 0.55, ease: EASE.over });
       }
       shown = true;
     };
@@ -84,8 +94,11 @@ export function initNav() {
 
     const onEnter = (e) => moveTo(e.currentTarget);
     const onFocus = (e) => moveTo(e.currentTarget);
-    const onClick = (e) => {
-      active = e.currentTarget;
+    // Clicking navigates to the section — the pill should not stay parked on
+    // the clicked link afterwards, only reappear on a fresh hover/focus.
+    const onClick = () => {
+      active = null;
+      moveTo(null);
     };
 
     links.forEach((a) => {
@@ -124,13 +137,13 @@ export function initNav() {
     const logo = $('nav .logo');
     const icon = $('nav .logo-icon');
     if (!logo || !icon) return;
-    const enter = () => gsap.to(icon, { rotate: 360, duration: 1.1, ease: EASE.out });
-    const leave = () => gsap.set(icon, { rotate: 0 });
+    /* Relative rotation, so every hover spins a fresh full turn. An absolute
+       `rotate: 360` only animates the first time — after that the icon is
+       already at 360 and the tween has nowhere to go. */
+    const enter = () => gsap.to(icon, { rotate: '+=360', duration: 1.05, ease: EASE.out });
     logo.addEventListener('pointerenter', enter);
-    logo.addEventListener('pointerleave', leave);
     return () => {
       logo.removeEventListener('pointerenter', enter);
-      logo.removeEventListener('pointerleave', leave);
       gsap.set(icon, { clearProps: 'rotate' });
     };
   });

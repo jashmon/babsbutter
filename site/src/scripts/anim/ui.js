@@ -245,11 +245,13 @@ export function initCards() {
     $$('.pb-use').forEach((c) => wire(c, { lift: 8, tilt: 3.5 }));
     $$('.gal-grid .g').forEach((c) => wire(c, { media: c.querySelector('img'), lift: 6, mediaShift: 14 }));
 
-    /* Product cards: the tub leans toward the cursor inside its blob, the
-       blob counter-rotates, and the label lifts. Kept separate because the
-       masked shape needs its own transform origin handling. */
+    /* Product cards: the whole card — blob plus label — pops to 1.5x as one
+       unit and lifts above its neighbours (the original reference "pop"),
+       with a light cursor-tilt and the tub leaning inside its blob layered
+       on top for depth. z-index is restored only after the shrink-back
+       finishes, so the card stays on top for the whole exit instead of
+       dropping behind its neighbours mid-shrink. */
     $$('.flav').forEach((card) => {
-      const shape = card.querySelector('.ph');
       const tub = card.querySelector('.ph img');
       const meta = card.querySelector('.meta');
       const chip = card.querySelector('.chip');
@@ -264,15 +266,16 @@ export function initCards() {
         const r = card.getBoundingClientRect();
         const nx = (e.clientX - r.left) / r.width - 0.5;
         const ny = (e.clientY - r.top) / r.height - 0.5;
-        ry(nx * 13);
-        rx(-ny * 13);
+        ry(nx * 10);
+        rx(-ny * 10);
         if (tx) {
           tx(nx * 16);
           ty(ny * 16);
         }
       };
       const onEnter = () => {
-        gsap.to(shape, { scale: 1.06, rotate: -3, duration: 0.7, ease: EASE.over });
+        gsap.set(card, { zIndex: 5 });
+        gsap.to(card, { scale: 1.5, duration: 0.42, ease: EASE.out, overwrite: 'auto' });
         gsap.to(meta, { y: -6, duration: 0.55, ease: EASE.out });
         if (chip) gsap.to(chip, { scale: 1.3, duration: 0.6, ease: EASE.over });
       };
@@ -283,7 +286,13 @@ export function initCards() {
           tx(0);
           ty(0);
         }
-        gsap.to(shape, { scale: 1, rotate: 0, duration: 0.8, ease: EASE.out });
+        gsap.to(card, {
+          scale: 1,
+          duration: 0.42,
+          ease: EASE.out,
+          overwrite: 'auto',
+          onComplete: () => gsap.set(card, { zIndex: 1 }),
+        });
         gsap.to(meta, { y: 0, duration: 0.6, ease: EASE.out });
         if (chip) gsap.to(chip, { scale: 1, duration: 0.6, ease: EASE.out });
       };
@@ -295,7 +304,7 @@ export function initCards() {
         card.removeEventListener('pointermove', onMove);
         card.removeEventListener('pointerenter', onEnter);
         card.removeEventListener('pointerleave', onLeave);
-        gsap.set([card, shape, tub, meta, chip].filter(Boolean), { clearProps: 'transform' });
+        gsap.set([card, tub, meta, chip].filter(Boolean), { clearProps: 'transform,zIndex' });
       });
     });
 
