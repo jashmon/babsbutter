@@ -274,11 +274,11 @@ nav .logo-icon {
   height: 30px;
   width: auto;
   flex: none;
-  transition: transform 0.5s var(--nav-ease);
+  transition: transform 0.6s var(--nav-ease);
 }
 @media (hover: hover) and (pointer: fine) {
   nav .logo:hover .logo-icon {
-    transform: rotate(22deg);
+    transform: rotate(360deg);
   }
 }
 /* the "babs" wordmark — fades and slides out on scroll. Its layout box is
