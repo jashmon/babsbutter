@@ -120,9 +120,7 @@ h3 {
   width: 150px;
   height: 150px;
   margin: 0 auto;
-  /* rotation is driven by GSAP (anim/loader.js). A CSS keyframe here wrote to
-     the same transform every frame and fought the tween, which is what made
-     the spin stutter. */
+  animation: spin 8s linear infinite;
 }
 .preloader .churn {
   margin-top: 24px;
@@ -872,13 +870,6 @@ section > .wrap {
 .why-card .ic {
   width: 88px;
   height: 88px;
-  /* The three icon SVGs each have a different native aspect ratio (butter
-     swirl is near-square, the exclamation mark is noticeably taller, hearts
-     in between). Without object-fit, <img> defaults to stretching each one
-     to fill the box exactly, non-uniformly — so every icon ended up a
-     visibly different shape/weight instead of a consistent size. `contain`
-     scales each one uniformly instead, so all three read as the same size. */
-  object-fit: contain;
   margin: 0 auto 20px;
   transition: transform 0.3s var(--ease);
 }
@@ -979,7 +970,7 @@ section > .wrap {
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: min(360px, 78vw);
-  gap: 32px;
+  gap: 24px;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   padding: 8px 40px 28px;
@@ -997,15 +988,11 @@ section > .wrap {
   transform: translateY(-6px);
 }
 /* photo clipped directly into the quatrefoil brand shape (Brand Elements –
-   Shapes), matching the flavour cards' use of shape outlines elsewhere.
-   The quatrefoil's lobes reach all the way to the edge of its own viewBox,
-   so at 100% mask-size neighbouring cards' lobes visually touch across the
-   track's gap. Sizing the mask down leaves real breathing room between
-   cards without changing the track gap or the shape itself. */
+   Shapes), matching the flavour cards' use of shape outlines elsewhere */
 .r-card .ph {
   aspect-ratio: 1;
-  -webkit-mask: url('/assets/shapes/quatrefoil.svg') center / 84% 84% no-repeat;
-  mask: url('/assets/shapes/quatrefoil.svg') center / 84% 84% no-repeat;
+  -webkit-mask: url('/assets/shapes/quatrefoil.svg') center / 100% 100% no-repeat;
+  mask: url('/assets/shapes/quatrefoil.svg') center / 100% 100% no-repeat;
 }
 .r-card .ph img {
   width: 100%;
@@ -1501,29 +1488,21 @@ section > .wrap {
 }
 
 /* gallery */
-/* Gallery is an auto-rotating filmstrip: the grid just clips, and the JS-
-   built `.gal-track` (flex row, frames duplicated once for a seamless loop)
-   drifts sideways on its own — no manual scrolling required. Bleeds to the
-   viewport edges so it still reads as a filmstrip rather than a cropped
-   grid. */
 .gal-grid {
-  overflow: hidden;
-  padding: 10px 40px 26px;
-  margin: 0 -40px;
-}
-.gal-track {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: 16px;
-  width: max-content;
 }
 .gal-grid .g {
-  flex: 0 0 min(300px, 66vw);
   border: var(--hair);
   border-radius: 22px;
   overflow: hidden;
   aspect-ratio: 1;
   box-shadow: var(--sh-sm);
   transition: transform 0.25s var(--ease);
+}
+.gal-grid .g:nth-child(even) {
+  transform: translateY(20px);
 }
 .gal-grid .g:hover {
   transform: translateY(-4px);
@@ -1761,6 +1740,9 @@ footer .wrap {
     grid-template-columns: 1fr;
     gap: 40px;
   }
+  .gal-grid {
+    grid-template-columns: 1fr 1fr;
+  }
   .f-grid {
     grid-template-columns: 1fr 1fr;
   }
@@ -1785,11 +1767,10 @@ footer .wrap {
     grid-template-columns: 1fr;
   }
   .gal-grid {
-    padding: 10px 20px 24px;
-    margin: 0 -20px;
+    grid-template-columns: 1fr 1fr;
   }
-  .gal-grid .g {
-    flex: 0 0 72vw;
+  .gal-grid .g:nth-child(even) {
+    transform: none;
   }
   .stats .row {
     gap: 36px;
@@ -2265,89 +2246,4 @@ html.nav-locked body {
   .hero .float-i {
     display: none;
   }
-}
-
-/* ==========================================================================
-   GSAP ANIMATION SUPPORT
-   Structural hooks only — no colours, type, spacing or layout values here.
-   GSAP owns the motion; these give it something correct to animate against.
-   ========================================================================== */
-
-/* SplitText line wrappers. GSAP sets overflow inline per split; this keeps
-   descenders from being clipped by that mask. */
-.sp-line {
-  display: block;
-  will-change: transform;
-}
-
-/* Button shine sweep (element injected by anim/ui.js so markup is untouched). */
-.btn {
-  position: relative;
-  overflow: hidden;
-  isolation: isolate;
-}
-.btn-shine {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 45%;
-  height: 100%;
-  z-index: 1;
-  opacity: 0;
-  pointer-events: none;
-  transform: translateX(-130%);
-  background: linear-gradient(
-    100deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.55) 50%,
-    transparent 100%
-  );
-}
-
-/* The nav is transformed by GSAP (hide-on-scroll) — its own transform must not
-   be overwritten by the layout, and it needs its own compositing layer. */
-nav {
-  will-change: transform;
-}
-
-/* Cards tilt in 3D on hover; without a backface/AA hint Safari shows seams on
-   the masked shapes mid-rotation. */
-.flav,
-.why-card,
-.r-card,
-.q-card,
-.pb-ben,
-.pb-use,
-.gal-grid .g {
-  backface-visibility: hidden;
-}
-
-/* GSAP drives card hover entirely, so the CSS hover transforms would fight it.
-   Neutralised only where a pointer exists — touch keeps its CSS press states. */
-@media (hover: hover) and (pointer: fine) {
-  .flav:hover,
-  .why-card:hover,
-  .r-card:hover,
-  .q-card:hover,
-  .gal-grid .g:hover,
-  .pb-ben:hover,
-  .pb-use:hover,
-  .flav:hover .ph,
-  .why-card:hover .ic,
-  .r-card:hover .ph img,
-  .pb-ben:hover .pb-ben-ic,
-  .pb-step:hover .pb-step-ph {
-    transform: none;
-  }
-  .btn:hover,
-  .btn:active {
-    transform: none;
-  }
-}
-
-/* The old CSS scroll-depth driver is superseded by ScrollTrigger; `depth-on`
-   is never applied now, but pin the transform off in case of a stale class. */
-html.depth-on section > .wrap {
-  transform: none;
-  opacity: 1;
 }
