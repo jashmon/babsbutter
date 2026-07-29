@@ -972,7 +972,7 @@ section > .wrap {
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: min(360px, 78vw);
-  gap: 24px;
+  gap: 32px;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   padding: 8px 40px 28px;
@@ -990,11 +990,15 @@ section > .wrap {
   transform: translateY(-6px);
 }
 /* photo clipped directly into the quatrefoil brand shape (Brand Elements –
-   Shapes), matching the flavour cards' use of shape outlines elsewhere */
+   Shapes), matching the flavour cards' use of shape outlines elsewhere.
+   The quatrefoil's lobes reach all the way to the edge of its own viewBox,
+   so at 100% mask-size neighbouring cards' lobes visually touch across the
+   track's gap. Sizing the mask down leaves real breathing room between
+   cards without changing the track gap or the shape itself. */
 .r-card .ph {
   aspect-ratio: 1;
-  -webkit-mask: url('/assets/shapes/quatrefoil.svg') center / 100% 100% no-repeat;
-  mask: url('/assets/shapes/quatrefoil.svg') center / 100% 100% no-repeat;
+  -webkit-mask: url('/assets/shapes/quatrefoil.svg') center / 84% 84% no-repeat;
+  mask: url('/assets/shapes/quatrefoil.svg') center / 84% 84% no-repeat;
 }
 .r-card .ph img {
   width: 100%;
