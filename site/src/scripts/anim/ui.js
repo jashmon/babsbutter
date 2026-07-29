@@ -180,6 +180,21 @@ export function initCards() {
   mm.add(MQ.pointer, () => {
     const cleanups = [];
 
+    /* A card only ever gets pointerleave if the pointer itself moves off it.
+       Scrolling — with Lenis, the overwhelmingly common way a card leaves the
+       viewport — carries the card out from under a stationary cursor without
+       firing that event at all, so the tilt/lift never resets and the card
+       stays visibly skewed forever. One scroll listener, shared by every
+       wired card below, force-resets whichever card is currently "entered"
+       the moment any scroll happens. */
+    const active = new Set();
+    const resetActive = () => {
+      active.forEach((leave) => leave());
+      active.clear();
+    };
+    addEventListener('scroll', resetActive, { passive: true });
+    cleanups.push(() => removeEventListener('scroll', resetActive));
+
     const wire = (card, opts) => {
       const { media, icon, title, lift = 10, tilt = 5, mediaShift = 12 } = opts;
 
@@ -202,13 +217,8 @@ export function initCards() {
         }
       };
 
-      const onEnter = () => {
-        gsap.to(card, { y: -lift, duration: 0.55, ease: EASE.out });
-        if (icon) gsap.to(icon, { rotate: -10, scale: 1.14, duration: 0.6, ease: EASE.over });
-        if (title) gsap.to(title, { x: 4, duration: 0.5, ease: EASE.out });
-      };
-
       const onLeave = () => {
+        active.delete(onLeave);
         rx(0);
         ry(0);
         if (mx) {
@@ -220,6 +230,13 @@ export function initCards() {
         if (title) gsap.to(title, { x: 0, duration: 0.5, ease: EASE.out });
       };
 
+      const onEnter = () => {
+        active.add(onLeave);
+        gsap.to(card, { y: -lift, duration: 0.55, ease: EASE.out });
+        if (icon) gsap.to(icon, { rotate: -10, scale: 1.14, duration: 0.6, ease: EASE.over });
+        if (title) gsap.to(title, { x: 4, duration: 0.5, ease: EASE.out });
+      };
+
       card.addEventListener('pointermove', onMove);
       card.addEventListener('pointerenter', onEnter);
       card.addEventListener('pointerleave', onLeave);
@@ -228,6 +245,7 @@ export function initCards() {
         card.removeEventListener('pointermove', onMove);
         card.removeEventListener('pointerenter', onEnter);
         card.removeEventListener('pointerleave', onLeave);
+        active.delete(onLeave);
         gsap.set([card, media, icon, title].filter(Boolean), { clearProps: 'transform' });
       });
     };
@@ -273,13 +291,8 @@ export function initCards() {
           ty(ny * 16);
         }
       };
-      const onEnter = () => {
-        gsap.set(card, { zIndex: 5 });
-        gsap.to(card, { scale: 1.5, duration: 0.42, ease: EASE.out, overwrite: 'auto' });
-        gsap.to(meta, { y: -6, duration: 0.55, ease: EASE.out });
-        if (chip) gsap.to(chip, { scale: 1.3, duration: 0.6, ease: EASE.over });
-      };
       const onLeave = () => {
+        active.delete(onLeave);
         rx(0);
         ry(0);
         if (tx) {
@@ -296,11 +309,19 @@ export function initCards() {
         gsap.to(meta, { y: 0, duration: 0.6, ease: EASE.out });
         if (chip) gsap.to(chip, { scale: 1, duration: 0.6, ease: EASE.out });
       };
+      const onEnter = () => {
+        active.add(onLeave);
+        gsap.set(card, { zIndex: 5 });
+        gsap.to(card, { scale: 1.5, duration: 0.42, ease: EASE.out, overwrite: 'auto' });
+        gsap.to(meta, { y: -6, duration: 0.55, ease: EASE.out });
+        if (chip) gsap.to(chip, { scale: 1.3, duration: 0.6, ease: EASE.over });
+      };
 
       card.addEventListener('pointermove', onMove);
       card.addEventListener('pointerenter', onEnter);
       card.addEventListener('pointerleave', onLeave);
       cleanups.push(() => {
+        active.delete(onLeave);
         card.removeEventListener('pointermove', onMove);
         card.removeEventListener('pointerenter', onEnter);
         card.removeEventListener('pointerleave', onLeave);
