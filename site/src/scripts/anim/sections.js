@@ -568,9 +568,10 @@ function videos() {
 /* --- decorative SVG ------------------------------------------------------- */
 function decorations() {
   // brand shapes breathe and turn slowly, at individually offset phases so the
-  // page never pulses in unison
+  // page never pulses in unison — paused off-screen so a page with several
+  // of these isn't paying a per-frame cost for shapes nobody can see
   $$('.blob').forEach((el, i) => {
-    gsap.to(el, {
+    const breathe = gsap.to(el, {
       rotate: i % 2 ? 14 : -14,
       scale: 1.05,
       duration: 9 + i * 1.7,
@@ -578,6 +579,15 @@ function decorations() {
       repeat: -1,
       yoyo: true,
       delay: i * 0.4,
+    });
+    ScrollTrigger.create({
+      trigger: el,
+      start: 'top bottom',
+      end: 'bottom top',
+      onEnter: () => breathe.resume(),
+      onLeave: () => breathe.pause(),
+      onEnterBack: () => breathe.resume(),
+      onLeaveBack: () => breathe.pause(),
     });
   });
 

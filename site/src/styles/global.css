@@ -872,6 +872,13 @@ section > .wrap {
 .why-card .ic {
   width: 88px;
   height: 88px;
+  /* The three icon SVGs each have a different native aspect ratio (butter
+     swirl is near-square, the exclamation mark is noticeably taller, hearts
+     in between). Without object-fit, <img> defaults to stretching each one
+     to fill the box exactly, non-uniformly — so every icon ended up a
+     visibly different shape/weight instead of a consistent size. `contain`
+     scales each one uniformly instead, so all three read as the same size. */
+  object-fit: contain;
   margin: 0 auto 20px;
   transition: transform 0.3s var(--ease);
 }

@@ -196,6 +196,7 @@ export function initCards() {
        new card always force-resets whatever else is still marked active
        first, on top of the scroll-triggered reset below. */
     const active = new Map(); // leave fn -> its card, so we can verify containment
+    let zTop = 5; // shared, ever-increasing stacking counter for popped .flav cards
     const resetActive = (except) => {
       active.forEach((card, leave) => {
         if (leave !== except) leave();
@@ -338,7 +339,15 @@ export function initCards() {
       const onEnter = () => {
         resetActive(onLeave);
         active.set(onLeave, card);
-        gsap.set(card, { zIndex: 5 });
+        /* A plain two-level z-index (1 vs 5) ties whenever a new card is
+           entered before the previous one's leave-tween has finished
+           clearing its own z-index back down — during that ~0.4s overlap
+           both cards sit at the same z-index and DOM order decides who
+           paints on top, which is what made hovering feel like it was
+           landing behind its neighbour half the time. A shared, always-
+           incrementing counter means the most recently entered card is
+           *always* strictly higher than anything before it, no ties ever. */
+        gsap.set(card, { zIndex: ++zTop });
         gsap.to(card, { scale: 1.5, duration: 0.42, ease: EASE.out, overwrite: 'auto' });
         gsap.to(meta, { y: -6, duration: 0.55, ease: EASE.out });
         if (chip) gsap.to(chip, { scale: 1.3, duration: 0.6, ease: EASE.over });
