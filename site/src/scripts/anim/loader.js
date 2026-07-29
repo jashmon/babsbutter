@@ -11,7 +11,7 @@
 import { gsap, ScrollTrigger, EASE, lenis, reduced, $, $$ } from './core.js';
 import { splitHeading, splitLines } from './text.js';
 
-const MIN_HOLD = 0.05; // seconds the mark is guaranteed to be on screen
+const MIN_HOLD = 0.1; // seconds the mark is guaranteed to be on screen
 
 export function runLoader() {
   const pre = $('#preloader');
@@ -95,23 +95,23 @@ export function runLoader() {
     // The "churning..." caption stays fully static — no rise, no fade of its
     // own. It rides along only because the whole cover sweeps away as one
     // unit in the next beat.
-    tl.from(mark, { scale: 0.6, opacity: 0, duration: 0.18, ease: EASE.over }, 0)
+    tl.from(mark, { scale: 0.6, opacity: 0, duration: 0.36, ease: EASE.over }, 0)
       .to({}, { duration: MIN_HOLD }) // guaranteed presence
       /* --- 2. background morph: the cover sweeps off on its curved edge --- */
-      .to(mark, { scale: 0.82, opacity: 0, duration: 0.12, ease: EASE.in }, '>-0.04')
+      .to(mark, { scale: 0.82, opacity: 0, duration: 0.24, ease: EASE.in }, '>-0.08')
       .to(
         pre,
         {
           yPercent: -118,
-          duration: 0.3,
+          duration: 0.6,
           ease: 'expo.inOut',
           onStart: () => gsap.set(pre, { pointerEvents: 'none' }),
         },
-        '>-0.05'
+        '>-0.1'
       );
   }
 
-  const revealAt = pre ? '-=0.19' : 0; // hero starts while the cover is still moving
+  const revealAt = pre ? '-=0.38' : 0; // hero starts while the cover is still moving
 
   /* --- 3. headline ------------------------------------------------------- */
   tl.to(eyebrow || [], { opacity: 1, y: 0, scale: 1, duration: 0.7 }, revealAt);
