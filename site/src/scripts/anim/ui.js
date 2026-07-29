@@ -187,13 +187,38 @@ export function initCards() {
        stays visibly skewed forever. One scroll listener, shared by every
        wired card below, force-resets whichever card is currently "entered"
        the moment any scroll happens. */
-    const active = new Set();
-    const resetActive = () => {
-      active.forEach((leave) => leave());
-      active.clear();
+    /* A scaled/lifted card can visually overlap its neighbours while it's
+       popped, which occasionally swallows the pointerenter/pointerleave pair
+       for whichever card the cursor was sweeping across next — a fast pass
+       over a row of cards could leave more than one stuck "entered" at once
+       (several flavour cards frozen at their 1.5x pop simultaneously). Hover
+       is only ever meant to be true for one card at a time, so entering a
+       new card always force-resets whatever else is still marked active
+       first, on top of the scroll-triggered reset below. */
+    const active = new Map(); // leave fn -> its card, so we can verify containment
+    const resetActive = (except) => {
+      active.forEach((card, leave) => {
+        if (leave !== except) leave();
+      });
     };
-    addEventListener('scroll', resetActive, { passive: true });
-    cleanups.push(() => removeEventListener('scroll', resetActive));
+    const onScroll = () => resetActive();
+    addEventListener('scroll', onScroll, { passive: true });
+
+    // Belt-and-braces: if the pointer is simply resting somewhere that isn't
+    // any currently-active card (and nothing scrolls to trigger the reset
+    // above), self-heal on the next real pointer movement anywhere on the
+    // page rather than staying stuck until the user happens to scroll.
+    const onDocMove = (e) => {
+      active.forEach((card, leave) => {
+        if (!card.contains(e.target)) leave();
+      });
+    };
+    addEventListener('pointermove', onDocMove, { passive: true });
+
+    cleanups.push(() => {
+      removeEventListener('scroll', onScroll);
+      removeEventListener('pointermove', onDocMove);
+    });
 
     const wire = (card, opts) => {
       const { media, icon, title, lift = 10, tilt = 5, mediaShift = 12 } = opts;
@@ -231,7 +256,8 @@ export function initCards() {
       };
 
       const onEnter = () => {
-        active.add(onLeave);
+        resetActive(onLeave);
+        active.set(onLeave, card);
         gsap.to(card, { y: -lift, duration: 0.55, ease: EASE.out });
         if (icon) gsap.to(icon, { rotate: -10, scale: 1.14, duration: 0.6, ease: EASE.over });
         if (title) gsap.to(title, { x: 4, duration: 0.5, ease: EASE.out });
@@ -310,7 +336,8 @@ export function initCards() {
         if (chip) gsap.to(chip, { scale: 1, duration: 0.6, ease: EASE.out });
       };
       const onEnter = () => {
-        active.add(onLeave);
+        resetActive(onLeave);
+        active.set(onLeave, card);
         gsap.set(card, { zIndex: 5 });
         gsap.to(card, { scale: 1.5, duration: 0.42, ease: EASE.out, overwrite: 'auto' });
         gsap.to(meta, { y: -6, duration: 0.55, ease: EASE.out });
