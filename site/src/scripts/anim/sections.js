@@ -148,23 +148,49 @@ function why() {
   const cards = $$('.why-card', sec);
   if (!cards.length) return;
 
-  const icons = $$('.why-card .ic', sec);
-  gsap.timeline({
-    scrollTrigger: inView(sec, { start: 'top 72%' }),
-    // guaranteed landing at the authored layout, transform-free — without
-    // this, anything that interrupts the tween (a backgrounded tab, a fast
-    // resize) can strand a card mid-skew.
-    onComplete: () => gsap.set([cards, icons], { clearProps: 'transform,opacity' }),
-  })
-    .from(cards, {
-      skewY: 7,
-      yPercent: 28,
-      opacity: 0,
-      duration: 1.05,
-      ease: EASE.out,
-      stagger: { each: 0.1, from: 'center' },
-    })
-    .from(icons, { scale: 0.5, rotate: -35, opacity: 0, duration: 0.8, ease: EASE.over, stagger: 0.09 }, 0.2);
+  // Same pattern as flavours()/recipes(): independent per-card timelines,
+  // and clearProps scoped to the specific yPercent/skewY sub-properties the
+  // entrance owns rather than the blanket `transform` — these cards also
+  // carry a 3D hover tilt (rotateX/rotateY/y, see ui.js) on the same
+  // element, and clearing the whole transform could wipe that mid-hover.
+  cards.forEach((card, i) => {
+    const icon = card.querySelector('.ic');
+    gsap
+      .timeline({
+        scrollTrigger: inView(sec, { start: 'top 72%' }),
+        delay: i * 0.1,
+        onComplete: () => {
+          gsap.set(card, { clearProps: 'yPercent,skewY,opacity' });
+          if (icon) gsap.set(icon, { clearProps: 'scale,rotate,opacity' });
+        },
+      })
+      .from(card, { skewY: 7, yPercent: 28, opacity: 0, duration: 1.05, ease: EASE.out })
+      .from(icon || [], { scale: 0.5, rotate: -35, opacity: 0, duration: 0.8, ease: EASE.over }, 0.2);
+  });
+
+  // Belt-and-braces, same reasoning as flavours()/recipes(): read the
+  // rendered transform's actual translateY rather than trusting opacity.
+  const settled = (el) => {
+    const t = getComputedStyle(el).transform;
+    if (t === 'none') return true;
+    const m3d = t.match(/^matrix3d\(([^)]+)\)$/);
+    if (m3d) return Math.abs(m3d[1].split(',').map(Number)[13] ?? 0) < 0.5;
+    const m = t.match(/^matrix\(([^)]+)\)$/);
+    if (!m) return true;
+    return Math.abs(m[1].split(',').map(Number)[5] ?? 0) < 0.5;
+  };
+  ScrollTrigger.create({
+    trigger: sec,
+    start: 'top 72%',
+    once: true,
+    onEnter: () => {
+      setTimeout(() => {
+        cards.forEach((card) => {
+          if (!settled(card)) gsap.set(card, { clearProps: 'yPercent,skewY,opacity' });
+        });
+      }, 2000);
+    },
+  });
 }
 
 function stats() {
@@ -212,15 +238,49 @@ function recipes() {
   const sec = $('.recipes');
   if (!sec) return;
   const cards = $$('.r-card', sec);
-  gsap.from(cards, {
-    xPercent: 14,
-    opacity: 0,
-    rotate: 2.5,
-    duration: 1,
-    ease: EASE.out,
-    stagger: 0.1,
-    scrollTrigger: inView(sec, { start: 'top 74%' }),
-    onComplete: () => gsap.set(cards, { clearProps: 'transform,opacity' }),
+  if (!cards.length) return;
+
+  // Same fix as flavours(): independent per-card timelines (one hung-up
+  // card's stagger slot can't strand the others), and clearProps scoped to
+  // the individual xPercent/rotate/opacity sub-properties the entrance
+  // actually owns rather than the blanket `transform` — these cards also
+  // get a 3D hover tilt (rotateX/rotateY/y, see ui.js), and clearing the
+  // whole transform could wipe that mid-hover. A stuck `xPercent` is exactly
+  // what would shift a card sideways into its neighbour, which is the
+  // overlap that was reported.
+  cards.forEach((card, i) => {
+    gsap
+      .timeline({
+        scrollTrigger: inView(sec, { start: 'top 74%' }),
+        delay: i * 0.1,
+        onComplete: () => gsap.set(card, { clearProps: 'xPercent,rotate,opacity' }),
+      })
+      .from(card, { xPercent: 14, opacity: 0, rotate: 2.5, duration: 1, ease: EASE.out });
+  });
+
+  // Belt-and-braces, identical reasoning to flavours(): read the rendered
+  // transform's actual translateX rather than trusting opacity, since
+  // opacity can read as fully landed while xPercent is still short of 0.
+  const settled = (el) => {
+    const t = getComputedStyle(el).transform;
+    if (t === 'none') return true;
+    const m3d = t.match(/^matrix3d\(([^)]+)\)$/);
+    if (m3d) return Math.abs(m3d[1].split(',').map(Number)[12] ?? 0) < 0.5;
+    const m = t.match(/^matrix\(([^)]+)\)$/);
+    if (!m) return true;
+    return Math.abs(m[1].split(',').map(Number)[4] ?? 0) < 0.5;
+  };
+  ScrollTrigger.create({
+    trigger: sec,
+    start: 'top 74%',
+    once: true,
+    onEnter: () => {
+      setTimeout(() => {
+        cards.forEach((card) => {
+          if (!settled(card)) gsap.set(card, { clearProps: 'xPercent,rotate,opacity' });
+        });
+      }, 2000);
+    },
   });
 }
 
@@ -473,6 +533,10 @@ function plantPage() {
   if (ben) {
     const cards = $$('.pb-ben', ben);
     const icons = $$('.pb-ben-ic', ben);
+    // Scoped to the specific sub-properties the entrance owns, not the
+    // blanket `transform` — these cards also carry a 3D hover tilt
+    // (rotateX/rotateY/y, see ui.js) on the same element, and clearing the
+    // whole transform could wipe that mid-hover.
     gsap.from(cards, {
       yPercent: 26,
       opacity: 0,
@@ -482,7 +546,7 @@ function plantPage() {
       ease: EASE.over,
       stagger: 0.09,
       scrollTrigger: inView(ben, { start: 'top 78%' }),
-      onComplete: () => gsap.set(cards, { clearProps: 'transform,opacity' }),
+      onComplete: () => gsap.set(cards, { clearProps: 'yPercent,scale,rotate,opacity' }),
     });
     gsap.from(icons, {
       scale: 0.4,
@@ -492,7 +556,7 @@ function plantPage() {
       ease: EASE.over,
       stagger: 0.09,
       scrollTrigger: inView(ben, { start: 'top 76%' }),
-      onComplete: () => gsap.set(icons, { clearProps: 'transform,opacity' }),
+      onComplete: () => gsap.set(icons, { clearProps: 'scale,rotate,opacity' }),
     });
   }
 
@@ -524,7 +588,7 @@ function plantPage() {
       ease: EASE.out,
       stagger: 0.08,
       scrollTrigger: inView(uses, { start: 'top 80%' }),
-      onComplete: () => gsap.set(cards, { clearProps: 'transform,opacity' }),
+      onComplete: () => gsap.set(cards, { clearProps: 'yPercent,skewY,opacity' }),
     });
   }
 
