@@ -79,6 +79,11 @@ function flavours() {
   // uncleared, not just the affected one. Independent per-card timelines
   // mean a hiccup on one card can never strand its neighbours, and each
   // clears its own transform/opacity/clip-path the moment IT finishes.
+  // Entrance clears `y` specifically, never the blanket `transform` — the
+  // card's hover pop (see ui.js) animates `scale` on this same element, and
+  // clearing the whole transform would be able to wipe out a hover that's
+  // mid-flight. Scoping to the individual sub-property the entrance actually
+  // owns means the two can never step on each other, no matter the timing.
   cards.forEach((card, i) => {
     const ph = card.querySelector('.ph');
     const meta = card.querySelector('.meta');
@@ -86,7 +91,10 @@ function flavours() {
       .timeline({
         scrollTrigger: inView(sec, { start: 'top 70%' }),
         delay: i * 0.09,
-        onComplete: () => gsap.set([card, ph, meta], { clearProps: 'transform,opacity,clipPath' }),
+        onComplete: () => {
+          gsap.set([card, meta], { clearProps: 'y,opacity' });
+          gsap.set(ph, { clearProps: 'clipPath' });
+        },
       })
       .from(card, { y: 46, opacity: 0, duration: 1, ease: EASE.out })
       .from(ph, { clipPath: 'inset(0% 0% 100% 0%)', duration: 0.95, ease: EASE.out }, 0.05)
@@ -95,10 +103,28 @@ function flavours() {
 
   // Belt-and-braces: whatever the cause, no flavour card should ever be
   // left visibly stuck. A short while after the section is first in view,
-  // sweep for any card whose entrance genuinely never finished (opacity
-  // still short of 1 — hover never touches opacity, so this can't mistake
-  // a card the user is mid-hovering for a stuck one) and force it to rest.
-  // Untouched, correctly-landed cards are left completely alone.
+  // sweep for any card that's still visibly offset from its resting
+  // position (read from the actual rendered transform, not from opacity —
+  // a card can finish fading in while its translateY is still short of 0,
+  // which an opacity-only check would miss entirely) and snap just the `y`
+  // back to rest. Correctly-landed cards, and anything hover currently owns
+  // (scale/z-index), are left completely alone.
+  const settled = (el) => {
+    const t = getComputedStyle(el).transform;
+    if (t === 'none') return true;
+    // the card also carries a 3D hover tilt (see ui.js), which renders as
+    // matrix3d(...) rather than matrix(...) the moment any rotateX/rotateY
+    // is non-zero — translateY sits at a different index in each form.
+    const m3d = t.match(/^matrix3d\(([^)]+)\)$/);
+    if (m3d) {
+      const ty = m3d[1].split(',').map(Number)[13] ?? 0;
+      return Math.abs(ty) < 0.5;
+    }
+    const m = t.match(/^matrix\(([^)]+)\)$/);
+    if (!m) return true;
+    const ty = m[1].split(',').map(Number)[5] ?? 0;
+    return Math.abs(ty) < 0.5;
+  };
   ScrollTrigger.create({
     trigger: sec,
     start: 'top 70%',
@@ -106,13 +132,12 @@ function flavours() {
     onEnter: () => {
       setTimeout(() => {
         cards.forEach((card) => {
-          if (parseFloat(getComputedStyle(card).opacity) < 0.99) {
-            gsap.set([card, card.querySelector('.ph'), card.querySelector('.meta')], {
-              clearProps: 'transform,opacity,clipPath',
-            });
+          if (!settled(card)) {
+            gsap.set([card, card.querySelector('.meta')], { clearProps: 'y,opacity' });
+            gsap.set(card.querySelector('.ph'), { clearProps: 'clipPath' });
           }
         });
-      }, 2500);
+      }, 2000);
     },
   });
 }
