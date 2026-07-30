@@ -270,15 +270,48 @@ nav .logo {
 nav.navbar--scrolled .logo {
   transform: scale(0.92);
 }
+/* Sized only as a positioning anchor for the particle-sphere canvas below —
+   the icon itself keeps its normal 30px box inside it. */
+nav .logo-icon-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
 nav .logo-icon {
   height: 30px;
   width: auto;
   flex: none;
+  position: relative;
+  z-index: 1;
   transition: transform 0.6s var(--nav-ease);
 }
 @media (hover: hover) and (pointer: fine) {
   nav .logo:hover .logo-icon {
     transform: rotate(360deg);
+  }
+}
+/* Particle-sphere halo (see logo-particles.js) — invisible and inert until
+   hovered, so there's zero cost the rest of the time. */
+.logo-particles {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 64px;
+  height: 64px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.35s var(--nav-ease);
+}
+nav .logo:hover .logo-particles,
+nav .logo:focus-within .logo-particles {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .logo-particles {
+    display: none;
   }
 }
 /* the "babs" wordmark — fades and slides out on scroll. Its layout box is

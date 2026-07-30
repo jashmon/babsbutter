@@ -1,5 +1,6 @@
 import Lenis from 'lenis';
 import { animate } from 'motion';
+import { initLogoParticles } from './logo-particles.js';
 
 // Concept 7 · "Butter Playground" behaviour.
 // Everything here is transform/opacity only and degrades cleanly:
@@ -423,3 +424,6 @@ if (navEl && navToggle) {
     if (navOpen && !isMobileNav()) setNav(false);
   });
 }
+
+// ---- logo particle sphere ------------------------------------------------
+initLogoParticles();

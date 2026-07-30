@@ -65,7 +65,10 @@ const onPlantPage = Astro.url.pathname.replace(/\/$/, '') === '/plant-based';
     <nav>
       <div class="bar">
         <a class="logo" href={isHome ? '#top' : '/'} aria-label="Babs Butter">
-          <img class="logo-icon" src="/assets/logos/icon-tangerine.svg" alt="" />
+          <span class="logo-icon-wrap">
+            <canvas class="logo-particles" width="64" height="64" aria-hidden="true"></canvas>
+            <img class="logo-icon" src="/assets/logos/icon-tangerine.svg" alt="" />
+          </span>
           <img class="logo-word" src="/assets/logos/primary-tangerine.svg" alt="" />
         </a>
         <ul id="nav-links">
