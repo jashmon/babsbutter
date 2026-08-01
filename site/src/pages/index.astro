@@ -26,7 +26,18 @@ const tCols = [testimonials.slice(0, 3), testimonials.slice(3, 6), testimonials.
 const qShapes = ['/assets/shapes/quatrefoil.svg', '/assets/shapes/flower.svg', '/assets/shapes/ribbed-circle.svg'];
 ---
 <BaseLayout title="Babs Butter · Big Butter Energy">
-  <!-- HERO — full-bleed lifestyle photo background (same shot as the /shop hero) -->
+  <!-- OFFER STRIP — fixed announcement bar above the nav -->
+  <div class="promo" role="region" aria-label="Store announcement">
+    <div class="wrap promo-inner">
+      <span class="promo-msg">Free delivery on orders over ₹800 · churn-fresh, cold-shipped</span>
+      <div class="promo-social" aria-hidden="true">
+        <span>@babsbutter</span>
+        <span class="promo-cur">INR ₹</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- HERO — full-bleed lifestyle photo background -->
   <header class="hero" id="top">
     <img class="hero-bgimg" src="/assets/img/table-spread.jpg" alt="A table spread of warm bread, pastries and butter" />
     <div class="hero-scrim" aria-hidden="true"></div>
@@ -57,8 +68,8 @@ const qShapes = ['/assets/shapes/quatrefoil.svg', '/assets/shapes/flower.svg', '
 
   <!-- PRODUCT FEATURES + PRODUCTS — the merged spiral feature section (burst +
        "Zero nasties" + stats, folding in the old why/stats sections), then the
-       "path to paradise" carousel. Shared with /shop. Replaces "Pick your
-       player". #why lands on the feature section, #flavs on the products. -->
+       "pick a player" carousel. #why lands on the feature section, #flavs on
+       the products. -->
   <FeatureBurst id="why" ctaHref="#flavs" stats={stats} />
   <ProductCarousel id="flavs" footHref="#stockists" footLabel="Find a stockist" />
 

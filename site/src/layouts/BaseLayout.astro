@@ -18,7 +18,6 @@ const isHome = Astro.url.pathname === '/' || Astro.url.pathname === '';
 const to = (hash: string) => (isHome ? hash : `/${hash}`);
 const path = Astro.url.pathname.replace(/\/$/, '');
 const onPlantPage = path === '/plant-based';
-const onShopPage = path === '/shop';
 ---
 <!doctype html>
 <html lang="en">
@@ -74,7 +73,6 @@ const onShopPage = path === '/shop';
         </a>
         <ul id="nav-links">
           <span class="nav-pill" aria-hidden="true"></span>
-          <li><a href="/shop" aria-current={onShopPage ? 'page' : undefined}>Shop</a></li>
           <li>
             <a href="/plant-based" aria-current={onPlantPage ? 'page' : undefined}>Plant-Based</a>
           </li>
