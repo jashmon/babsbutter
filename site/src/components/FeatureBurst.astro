@@ -21,7 +21,7 @@ interface Props {
   // these stats reveal on the right — folding the old why + stats sections in.
   stats?: Stat[];
 }
-const { id, ctaHref = '#sh-grid', ctaLabel = "I'm into it", stats } = Astro.props;
+const { id, ctaHref = '#sh-grid', ctaLabel = 'Get Babs', stats } = Astro.props;
 const isMerged = Array.isArray(stats) && stats.length > 0;
 
 const features = [
