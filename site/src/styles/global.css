@@ -649,10 +649,13 @@ nav ul a:active {
 }
 .mq .track {
   display: flex;
-  gap: 40px;
+  /* no outer gap: the 40px spacing between copies lives inside each span as
+     trailing padding, so the track is exactly two identical units wide and the
+     -50% loop wraps without a seam. */
   white-space: nowrap;
   width: max-content;
   animation: mqx 24s linear infinite;
+  will-change: transform;
 }
 .mq span {
   font-family: 'Roketto', sans-serif;
@@ -662,6 +665,7 @@ nav ul a:active {
   display: flex;
   align-items: center;
   gap: 40px;
+  padding-right: 40px;
 }
 .mq img {
   height: 26px;
