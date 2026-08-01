@@ -24,6 +24,19 @@ const tCols = [testimonials.slice(0, 3), testimonials.slice(3, 6), testimonials.
 
 // Brand-element shapes cycled onto testimonial avatars (Brand Elements – Shapes).
 const qShapes = ['/assets/shapes/quatrefoil.svg', '/assets/shapes/flower.svg', '/assets/shapes/ribbed-circle.svg'];
+
+// Photos that drift as the tilted marquee background behind the stockists
+// section. Each row repeats its set twice in the markup so the translateX(-50%)
+// loop wraps seamlessly (see .shelf-bg in global.css). Alternate rows run the
+// set reversed and scroll the opposite way for a parallax collage.
+const shelfPhotos = ['table-spread-2', 'img-aristi', 'scoops', 'img-tkachenko', 'butter-rolls', 'img-tai-1', 'banana-cream', 'img-solodsha'];
+const shelfRows = [
+  { cls: 'r1', imgs: shelfPhotos },
+  { cls: 'r2 rev', imgs: [...shelfPhotos].reverse() },
+  { cls: 'r3', imgs: shelfPhotos },
+  { cls: 'r4 rev', imgs: [...shelfPhotos].reverse() },
+  { cls: 'r5', imgs: shelfPhotos },
+];
 ---
 <BaseLayout title="Babs Butter · Big Butter Energy">
   <!-- OFFER STRIP — fixed announcement bar above the nav -->
@@ -166,8 +179,21 @@ const qShapes = ['/assets/shapes/quatrefoil.svg', '/assets/shapes/flower.svg', '
     </div>
   </section>
 
-  <!-- AWARDS + RETAIL -->
+  <!-- AWARDS + RETAIL — the shelf pins (sticky) while the photo panel below
+       scrolls up and over it; see .stack-over in global.css + the bottom-pin in main.js -->
+  <div class="stack-over">
   <section class="shelf wv" id="stockists" style="--wv-c:var(--butter)">
+    <div class="shelf-bg" aria-hidden="true">
+      <div class="shelf-carousel">
+        {shelfRows.map((row) => (
+          <div class={`mrow ${row.cls}`}>
+            {[...row.imgs, ...row.imgs].map((name) => (
+              <span class="mcard"><img src={`/assets/img/${name}.jpg`} alt="" loading="lazy" /></span>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
     <div class="wrap">
       <h2 class="rv">Shiny things &amp; where to grab us</h2>
       <div class="badges">
@@ -186,24 +212,9 @@ const qShapes = ['/assets/shapes/quatrefoil.svg', '/assets/shapes/flower.svg', '
     </div>
   </section>
 
-  <!-- GALLERY — twice the butter; butter wave in from the stockists above -->
-  <section class="wv" style="--wv-c:var(--butter)">
-    <div class="wrap">
-      <div class="gal-grid">
-        <div class="g rv"><img src="/assets/img/table-spread-2.jpg" alt="Breakfast flat lay with butter cubes" loading="lazy" /></div>
-        <div class="g rv"><img src="/assets/img/img-aristi.jpg" alt="Sliced butter with raspberries and seeded bread" loading="lazy" /></div>
-        <div class="g rv"><img src="/assets/img/scoops.jpg" alt="Scoops of churned cream" loading="lazy" /></div>
-        <div class="g rv"><img src="/assets/img/img-tkachenko.jpg" alt="A croissant in warm morning light" loading="lazy" /></div>
-        <div class="g rv"><img src="/assets/img/butter-rolls.jpg" alt="Fresh butter served with warm bread rolls" loading="lazy" /></div>
-        <div class="g rv"><img src="/assets/img/img-tai-1.jpg" alt="Butter being spread on fresh bread" loading="lazy" /></div>
-        <div class="g rv"><img src="/assets/img/banana-cream.jpg" alt="Creamy homemade banana dessert" loading="lazy" /></div>
-        <div class="g rv"><img src="/assets/img/img-solodsha.jpg" alt="Golden pastry with butter" loading="lazy" /></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- FULL-BLEED PHOTO PANEL — flour wave in from the gallery, butterfly-pea wave out to FAQ -->
-  <section class="ipanel wv" style="--wv-c:var(--flour)">
+  <!-- FULL-BLEED PHOTO PANEL — wavy top edge is cut into the panel itself (see
+       .ipanel mask in global.css); butterfly-pea wave out to the FAQ below -->
+  <section class="ipanel wv">
     <img src="/assets/img/bread-basket.jpg" alt="Warm bread and butter on the table" loading="lazy" />
     <div class="scrim" aria-hidden="true"></div>
     <div class="txt">
@@ -212,6 +223,7 @@ const qShapes = ['/assets/shapes/quatrefoil.svg', '/assets/shapes/flower.svg', '
       <p>Room-temperature Babs, a heavy hand, and no regrets. That's the whole technique.</p>
     </div>
   </section>
+  </div>
 
   <!-- FAQ -->
   <section class="faq" id="faq">

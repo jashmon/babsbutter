@@ -44,7 +44,11 @@ body {
   font-size: 17px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
+  /* Clip horizontal overflow from tilted bands / off-canvas shapes. Use `clip`,
+     not `hidden`: `hidden` would force overflow-y to compute to `auto`, turning
+     <body> into a scroll container and silently breaking `position: sticky`
+     (the .stack-over parallax). `clip` clips without a scroll container. */
+  overflow-x: clip;
 }
 img {
   max-width: 100%;
@@ -1451,6 +1455,104 @@ section > .wrap {
   letter-spacing: -0.01em;
 }
 
+/* shelf background — a tilted collage of drifting product photos behind the
+   stockists content. Rows scroll in alternating directions on a shared linear
+   loop; a warm butter wash keeps the headline, badges and cards legible. Clip
+   the rotated rows here (not on .shelf) so the section's own .wv wave divider
+   at top:-1px is never cut. Content sits above via `section > .wrap { z-index:1 }`. */
+.shelf-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+.shelf-carousel {
+  position: absolute;
+  /* over-size + scale so the rotated corners stay off-canvas */
+  inset: -18%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 28px;
+  transform: rotate(-8deg) scale(1.2);
+}
+.shelf-bg .mrow {
+  display: flex;
+  width: max-content;
+  white-space: nowrap;
+  will-change: transform;
+  /* seamless loop: spacing lives in .mcard padding (not a flex gap), so the
+     track is exactly two identical halves wide and translateX(-50%) wraps
+     without a seam — same fix as the .mq ticker. */
+  animation: shelf-mqx var(--dur, 56s) linear infinite;
+}
+.shelf-bg .mrow.rev {
+  animation-direction: reverse;
+}
+.shelf-bg .r1 { --dur: 55s; }
+.shelf-bg .r2 { --dur: 40s; }
+.shelf-bg .r3 { --dur: 70s; }
+.shelf-bg .r4 { --dur: 48s; }
+.shelf-bg .r5 { --dur: 62s; }
+.shelf-bg .mcard {
+  flex: none;
+  padding-right: 24px;
+}
+.shelf-bg .mcard img {
+  display: block;
+  width: clamp(200px, 22vw, 260px);
+  height: 156px;
+  object-fit: cover;
+  border-radius: 14px;
+  box-shadow: var(--sh-sm);
+}
+/* soft butter wash + top/bottom fades into the neighbouring waves */
+.shelf-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      var(--butter) 0%,
+      rgba(246, 230, 166, 0.66) 24%,
+      rgba(246, 230, 166, 0.66) 76%,
+      var(--butter) 100%
+    );
+}
+@keyframes shelf-mqx {
+  to {
+    transform: translateX(-50%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .shelf-bg .mrow {
+    animation: none;
+  }
+}
+
+/* sticky overlap — the stockists shelf pins in place while the photo panel
+   below scrolls up and over it (a parallax "cover" reveal). Motion only: under
+   reduced motion both sections stay in normal flow. `isolation` keeps the
+   z-index local so nothing leaks over the fixed nav or later sections. The
+   shelf's `top` is bottom-pinned from main.js so all its content stays visible
+   right up until the panel covers it. */
+@media (prefers-reduced-motion: no-preference) {
+  .stack-over {
+    position: relative;
+    isolation: isolate;
+  }
+  .stack-over .shelf {
+    position: sticky;
+    top: 0; /* main.js refines this to bottom-pin shelves taller than the viewport */
+    z-index: 0;
+  }
+  .stack-over .ipanel {
+    position: relative;
+    z-index: 1;
+  }
+}
+
 /* full-bleed photo panel (more photography, concept-8 style) */
 .ipanel {
   padding: 0;
@@ -1460,6 +1562,26 @@ section > .wrap {
   display: flex;
   align-items: flex-end;
   overflow: hidden;
+  /* Wavy TOP edge cut into the panel itself, so its boundary with the section
+     above is a single scalloped line (that section shows through the troughs)
+     rather than a flat butter band laid over the photo. This matters once the
+     panel rides up over the stockists collage (.stack-over parallax): a solid
+     butter band would read as a straight strip across the photos. Two mask
+     layers, unioned: the wave across the top 42px + a solid fill below it.
+     The butter `.wv::before` band is removed just below. */
+  -webkit-mask:
+    url('/assets/shapes/wave-divider.svg') top left / 140px 42px repeat-x,
+    linear-gradient(#000, #000) bottom left / 100% calc(100% - 40px) no-repeat;
+  mask:
+    url('/assets/shapes/wave-divider.svg') top left / 140px 42px repeat-x,
+    linear-gradient(#000, #000) bottom left / 100% calc(100% - 40px) no-repeat;
+  -webkit-mask-composite: source-over;
+  mask-composite: add;
+}
+/* the wavy top boundary is now the panel's own masked edge (above); drop the
+   butter divider band that used to sit over the photo. */
+.ipanel.wv::before {
+  content: none;
 }
 .ipanel > img {
   position: absolute;
@@ -1511,32 +1633,6 @@ section > .wrap {
   font-size: 18px;
   color: rgba(252, 247, 235, 0.9);
   max-width: 44ch;
-}
-
-/* gallery */
-.gal-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-}
-.gal-grid .g {
-  border: var(--hair);
-  border-radius: 22px;
-  overflow: hidden;
-  aspect-ratio: 1;
-  box-shadow: var(--sh-sm);
-  transition: transform 0.25s var(--ease);
-}
-.gal-grid .g:nth-child(even) {
-  transform: translateY(20px);
-}
-.gal-grid .g:hover {
-  transform: translateY(-4px);
-}
-.gal-grid img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
 }
 
 /* faq — two-column layout, animated open/close */
@@ -1766,9 +1862,6 @@ footer .wrap {
     grid-template-columns: 1fr;
     gap: 40px;
   }
-  .gal-grid {
-    grid-template-columns: 1fr 1fr;
-  }
   .f-grid {
     grid-template-columns: 1fr 1fr;
   }
@@ -1791,12 +1884,6 @@ footer .wrap {
      two-up — full width made each blob far too large on a phone */
   .why-grid {
     grid-template-columns: 1fr;
-  }
-  .gal-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-  .gal-grid .g:nth-child(even) {
-    transform: none;
   }
   .stats .row {
     gap: 36px;
@@ -2147,7 +2234,6 @@ html.nav-locked body {
   .r-card:hover,
   .why-card:hover,
   .q-card:hover,
-  .gal-grid .g:hover,
   .ing-stage .pill:hover,
   .badges .b:hover,
   details:hover {
@@ -2156,7 +2242,6 @@ html.nav-locked body {
   .r-card:active,
   .why-card:active,
   .q-card:active,
-  .gal-grid .g:active,
   .ing-stage .pill:active {
     transform: scale(0.985);
     transition: transform 0.18s var(--ease);

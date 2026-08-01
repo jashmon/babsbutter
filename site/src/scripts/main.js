@@ -88,6 +88,20 @@ if (!reduce) {
       update();
     });
   }
+
+  // Sticky-cover parallax: the stockists shelf pins while the photo panel below
+  // scrolls up over it (.stack-over in the CSS). CSS sticks it at top:0, which
+  // is right when the shelf fits the viewport; when it's taller we bottom-pin it
+  // (negative top) so its full content stays visible until the panel covers it.
+  const shelf = document.querySelector('.stack-over > .shelf');
+  if (shelf) {
+    const pin = () => {
+      shelf.style.top = Math.min(0, innerHeight - shelf.offsetHeight) + 'px';
+    };
+    pin();
+    addEventListener('resize', pin);
+    addEventListener('load', pin); // fonts/lazy images can grow the shelf
+  }
 }
 
 // ---- preloader ("churning…") ------------------------------------------------
