@@ -1,0 +1,494 @@
+---
+// FeatureBurst — the radial "spiral reveal" product-info band: the tub sits
+// dead-centre and six features fan out around it, each with a hand-drawn arrow
+// pointing outward. On scroll-in the tub lands, then arrows shoot out and the
+// callouts burst from behind it in all directions. Shared by /shop and the
+// homepage; everything here is Astro-scoped so it travels with the component.
+//   dx/dy — the node's offset (px) from centre at desktop size.
+//   rot   — the outward direction (deg) the arrow points, = atan2(dy, dx).
+//   side  — 'l' nodes hang left of the tub (icon on the tub side, text reading
+//           outward), 'r' nodes mirror that on the right.
+interface Stat {
+  num: number;
+  label: string;
+}
+interface Props {
+  id?: string;
+  ctaHref?: string;
+  ctaLabel?: string;
+  // When provided, renders the merged two-column variant: the burst plays
+  // centred, then shrinks and slides left while a "Zero nasties" headline and
+  // these stats reveal on the right — folding the old why + stats sections in.
+  stats?: Stat[];
+}
+const { id, ctaHref = '#sh-grid', ctaLabel = "I'm into it", stats } = Astro.props;
+const isMerged = Array.isArray(stats) && stats.length > 0;
+
+const features = [
+  { icon: '/assets/illus/butter-swirl.svg', label: 'Slow-churned',   dx: -286, dy: -166, rot: -150, side: 'l' },
+  { icon: '/assets/illus/bread-butter.svg', label: 'Clean label',    dx: 286,  dy: -166, rot: -30,  side: 'r' },
+  { icon: '/assets/illus/vegan.svg',        label: 'No palm oil',     dx: 344,  dy: 0,    rot: 0,    side: 'r' },
+  { icon: '/assets/illus/butter-dish.svg',  label: 'Cultured cream',  dx: 286,  dy: 166,  rot: 30,   side: 'r' },
+  { icon: '/assets/illus/butter-knife.svg', label: 'Flaky sea salt',  dx: -286, dy: 166,  rot: 150,  side: 'l' },
+  { icon: '/assets/illus/hearts.svg',       label: 'Small batch',     dx: -344, dy: 0,    rot: 180,  side: 'l' },
+];
+---
+
+<!-- FEATURE BAND — central tub with features bursting out in all directions.
+     When `stats` are passed it becomes the merged two-column layout (burst left,
+     "Zero nasties" + stats right); otherwise it's the centred single column. -->
+<section class:list={['sh-feat wv', { merged: isMerged }]} id={id} style="--wv-c:var(--flour)">
+  <div class:list={['wrap', { 'sh-feat-merge': isMerged }]}>
+    {!isMerged && (
+      <Fragment>
+        <h2 class="sh-feat-say">Butter that's <em>good for you</em> and still fun at parties.</h2>
+        <p class="sh-feat-sub">Cultured cream, a slow cold churn, and a label short enough to read out loud. That's the whole recipe. The rest is just us having a good time with it.</p>
+      </Fragment>
+    )}
+
+    <div class="sh-feat-stage">
+      <div class="sh-radial">
+      <!-- arrows radiating from the tub, one per feature direction -->
+      <div class="sh-spokes" aria-hidden="true">
+        {
+          features.map((f, i) => (
+            <span class="sh-spoke" style={`--rot:${f.rot}deg;--i:${i}`}>
+              <svg viewBox="0 0 66 40" fill="none">
+                <path d="M4 10 C 26 0, 30 34, 54 22" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" />
+                <path d="M45 27 L55 22 L50 12" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </span>
+          ))
+        }
+      </div>
+
+      <div class="sh-feat-jar">
+        <span class="sh-jar-shape"><img src="/assets/img/tubs/tub-salted.jpg" alt="A tub of Babs Classic Salted butter" /></span>
+      </div>
+
+      <ul class="sh-feat-list" aria-label="What's in every tub">
+        {
+          features.map((f, i) => (
+            <li class={`sh-feat-node ${f.side}`} style={`--dx:${f.dx}px;--dy:${f.dy}px;--i:${i}`}>
+              <span class="sh-feat-ic"><img src={f.icon} alt="" /></span>
+              <span class="sh-feat-label">{f.label}</span>
+            </li>
+          ))
+        }
+      </ul>
+      </div>
+    </div>
+
+    {
+      isMerged ? (
+        <div class="sh-feat-info">
+          <h2 class="sh-feat-say">Zero <em>nasties.</em></h2>
+          <p class="sh-feat-sub">Everything worth putting in a butter, and nothing that shouldn't be — the whole list fits on the lid.</p>
+          <div class="sh-stats">
+            {stats!.map((s) => (
+              <div class="sh-stat">
+                <span class="sh-stat-num" data-count={s.num}>0</span>
+                <p>{s.label}</p>
+              </div>
+            ))}
+          </div>
+          <a class="btn magnetic sh-info-cta" href={ctaHref}>{ctaLabel}</a>
+        </div>
+      ) : (
+        <div class="sh-feat-foot">
+          <a class="btn magnetic" href={ctaHref}>{ctaLabel}</a>
+        </div>
+      )
+    }
+  </div>
+</section>
+
+<script>
+  // Reveal — the tub scales in first, then each arrowed feature bursts out from
+  // behind it, then the copy/button settle. Gated on motion preference: the
+  // hidden start states live under `.sh-feat.anim` (added here), so no-JS and
+  // reduced-motion visitors always see the band fully in place.
+  const feat = document.querySelector('.sh-feat');
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (feat && !reduceMotion) {
+    feat.classList.add('anim');
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            feat.classList.add('in-view');
+            // merged variant: once the burst has played centred, shrink it to
+            // the left and reveal the "Zero nasties" + stats column on the right
+            if (feat.classList.contains('merged')) {
+              setTimeout(() => feat.classList.add('settled'), 1500);
+            }
+            io.disconnect();
+          }
+        });
+      },
+      { threshold: 0.35 }
+    );
+    io.observe(feat);
+  }
+</script>
+
+<style>
+  /* ---- feature band (radial burst) ---- */
+  .sh-feat {
+    background: var(--flour);
+    text-align: center;
+  }
+  .sh-feat-say {
+    font-size: clamp(30px, 3.6vw, 52px);
+    color: var(--tangerine);
+    max-width: 20ch;
+    margin: 0 auto;
+  }
+  .sh-feat-say em {
+    font-family: 'Miller Text', serif;
+    font-style: italic;
+    color: var(--dark-choc);
+  }
+  .sh-feat-sub {
+    margin: 18px auto 0;
+    max-width: 54ch;
+    font-size: 18px;
+    color: rgba(47, 29, 15, 0.72);
+  }
+
+  /* the stage the tub and its callouts live on. Fixed pixel geometry (matching
+     the dx/dy in the frontmatter); it collapses to a centred stack below the
+     radial breakpoint. */
+  .sh-radial {
+    position: relative;
+    width: 960px;
+    height: 500px;
+    max-width: 100%;
+    margin: 40px auto 8px;
+  }
+
+  /* central tub */
+  .sh-feat-jar {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 3; /* above spokes + nodes, so callouts tuck behind it on reveal */
+  }
+  .sh-jar-shape {
+    display: grid;
+    place-items: center;
+    width: 300px;
+    height: 300px;
+    background: var(--butter);
+    -webkit-mask: url('/assets/shapes/ribbed-circle.svg') center / 100% 100% no-repeat;
+    mask: url('/assets/shapes/ribbed-circle.svg') center / 100% 100% no-repeat;
+    animation: bob 9s ease-in-out infinite alternate;
+  }
+  .sh-jar-shape img {
+    width: 82%;
+    height: auto;
+  }
+
+  /* arrows: each anchored at the stage centre, rotated to its feature's
+     direction, then pushed outward along that line by --gap. */
+  .sh-spokes {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+  }
+  .sh-spoke {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 62px;
+    height: 40px;
+    margin-top: -20px;
+    color: var(--tangerine);
+    transform-origin: 0 50%;
+    transform: rotate(var(--rot)) translateX(var(--gap, 132px));
+  }
+  .sh-spoke svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* feature callouts, positioned by their offset from centre */
+  .sh-feat-list {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    list-style: none;
+    margin: 0;
+  }
+  .sh-feat-node {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    white-space: nowrap;
+    transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy)));
+  }
+  /* left-hand nodes mirror: icon stays on the tub side, label reads outward */
+  .sh-feat-node.l {
+    flex-direction: row-reverse;
+  }
+  .sh-feat-ic {
+    display: grid;
+    place-items: center;
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    background: var(--butter);
+    border: var(--hair);
+    box-shadow: var(--sh-sm);
+    flex: none;
+  }
+  .sh-feat-ic img {
+    width: 32px;
+    height: 32px;
+  }
+  .sh-feat-label {
+    font-family: 'Roketto', sans-serif;
+    font-size: clamp(19px, 2.1vw, 25px);
+    color: var(--dark-choc);
+  }
+
+  .sh-feat-foot {
+    margin-top: 24px;
+  }
+
+  /* ---- reveal ----
+     `.anim` is added by JS (never under reduced motion / no-JS), so these
+     hidden start states only exist when we can animate out of them. `.in-view`
+     (set by the IntersectionObserver) plays the sequence: tub lands, then
+     arrows shoot outward and callouts burst from behind it in all directions,
+     then the button. Nodes/arrows collapse to the tub centre while hidden, so
+     they appear to fly out of it. */
+  .sh-feat.anim .sh-feat-say,
+  .sh-feat.anim .sh-feat-sub {
+    opacity: 0;
+    transform: translateY(18px);
+    transition: opacity 0.6s var(--ease), transform 0.6s var(--ease);
+  }
+  .sh-feat.anim .sh-feat-sub {
+    transition-delay: 120ms;
+  }
+  .sh-feat.anim .sh-feat-jar {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.7);
+    transition: opacity 0.55s var(--ease), transform 0.55s var(--ease);
+    transition-delay: 120ms;
+  }
+  .sh-feat.anim .sh-feat-node {
+    opacity: 0;
+    /* collapse onto the tub centre (kill the dx/dy offset) and shrink */
+    transform: translate(-50%, -50%) scale(0.35);
+    transition: opacity 0.5s var(--ease), transform 0.6s var(--ease);
+  }
+  .sh-feat.anim .sh-spoke {
+    opacity: 0;
+    transform: rotate(var(--rot)) translateX(24px);
+    transition: opacity 0.45s var(--ease), transform 0.55s var(--ease);
+  }
+  .sh-feat.anim .sh-feat-foot {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.6s var(--ease), transform 0.6s var(--ease);
+  }
+
+  .sh-feat.anim.in-view .sh-feat-say,
+  .sh-feat.anim.in-view .sh-feat-sub {
+    opacity: 1;
+    transform: none;
+  }
+  .sh-feat.anim.in-view .sh-feat-jar {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+  .sh-feat.anim.in-view .sh-spoke {
+    opacity: 1;
+    transform: rotate(var(--rot)) translateX(var(--gap, 132px));
+    transition-delay: calc(360ms + var(--i, 0) * 80ms);
+  }
+  .sh-feat.anim.in-view .sh-feat-node {
+    opacity: 1;
+    transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy)));
+    /* callouts fire just behind their arrows, one after another */
+    transition-delay: calc(440ms + var(--i, 0) * 80ms);
+  }
+  .sh-feat.anim.in-view .sh-feat-foot {
+    opacity: 1;
+    transform: none;
+    transition-delay: 980ms;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sh-jar-shape {
+      animation: none;
+    }
+  }
+
+  /* ---- tablet & below ----
+     The radial burst needs ~960px to fit, so below that it falls back to a
+     centred stack: tub on top, callouts in a vertical list, arrows dropped.
+     The reveal is remapped to a simple staggered rise (the fly-from-centre
+     transforms assume the absolute geometry that only exists on desktop). */
+  @media (max-width: 1024px) {
+    .sh-radial {
+      width: auto;
+      height: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      max-width: 440px;
+      margin: 36px auto 8px;
+    }
+    .sh-spokes {
+      display: none;
+    }
+    .sh-feat-jar {
+      position: static;
+      transform: none;
+    }
+    .sh-jar-shape {
+      width: 240px;
+      height: 240px;
+    }
+    .sh-feat-list {
+      position: static;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 100%;
+    }
+    .sh-feat-node,
+    .sh-feat-node.l {
+      position: static;
+      transform: none;
+      flex-direction: row;
+      justify-content: flex-start;
+      width: 100%;
+    }
+    .sh-feat.anim .sh-feat-jar {
+      transform: scale(0.82) translateY(12px);
+    }
+    .sh-feat.anim.in-view .sh-feat-jar {
+      transform: none;
+    }
+    .sh-feat.anim .sh-feat-node {
+      transform: translateY(16px);
+    }
+    .sh-feat.anim.in-view .sh-feat-node {
+      transform: none;
+      transition-delay: calc(200ms + var(--i, 0) * 70ms);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .sh-jar-shape {
+      width: 200px;
+      height: 200px;
+    }
+    .sh-feat-list {
+      max-width: 300px;
+      margin: 0 auto;
+    }
+    .sh-feat-label {
+      font-size: 20px;
+    }
+  }
+
+  /* ===== merged variant — burst + "Zero nasties" + stats in one section =====
+     Below the two-column breakpoint it simply stacks: burst on top (using the
+     shared radial fallback), then the info block centred underneath. */
+  .sh-feat.merged {
+    text-align: center;
+  }
+  .sh-feat.merged .sh-feat-info {
+    margin-top: 28px;
+  }
+  .sh-feat-info .sh-feat-say {
+    max-width: none;
+  }
+  .sh-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    margin: 26px 0 30px;
+  }
+  .sh-stat-num {
+    display: block;
+    font-family: 'Roketto', sans-serif;
+    font-size: clamp(40px, 4.4vw, 60px);
+    line-height: 1;
+    color: var(--tangerine);
+  }
+  .sh-stat p {
+    margin-top: 8px;
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.07em;
+    color: rgba(47, 29, 15, 0.7);
+  }
+  .sh-info-cta {
+    margin-top: 4px;
+  }
+
+  /* two-column layout + the shrink-and-slide-left choreography (desktop only —
+     the fly-from-centre geometry needs the width). */
+  @media (min-width: 1025px) {
+    .sh-feat.merged {
+      text-align: left;
+    }
+    .sh-feat-merge {
+      display: grid;
+      grid-template-columns: 596px 1fr;
+      gap: 40px;
+      align-items: center;
+    }
+    /* the stage reserves the burst's scaled footprint; the radial keeps its
+       full 960×500 internal geometry and is scaled to fit inside it */
+    .sh-feat.merged .sh-feat-stage {
+      position: relative;
+      width: 596px;
+      height: 340px;
+    }
+    .sh-feat.merged .sh-radial {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      margin: 0;
+      transform: translate(-50%, -50%) scale(0.62);
+    }
+    .sh-feat.merged .sh-feat-info {
+      margin-top: 0;
+    }
+
+    /* choreography: while `.anim` (pre-settle) the stage is enlarged and shifted
+       to the section centre and the info is hidden to the right; adding
+       `.settled` transitions the stage back into its left cell and reveals the
+       info. Without `.anim` (no-JS / reduced motion) both sit at rest. */
+    .sh-feat.merged.anim .sh-feat-stage {
+      transform: translateX(50%) scale(1.25);
+      transition: transform 0.85s var(--ease);
+    }
+    .sh-feat.merged.anim.settled .sh-feat-stage {
+      transform: none;
+    }
+    .sh-feat.merged.anim .sh-feat-info {
+      opacity: 0;
+      transform: translateX(30px);
+      transition: opacity 0.7s var(--ease) 0.1s, transform 0.7s var(--ease) 0.1s;
+    }
+    .sh-feat.merged.anim.settled .sh-feat-info {
+      opacity: 1;
+      transform: none;
+    }
+  }
+</style>

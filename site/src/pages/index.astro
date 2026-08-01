@@ -4,13 +4,19 @@
 // images into src/assets/img/ and adopt Astro's <Image> component for automatic
 // resize/compression/format conversion (webp/avif). Video has no <Image> equivalent.
 import BaseLayout from '../layouts/BaseLayout.astro';
-import FlavourCard from '../components/FlavourCard.astro';
-import WhyCard from '../components/WhyCard.astro';
+import FeatureBurst from '../components/FeatureBurst.astro';
+import ProductCarousel from '../components/ProductCarousel.astro';
 import RecipeCard from '../components/RecipeCard.astro';
-import { flavours } from '../data/flavours';
-import { why } from '../data/why';
 import { recipes } from '../data/recipes';
 import { testimonials } from '../data/testimonials';
+
+// Product stats folded into the merged feature section (sample figures for
+// client review). The count-up is driven by main.js via [data-count].
+const stats = [
+  { num: 82, label: '% butterfat' },
+  { num: 3, label: 'ingredients' },
+  { num: 48, label: 'hrs to shelf' },
+];
 
 // Split into three columns for the auto-scrolling marquee. Each column's cards
 // are duplicated in the markup below so the vertical loop is seamless.
@@ -20,8 +26,10 @@ const tCols = [testimonials.slice(0, 3), testimonials.slice(3, 6), testimonials.
 const qShapes = ['/assets/shapes/quatrefoil.svg', '/assets/shapes/flower.svg', '/assets/shapes/ribbed-circle.svg'];
 ---
 <BaseLayout title="Babs Butter · Big Butter Energy">
-  <!-- HERO -->
+  <!-- HERO — full-bleed lifestyle photo background (same shot as the /shop hero) -->
   <header class="hero" id="top">
+    <img class="hero-bgimg" src="/assets/img/table-spread.jpg" alt="A table spread of warm bread, pastries and butter" />
+    <div class="hero-scrim" aria-hidden="true"></div>
     <img class="blob spin" src="/assets/shapes/flower.svg" alt="" style="width:min(46vw,560px);top:-8%;right:-10%;opacity:.4" />
     <img class="blob bob2" src="/assets/shapes/quatrefoil.svg" alt="" style="width:min(28vw,320px);bottom:-6%;left:-8%;opacity:.35" />
     <div class="float-i f1"><img src="/assets/illus/butter-stick.svg" alt="" /></div>
@@ -29,11 +37,11 @@ const qShapes = ['/assets/shapes/quatrefoil.svg', '/assets/shapes/flower.svg', '
     <div class="float-i f3"><img src="/assets/illus/hearts.svg" alt="" /></div>
     <div class="float-i f4"><img src="/assets/illus/butter-swirl.svg" alt="" /></div>
     <div class="wrap">
-      <span class="eyebrow">🧈 slow-churned &amp; a little silly</span>
+      <span class="eyebrow">slow-churned &amp; a little silly</span>
       <h1><span class="w">Big</span> <span class="w">butter</span> <span class="w">energy.</span></h1>
       <p>Slow-churned, clean-label butter that takes the cream seriously and nothing else. Come play.</p>
       <div class="cta-row">
-        <a class="btn magnetic" href="#flavs">Pick a flavour</a>
+        <a class="btn biscuit magnetic" href="#flavs">Pick a flavour</a>
         <a class="btn blue" href="#why">Why it's better</a>
       </div>
     </div>
@@ -47,51 +55,15 @@ const qShapes = ['/assets/shapes/quatrefoil.svg', '/assets/shapes/flower.svg', '
     </div>
   </header>
 
-  <!-- ABOUT — looping butter-scrape video background -->
-  <section class="about">
-    <video class="bgvid" src="/assets/video/butter-scrape.mp4" poster="/assets/video/butter-scrape-poster.jpg" autoplay muted playsinline preload="auto" aria-hidden="true"></video>
-    <div class="scrim" aria-hidden="true"></div>
-    <div class="wrap">
-      <h2 class="rv">Butter that's <em>good for you</em> and still fun at parties.</h2>
-      <p class="rv">Cultured cream, a slow cold churn, and a label short enough to read out loud. That's the whole recipe. The rest is just us having a good time with it.</p>
-    </div>
-  </section>
+  <!-- PRODUCT FEATURES + PRODUCTS — the merged spiral feature section (burst +
+       "Zero nasties" + stats, folding in the old why/stats sections), then the
+       "path to paradise" carousel. Shared with /shop. Replaces "Pick your
+       player". #why lands on the feature section, #flavs on the products. -->
+  <FeatureBurst id="why" ctaHref="#flavs" stats={stats} />
+  <ProductCarousel id="flavs" footHref="#stockists" footLabel="Find a stockist" />
 
-  <!-- FLAVOURS — brand-element shapes as the tub outlines -->
-  <section class="flavs" id="flavs">
-    <div class="wrap">
-      <h2 class="rv">Pick your player</h2>
-      <p class="lead rv">One serious churn, a colour for every craving.</p>
-      <div class="flav-grid">
-        {flavours.map((f) => <FlavourCard {...f} />)}
-      </div>
-    </div>
-  </section>
-
-  <!-- WHY -->
-  <section class="why wv" id="why" style="--wv-c:var(--flour)">
-    <div class="wrap">
-      <h2 class="rv">Why the fridge fights over it</h2>
-      <div class="why-grid">
-        {why.map((w) => <WhyCard {...w} />)}
-      </div>
-    </div>
-  </section>
-
-  <!-- STATS -->
-  <section class="stats wv" style="--wv-c:var(--butterfly-pea)">
-    <div class="wrap">
-      <!-- sample figures for client review -->
-      <div class="row">
-        <div class="stat rv"><div class="num" data-count="82">0</div><p>% butterfat</p></div>
-        <div class="stat rv"><div class="num" data-count="3">0</div><p>ingredients</p></div>
-        <div class="stat rv"><div class="num" data-count="48">0</div><p>hrs churn to shelf</p></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- HOW IT'S CHURNED — photo steps -->
-  <section class="made">
+  <!-- HOW IT'S CHURNED — photo steps; wave in from the butterfly-pea carousel -->
+  <section class="made wv" style="--wv-c:var(--butterfly-pea)">
     <div class="wrap">
       <h2 class="rv">From cream to keeper</h2>
       <div class="made-grid">

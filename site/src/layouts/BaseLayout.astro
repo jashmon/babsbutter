@@ -16,7 +16,9 @@ const {
 // smooth scroll); anywhere else they're prefixed so they navigate home first.
 const isHome = Astro.url.pathname === '/' || Astro.url.pathname === '';
 const to = (hash: string) => (isHome ? hash : `/${hash}`);
-const onPlantPage = Astro.url.pathname.replace(/\/$/, '') === '/plant-based';
+const path = Astro.url.pathname.replace(/\/$/, '');
+const onPlantPage = path === '/plant-based';
+const onShopPage = path === '/shop';
 ---
 <!doctype html>
 <html lang="en">
@@ -66,14 +68,13 @@ const onPlantPage = Astro.url.pathname.replace(/\/$/, '') === '/plant-based';
       <div class="bar">
         <a class="logo" href={isHome ? '#top' : '/'} aria-label="Babs Butter">
           <span class="logo-icon-wrap">
-            <canvas class="logo-particles" width="64" height="64" aria-hidden="true"></canvas>
             <img class="logo-icon" src="/assets/logos/icon-tangerine.svg" alt="" />
           </span>
           <img class="logo-word" src="/assets/logos/primary-tangerine.svg" alt="" />
         </a>
         <ul id="nav-links">
           <span class="nav-pill" aria-hidden="true"></span>
-          <li><a href={to('#flavs')}>Flavours</a></li>
+          <li><a href="/shop" aria-current={onShopPage ? 'page' : undefined}>Shop</a></li>
           <li>
             <a href="/plant-based" aria-current={onPlantPage ? 'page' : undefined}>Plant-Based</a>
           </li>

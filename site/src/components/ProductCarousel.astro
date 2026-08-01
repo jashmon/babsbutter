@@ -1,0 +1,287 @@
+---
+// ProductCarousel — the "path to paradise" product display: a horizontally
+// scrollable row of Add-to-cart tub cards with prev/next arrows. Shared by
+// /shop and the homepage; the section id and footer link are configurable so
+// each page can wire its own anchors. Styles + scripts are Astro-scoped and
+// travel with the component.
+import { flavours } from '../data/flavours';
+
+interface Props {
+  id?: string;
+  footHref?: string;
+  footLabel?: string;
+}
+const { id = 'sh-grid', footHref = '/#stockists', footLabel = 'Find a stockist' } = Astro.props;
+---
+
+<!-- PRODUCT CAROUSEL -->
+<section class="sh-shop wv" id={id} style="--wv-c:var(--flour)">
+  <div class="wrap sh-shop-head">
+    <div>
+      <h2 class="serif-heading">Pick a player</h2>
+      <p>A colour for every craving.</p>
+    </div>
+    <div class="sh-shop-nav" aria-hidden="true">
+      <button class="sh-arw" type="button" data-dir="-1" aria-label="Previous products">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="sh-arw" type="button" data-dir="1" aria-label="Next products">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <ul class="sh-track" data-lenis-prevent>
+      {
+        flavours.map((f) => (
+          <li class={`sh-prod ${f.tone}`}>
+            <div class="sh-prod-ph">
+              <img src={f.img} alt={f.alt} loading="lazy" />
+            </div>
+            <div class="sh-prod-meta">
+              <div class="sh-prod-titles">
+                <h3>{f.name}</h3>
+                <span class="serif">{f.tagline}</span>
+              </div>
+              <div class="sh-prod-buy">
+                <span class="sh-prod-price">{f.price}<small>{f.weight}</small></span>
+                <button class="sh-cart" type="button">Add to cart</button>
+              </div>
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+
+  <div class="wrap sh-shop-foot">
+    <a class="btn magnetic" href={footHref}>{footLabel}</a>
+  </div>
+</section>
+
+<script>
+  // Carousel arrows — scroll the track by roughly one card. data-lenis-prevent
+  // on the track already hands wheel/touch scroll back to the browser.
+  const track = document.querySelector<HTMLElement>('.sh-track');
+  if (track) {
+    document.querySelectorAll<HTMLButtonElement>('.sh-arw').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const dir = Number(btn.dataset.dir) || 1;
+        const card = track.querySelector('.sh-prod');
+        const step = card ? (card as HTMLElement).offsetWidth + 24 : track.clientWidth * 0.8;
+        track.scrollBy({ left: dir * step, behavior: 'smooth' });
+      });
+    });
+  }
+
+  // Add-to-cart micro-feedback — no cart backend on this static build, so the
+  // button just confirms the tap and resets, keeping the demo honest.
+  document.querySelectorAll<HTMLButtonElement>('.sh-cart').forEach((btn) => {
+    const original = btn.textContent;
+    btn.addEventListener('click', () => {
+      if (btn.classList.contains('added')) return;
+      btn.classList.add('added');
+      btn.textContent = 'Added ✓';
+      setTimeout(() => {
+        btn.classList.remove('added');
+        btn.textContent = original;
+      }, 1400);
+    });
+  });
+</script>
+
+<style>
+  /* ---- product carousel ---- */
+  .sh-shop {
+    background: var(--butterfly-pea);
+  }
+  .sh-shop-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 36px;
+  }
+  .serif-heading {
+    font-size: clamp(34px, 4.6vw, 64px);
+    color: var(--tangerine);
+  }
+  .sh-shop-head p {
+    margin-top: 8px;
+    color: rgba(47, 29, 15, 0.72);
+    font-size: 18px;
+  }
+  .sh-shop-nav {
+    display: flex;
+    gap: 12px;
+  }
+  .sh-arw {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--flour);
+    border: var(--hair);
+    box-shadow: var(--sh-sm);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    color: var(--tangerine);
+    transition: transform 0.18s var(--ease), box-shadow 0.18s;
+  }
+  .sh-arw svg {
+    width: 22px;
+    height: 22px;
+  }
+  .sh-arw:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--sh-md);
+  }
+  .sh-arw:active {
+    transform: translateY(0);
+  }
+
+  .sh-track {
+    list-style: none;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: min(300px, 74vw);
+    gap: 24px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding: 8px 40px 28px;
+    margin: 0 -40px;
+    scrollbar-width: none;
+  }
+  .sh-track::-webkit-scrollbar {
+    display: none;
+  }
+  .sh-prod {
+    scroll-snap-align: center;
+    background: var(--flour);
+    border: var(--hair);
+    border-radius: 28px;
+    padding: 20px 20px 22px;
+    box-shadow: var(--sh-md);
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.28s var(--ease);
+  }
+  .sh-prod-ph {
+    aspect-ratio: 1;
+    display: grid;
+    place-items: center;
+    border-radius: 20px;
+    margin-bottom: 18px;
+  }
+  /* packaging colour per flavour, matching the .c1–.c4 system on the homepage */
+  .sh-prod.c1 .sh-prod-ph {
+    background: var(--butter);
+  }
+  .sh-prod.c2 .sh-prod-ph {
+    background: var(--butterfly-pea);
+  }
+  .sh-prod.c3 .sh-prod-ph {
+    background: var(--biscuit);
+  }
+  .sh-prod.c4 .sh-prod-ph {
+    background: var(--matcha);
+  }
+  .sh-prod-ph img {
+    width: 78%;
+    height: auto;
+    transition: transform 0.4s var(--ease);
+  }
+  .sh-prod-meta {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+  .sh-prod-titles h3 {
+    font-size: 23px;
+  }
+  .sh-prod-titles .serif {
+    display: block;
+    margin-top: 3px;
+    font-size: 14px;
+    color: var(--coffee-bean);
+  }
+  .sh-prod-buy {
+    margin-top: auto;
+    padding-top: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .sh-prod-price {
+    font-family: 'Roketto', sans-serif;
+    font-size: 22px;
+    color: var(--dark-choc);
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+  }
+  .sh-prod-price small {
+    font-family: 'Public Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(47, 29, 15, 0.6);
+  }
+  /* outlined pill, matching the reference's Add-to-cart button */
+  .sh-cart {
+    font-family: 'Public Sans', sans-serif;
+    font-weight: 800;
+    font-size: 13px;
+    padding: 10px 18px;
+    border-radius: 30px;
+    background: transparent;
+    color: var(--tangerine);
+    border: 1.5px solid var(--tangerine);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s var(--ease), color 0.2s var(--ease), transform 0.18s var(--ease);
+  }
+  .sh-cart:hover {
+    background: var(--tangerine);
+    color: var(--flour);
+    transform: translateY(-2px);
+  }
+  .sh-cart.added {
+    background: var(--matcha);
+    border-color: var(--matcha);
+    color: var(--flour);
+  }
+  .sh-shop-foot {
+    margin-top: 40px;
+    text-align: center;
+  }
+
+  @media (hover: hover) {
+    .sh-prod:hover {
+      transform: translateY(-6px);
+    }
+    .sh-prod:hover .sh-prod-ph img {
+      transform: scale(1.06) rotate(-2deg);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .sh-prod,
+    .sh-prod-ph img,
+    .sh-cart,
+    .sh-arw {
+      transition: none;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .sh-shop-head {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    .sh-shop-nav {
+      display: none; /* swipe the track on touch */
+    }
+  }
+</style>

@@ -212,68 +212,45 @@ body > * {
   z-index: 1;
 }
 
-/* nav */
+/* nav — a full-width bar pinned to the top of the page. The <nav> itself is the
+   full-bleed bar surface (flour, blurred, hairline underline); the inner .bar is
+   a max-width content row: logo · centred links · CTA. A soft shadow fades in
+   once the page is scrolled. */
 nav {
   position: fixed;
-  top: 18px;
+  top: 0;
   left: 0;
   right: 0;
   z-index: 60;
   display: flex;
   justify-content: center;
-  padding: 0 20px;
+  background: rgba(252, 247, 235, 0.9);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  backdrop-filter: blur(12px) saturate(150%);
+  border-bottom: 1px solid rgba(233, 98, 36, 0.32);
+  transition: background 0.4s var(--nav-ease), box-shadow 0.4s var(--nav-ease);
 }
-/* ===== scroll-reactive navbar ===========================================
-   At the top the bar is taller and airier with the full lockup (icon +
-   "babs"). Once scrolled, `.navbar--scrolled` (set from main.js) shrinks the
-   height ~18%, tightens padding, eases the logo down a touch and fades the
-   wordmark out so only the icon remains. The wordmark keeps its layout box
-   while fading, so the centred nav links never move — no layout shift. */
+nav.navbar--scrolled {
+  background: rgba(252, 247, 235, 0.96);
+  box-shadow: var(--sh-sm);
+}
 nav .bar {
   position: relative;
   width: 100%;
   max-width: 1280px;
-  height: 78px;
-  border-radius: 40px;
-  padding: 0 14px 0 28px;
+  height: 72px;
+  padding: 0 40px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: rgba(252, 247, 235, 0.82);
-  -webkit-backdrop-filter: blur(10px) saturate(150%);
-  backdrop-filter: blur(10px) saturate(150%);
-  border: 1px solid rgba(233, 98, 36, 0.55);
-  box-shadow: none;
-  transition: max-width 0.5s var(--nav-ease), height 0.5s var(--nav-ease),
-    padding 0.5s var(--nav-ease), background 0.5s var(--nav-ease),
-    box-shadow 0.5s var(--nav-ease), -webkit-backdrop-filter 0.5s var(--nav-ease),
-    backdrop-filter 0.5s var(--nav-ease);
 }
-/* the bar contracts inward to a compact centred pill (the dominant move in the
-   reference), with a slighter height reduction alongside it */
-nav.navbar--scrolled .bar {
-  max-width: 900px;
-  height: 66px;
-  padding: 0 12px 0 24px;
-  background: rgba(252, 247, 235, 0.92);
-  -webkit-backdrop-filter: blur(18px) saturate(170%);
-  backdrop-filter: blur(18px) saturate(170%);
-  box-shadow: var(--sh-sm);
-}
+/* logo lockup — static (no hover/scroll animation). */
 nav .logo {
   display: flex;
   align-items: center;
   gap: 9px;
-  transform-origin: left center;
-  transition: transform 0.4s var(--nav-ease);
 }
-nav.navbar--scrolled .logo {
-  transform: scale(0.92);
-}
-/* Sized only as a positioning anchor for the particle-sphere canvas below —
-   the icon itself keeps its normal 30px box inside it. */
 nav .logo-icon-wrap {
-  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -283,58 +260,11 @@ nav .logo-icon {
   height: 30px;
   width: auto;
   flex: none;
-  position: relative;
-  z-index: 1;
-  transition: transform 0.6s var(--nav-ease);
 }
-@media (hover: hover) and (pointer: fine) {
-  nav .logo:hover .logo-icon {
-    transform: rotate(360deg);
-  }
-}
-/* Particle-sphere halo (see logo-particles.js) — invisible and inert until
-   hovered, so there's zero cost the rest of the time. */
-.logo-particles {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 64px;
-  height: 64px;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.35s var(--nav-ease);
-}
-nav .logo:hover .logo-particles,
-nav .logo:focus-within .logo-particles {
-  opacity: 1;
-}
-@media (prefers-reduced-motion: reduce) {
-  .logo-particles {
-    display: none;
-  }
-}
-/* the "babs" wordmark — fades and slides out on scroll. Its layout box is
-   deliberately left in place (no width/margin animation) so nothing else in
-   the bar shifts when it goes. */
 nav .logo-word {
   height: 23px;
   width: auto;
   flex: none;
-  transform-origin: left center;
-  transition: opacity 0.35s var(--nav-ease), transform 0.4s var(--nav-ease);
-}
-nav.navbar--scrolled .logo-word {
-  opacity: 0;
-  transform: translateX(-6px) scale(0.94);
-}
-@media (prefers-reduced-motion: reduce) {
-  nav .bar,
-  nav .logo,
-  nav .logo-icon,
-  nav .logo-word {
-    transition: none;
-  }
 }
 /* Centred on the bar (not laid out by space-between) so that when the bar
    contracts on scroll the links stay pinned to the same screen position —
@@ -431,6 +361,9 @@ nav ul a:active {
 .btn.cream {
   background: var(--butter);
 }
+.btn.biscuit {
+  background: var(--biscuit);
+}
 
 /* blobs */
 .blob {
@@ -475,9 +408,29 @@ nav ul a:active {
   flex-direction: column;
   text-align: center;
   padding-top: 120px;
-  /* sits above the About section so the tilted marquee at the hero's base
-     paints over the pulled-up video rather than being covered by it */
+  /* the tilted marquee at the hero's base is the divider into the flavours
+     section; keeping the hero above its neighbour lets the band paint over the
+     seam rather than being covered by it */
   z-index: 2;
+}
+/* full-bleed lifestyle photo filling the hero (same shot as the /shop hero).
+   object-fit:cover, no scale — it sits flush inside the hero box so nothing
+   spills past the tilted marquee at the base. */
+.hero-bgimg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+/* darkens the footage enough for the light hero type to hold up, warmer and
+   heavier toward the centre where the headline sits */
+.hero-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: radial-gradient(120% 100% at 50% 46%, rgba(47, 29, 15, 0.5), rgba(47, 29, 15, 0.68));
 }
 /* content grows to fill the space above the ticker and centres within it */
 .hero .wrap {
@@ -498,36 +451,35 @@ nav ul a:active {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-weight: 800;
-  font-size: 13px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  background: var(--butter);
-  border: var(--hair);
-  border-radius: 30px;
-  padding: 8px 18px;
-  margin-bottom: 28px;
-  box-shadow: var(--sh-sm);
+  font-family: 'Miller Text', serif;
+  font-style: italic;
+  font-size: clamp(18px, 2.1vw, 24px);
+  color: var(--biscuit);
+  margin-bottom: 24px;
 }
 .hero h1 {
   font-size: clamp(56px, 10vw, 150px);
   letter-spacing: -0.01em;
+  /* light over the video; the tangerine accent words below keep their colour */
+  color: var(--flour);
+  text-shadow: 0 6px 34px rgba(47, 29, 15, 0.4);
 }
 /* Hero word-pop entrance removed — words render in place. Colours retained. */
 .hero h1 .w {
   display: inline-block;
 }
+/* "butter" picks up the same biscuit accent as the /shop hero's "Paradise" */
 .hero h1 .w:nth-child(2) {
-  color: var(--tangerine);
+  color: var(--biscuit);
 }
 .hero h1 .w:nth-child(4) {
-  color: var(--tangerine);
+  color: var(--biscuit);
 }
 .hero p {
   margin: 28px auto 40px;
   font-size: 20px;
   max-width: 44ch;
-  color: rgba(47, 29, 15, 0.75);
+  color: rgba(252, 247, 235, 0.9);
 }
 .hero .cta-row {
   display: flex;
@@ -539,12 +491,19 @@ nav ul a:active {
   position: absolute;
   z-index: 1;
   pointer-events: none;
+  /* The illustrations are solid tangerine SVGs — that clashes on the dark video
+     hero, so here (and only here) we clip a soft butter fill to each shape with
+     a mask and hide the original <img>. The source files stay untouched, so
+     they remain tangerine everywhere they sit on light backgrounds. */
+  background-color: var(--butter);
+  -webkit-mask: var(--illus) center / contain no-repeat;
+  mask: var(--illus) center / contain no-repeat;
 }
 .hero .float-i img {
-  width: 100%;
-  height: 100%;
+  visibility: hidden;
 }
 .hero .f1 {
+  --illus: url('/assets/illus/butter-stick.svg');
   width: 110px;
   height: 110px;
   top: 8%;
@@ -552,6 +511,7 @@ nav ul a:active {
   animation: bob 5s ease-in-out infinite alternate;
 }
 .hero .f2 {
+  --illus: url('/assets/illus/croissant.svg');
   width: 88px;
   height: 88px;
   top: 16%;
@@ -559,6 +519,7 @@ nav ul a:active {
   animation: bob 7s ease-in-out infinite alternate-reverse;
 }
 .hero .f3 {
+  --illus: url('/assets/illus/hearts.svg');
   width: 96px;
   height: 96px;
   bottom: 12%;
@@ -566,6 +527,7 @@ nav ul a:active {
   animation: bob 6s ease-in-out infinite alternate-reverse;
 }
 .hero .f4 {
+  --illus: url('/assets/illus/butter-swirl.svg');
   width: 76px;
   height: 76px;
   bottom: 18%;
@@ -706,71 +668,6 @@ html.depth-on section > .wrap {
 section > .wrap {
   position: relative;
   z-index: 1;
-}
-
-/* about — looping butter-scrape video background. Pulled up under the tilted
-   hero marquee so the video meets it flush (the rotation would otherwise leave
-   a thin flour wedge above the video). */
-.about {
-  text-align: center;
-  overflow: hidden;
-  padding: 220px 0;
-  /* Pulled up under the tilted hero marquee. The marquee's rotation lifts its
-     visual edges by an amount proportional to viewport width (roughly
-     halfWidth * sin(1.4deg)), so a small fixed offset was only safe on
-     narrower screens — on wide monitors the edges dipped further than the
-     pull-up covered, reopening a flour-coloured gap. -110px comfortably
-     covers rotation dip even on 5K-class widths. */
-  margin-top: -110px;
-}
-.about .bgvid {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  z-index: 0;
-  /* slight extra zoom so the frame always overflows its own box a bit, a
-     safety margin against the pull-up above and any sub-pixel rounding */
-  transform: scale(1.08);
-  transform-origin: center;
-}
-.about .scrim {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background: linear-gradient(rgba(47, 29, 15, 0.6), rgba(47, 29, 15, 0.45));
-}
-/* flour wave cut along the video's bottom edge (into the flavours section) */
-.about::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  width: 100%;
-  height: 42px;
-  background: var(--flour);
-  -webkit-mask: url('/assets/shapes/wave-divider.svg') repeat-x bottom / 140px 42px;
-  mask: url('/assets/shapes/wave-divider.svg') repeat-x bottom / 140px 42px;
-  z-index: 2;
-  pointer-events: none;
-}
-.about h2 {
-  font-size: clamp(36px, 5vw, 72px);
-  max-width: 20ch;
-  margin: 0 auto;
-  color: var(--flour);
-}
-.about h2 em {
-  font-family: 'Miller Text', serif;
-  font-style: italic;
-  color: var(--biscuit);
-}
-.about p {
-  margin: 24px auto 0;
-  font-size: 19px;
-  max-width: 50ch;
-  color: rgba(252, 247, 235, 0.85);
 }
 
 /* flavours (products) */
@@ -1914,37 +1811,9 @@ html.nav-locked body {
 }
 
 @media (max-width: 1024px) {
-  nav {
-    padding: 0 14px;
-  }
   nav .bar {
     height: 64px;
-    padding: 0 10px 0 20px;
-  }
-  /* Scrolled on mobile: drop to the smallest useful bar — the CTA collapses
-     away (it's still reachable from the menu and the page's own CTA section)
-     leaving just the mark and the toggle, and the pill narrows where there's
-     room to. min() keeps it full-bleed on phones and a compact centred pill on
-     tablets, so it never looks stranded. */
-  nav.navbar--scrolled .bar {
-    height: 52px;
-    max-width: min(100%, 440px);
-  }
-  nav .bar > .btn.small {
-    max-width: 220px;
-    overflow: hidden;
-    white-space: nowrap;
-    transition: opacity 0.28s var(--nav-ease), transform 0.34s var(--nav-ease),
-      max-width 0.42s var(--nav-ease), padding 0.42s var(--nav-ease);
-  }
-  nav.navbar--scrolled .bar > .btn.small {
-    opacity: 0;
-    transform: scale(0.9);
-    max-width: 0;
-    padding-left: 0;
-    padding-right: 0;
-    border-width: 0;
-    pointer-events: none;
+    padding: 0 16px;
   }
   .nav-toggle {
     display: inline-flex;
@@ -2013,12 +1882,6 @@ html.nav-locked body {
   }
   .hero {
     padding-top: 96px;
-  }
-  /* the tilted marquee dips far less at narrow widths, so the About video
-     needs only a small pull-up to stay seamless (‑110px is tuned for desktop) */
-  .about {
-    margin-top: -40px;
-    padding: 132px 0;
   }
   .mq span {
     font-size: 18px;
@@ -2147,9 +2010,6 @@ html.nav-locked body {
 @media (max-width: 480px) {
   section {
     padding: 88px 0;
-  }
-  .about {
-    padding: 112px 0;
   }
   .badges .b {
     width: 100%;

@@ -1,0 +1,188 @@
+---
+// Shop / product page. A full-bleed lifestyle hero with a serif overlay title,
+// then two shared, reusable sections: the radial "spiral reveal" feature band
+// and the "path to paradise" product carousel (both also used on the homepage).
+// Page-specific styling below is Astro-scoped; a small is:global block nudges
+// the shared fixed nav down to sit under this page's promo bar, and only ships
+// on /shop.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import FeatureBurst from '../components/FeatureBurst.astro';
+import ProductCarousel from '../components/ProductCarousel.astro';
+---
+
+<BaseLayout
+  title="Shop · Babs Butter"
+  description="Shop every Babs tub — Classic Salted, High Protein, Plant-Based and Dairy Free. Slow-churned, clean-label butter, delivered churn-fresh."
+>
+  <!-- PROMO BAR — fixed strip above the nav, mirroring the reference. The nav is
+       pushed down beneath it via the is:global block at the foot of this file. -->
+  <div class="sh-promo" role="region" aria-label="Store announcement">
+    <div class="wrap sh-promo-inner">
+      <span class="sh-promo-msg">Free delivery on orders over ₹800 · churn-fresh, cold-shipped</span>
+      <div class="sh-promo-social" aria-hidden="true">
+        <span>@babsbutter</span>
+        <span class="sh-promo-cur">INR ₹</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- HERO — full-bleed lifestyle photo with a serif overlay title -->
+  <header class="sh-hero" id="top">
+    <img class="sh-hero-img" src="/assets/img/table-spread.jpg" alt="A table spread of warm bread, pastries and butter" />
+    <div class="sh-hero-scrim" aria-hidden="true"></div>
+    <img class="blob spin sh-hero-blob" src="/assets/shapes/flower.svg" alt="" />
+    <div class="sh-hero-copy">
+      <span class="sh-kicker serif">a little corner of</span>
+      <h1>Butter <em>Paradise</em></h1>
+      <p>Every tub we churn, in one place. Pick a colour, we'll ship it cold.</p>
+      <a class="btn cream magnetic" href="#sh-grid">Shop the tubs</a>
+    </div>
+  </header>
+
+  <!-- radial spiral-reveal feature band + product carousel (shared components) -->
+  <FeatureBurst ctaHref="#sh-grid" />
+  <ProductCarousel id="sh-grid" footHref="/#stockists" footLabel="Find a stockist" />
+
+  <footer class="wv" style="--wv-c:var(--butter)">
+    <div class="wrap">
+      <div class="f-grid">
+        <div><img src="/assets/logos/secondary-flour.svg" alt="Babs Butter" /></div>
+        <div><h4>Shop</h4><ul><li><a href="/shop">Classic Salted</a></li><li><a href="/shop">High Protein</a></li><li><a href="/plant-based">Plant-Based</a></li><li><a href="/shop">Dairy Free</a></li></ul></div>
+        <div><h4>Explore</h4><ul><li><a href="/#why">Why Babs</a></li><li><a href="/#recipes">Recipes</a></li><li><a href="/#faq">FAQ</a></li></ul></div>
+        <div><h4>Follow</h4><ul><li><a href="#">@babsbutterofficial</a></li><li><a href="#">babsbutter.in</a></li></ul></div>
+      </div>
+      <div class="f-base"><span>© 2026 Babs Butter. Healthy never tasted this rich.</span><span>Privacy · Terms</span></div>
+    </div>
+  </footer>
+</BaseLayout>
+
+<!-- Only ships on /shop: pushes the shared fixed nav down to clear the promo strip. -->
+<style is:global>
+  body:has(.sh-promo) nav {
+    top: 40px;
+  }
+</style>
+
+<style>
+  /* ===== Shop page — hero + promo bar only. The feature band and product
+     carousel are shared components (FeatureBurst / ProductCarousel) that carry
+     their own scoped styles. ===== */
+
+  /* ---- promo bar ---- */
+  .sh-promo {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 61; /* above nav (60) */
+    height: 40px;
+    display: flex;
+    align-items: center;
+    background: linear-gradient(90deg, var(--raspberry), var(--tangerine) 60%, var(--biscuit));
+    color: var(--flour);
+  }
+  .sh-promo-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+  .sh-promo-msg {
+    font-weight: 800;
+    font-size: 12.5px;
+    letter-spacing: 0.02em;
+  }
+  .sh-promo-social {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    font-weight: 800;
+    font-size: 12.5px;
+  }
+  .sh-promo-cur {
+    padding: 3px 10px;
+    border: 1px solid rgba(252, 247, 235, 0.55);
+    border-radius: 20px;
+  }
+
+  /* ---- hero ---- */
+  .sh-hero {
+    position: relative;
+    min-height: min(92vh, 860px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 160px 24px 120px;
+    overflow: hidden;
+    z-index: 2;
+  }
+  .sh-hero-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .sh-hero-scrim {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(120% 90% at 50% 45%, rgba(47, 29, 15, 0.28), rgba(47, 29, 15, 0.62));
+  }
+  .sh-hero-blob {
+    width: min(40vw, 460px);
+    top: -12%;
+    right: -10%;
+    opacity: 0.22;
+    z-index: 1;
+  }
+  .sh-hero-copy {
+    position: relative;
+    z-index: 2;
+    color: var(--flour);
+  }
+  .sh-kicker {
+    display: block;
+    font-size: clamp(20px, 3vw, 30px);
+    color: var(--butter);
+    margin-bottom: 6px;
+  }
+  .sh-hero h1 {
+    font-size: clamp(64px, 12vw, 168px);
+    color: var(--flour);
+    line-height: 0.9;
+    letter-spacing: -0.01em;
+    text-shadow: 0 8px 40px rgba(47, 29, 15, 0.35);
+  }
+  .sh-hero h1 em {
+    font-family: 'Miller Text', serif;
+    font-style: italic;
+    font-weight: 400;
+    color: var(--biscuit);
+  }
+  .sh-hero-copy p {
+    margin: 22px auto 34px;
+    font-size: clamp(17px, 2vw, 21px);
+    max-width: 40ch;
+    color: rgba(252, 247, 235, 0.92);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sh-hero-blob {
+      animation: none;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .sh-promo-social {
+      display: none;
+    }
+    .sh-promo-inner {
+      justify-content: center;
+    }
+    .sh-hero {
+      min-height: 78vh;
+      padding: 132px 20px 90px;
+    }
+  }
+</style>

@@ -9,6 +9,10 @@ export interface Flavour {
   tagline: string;
   img: string;
   alt: string;
+  // Shop-page fields. `weight`/`price` render on the product cards; both are
+  // sample figures for client review, same as the awards/stats elsewhere.
+  weight?: string;
+  price?: string;
 }
 
 export const flavours: Flavour[] = [
@@ -19,6 +23,8 @@ export const flavours: Flavour[] = [
     tagline: 'the everyday hero',
     img: '/assets/img/tubs/tub-salted.jpg',
     alt: 'Babs salted buttrly spread tub',
+    weight: '200g tub',
+    price: '₹280',
   },
   {
     tone: 'c2',
@@ -27,6 +33,8 @@ export const flavours: Flavour[] = [
     tagline: 'lower calorie, still butter',
     img: '/assets/img/tubs/tub-protein.jpg',
     alt: 'Babs high protein lower calorie buttrly spread tub',
+    weight: '200g tub',
+    price: '₹340',
   },
   {
     tone: 'c3',
@@ -35,6 +43,8 @@ export const flavours: Flavour[] = [
     tagline: 'dairy-free, still rich',
     img: '/assets/img/tubs/tub-plant.jpg',
     alt: 'Babs plant based buttrly spread tub',
+    weight: '200g tub',
+    price: '₹320',
   },
   {
     tone: 'c4',
@@ -43,5 +53,7 @@ export const flavours: Flavour[] = [
     tagline: 'cruelty-free and proud',
     img: '/assets/img/tubs/tub-dairyfree.jpg',
     alt: 'Babs dairy free spread tub',
+    weight: '200g tub',
+    price: '₹320',
   },
 ];
