@@ -784,7 +784,7 @@ section > .wrap {
 /* Card is now open (no box) — the brand-shape holds the packaging photo, so the
    silhouette itself reads as the flavour's "player token". */
 /* Hover "pop" (reference-style): the whole card — blob plus its label —
-   inflates to 1.5x as one unit and lifts above its neighbours, which stay
+   inflates slightly as one unit and lifts above its neighbours, which stay
    perfectly still. Scaling the card rather than just the blob keeps the label
    correctly placed under the shape at any viewport width, with no hardcoded
    offsets. The z-index swap is delayed on the way out (0s duration, 0.42s
@@ -799,7 +799,7 @@ section > .wrap {
   transition: transform 0.42s var(--ease), z-index 0s linear 0.42s;
 }
 .flav:hover {
-  transform: scale(1.5);
+  transform: scale(1.18);
   z-index: 5;
   transition: transform 0.42s var(--ease), z-index 0s;
 }

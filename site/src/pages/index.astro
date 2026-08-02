@@ -5,8 +5,9 @@
 // resize/compression/format conversion (webp/avif). Video has no <Image> equivalent.
 import BaseLayout from '../layouts/BaseLayout.astro';
 import FeatureBurst from '../components/FeatureBurst.astro';
-import ProductCarousel from '../components/ProductCarousel.astro';
+import FlavourCard from '../components/FlavourCard.astro';
 import RecipeCard from '../components/RecipeCard.astro';
+import { flavours } from '../data/flavours';
 import { recipes } from '../data/recipes';
 import { testimonials } from '../data/testimonials';
 
@@ -79,15 +80,25 @@ const shelfRows = [
     </div>
   </header>
 
-  <!-- PRODUCT FEATURES + PRODUCTS — the merged spiral feature section (burst +
+  <!-- PRODUCT FEATURES + FLAVOURS — the merged spiral feature section (burst +
        "Zero nasties" + stats, folding in the old why/stats sections), then the
-       "pick a player" carousel. #why lands on the feature section, #flavs on
-       the products. -->
+       "Pick your player" flavours grid. #why lands on the feature section,
+       #flavs on the flavours. -->
   <FeatureBurst id="why" ctaHref="#flavs" stats={stats} />
-  <ProductCarousel id="flavs" footHref="#stockists" footLabel="Find a stockist" />
 
-  <!-- HOW IT'S CHURNED — photo steps; wave in from the butterfly-pea carousel -->
-  <section class="made wv" style="--wv-c:var(--butterfly-pea)">
+  <!-- FLAVOURS — brand-element shapes as the tub outlines -->
+  <section class="flavs" id="flavs">
+    <div class="wrap">
+      <h2 class="rv">Pick your player</h2>
+      <p class="lead rv">One serious churn, a colour for every craving.</p>
+      <div class="flav-grid">
+        {flavours.map((f) => <FlavourCard {...f} />)}
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT'S CHURNED — photo steps; wave in from the flour flavours grid -->
+  <section class="made wv" style="--wv-c:var(--flour)">
     <div class="wrap">
       <h2 class="rv">From cream to keeper</h2>
       <div class="made-grid">
