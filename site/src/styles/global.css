@@ -790,27 +790,131 @@ section > .wrap {
    offsets. The z-index swap is delayed on the way out (0s duration, 0.42s
    delay) so the card stays on top for the whole shrink-back instead of
    dropping behind its neighbours mid-animation. */
+/* Transform is now var-driven so three things compose without fighting over the
+   single `transform` slot: --rx/--ry are the pointer tilt (written by main.js),
+   --sc is the hover "pop" (CSS below). perspective + preserve-3d give the tilt
+   real depth and let the tub image lift toward the viewer on hover. */
 .flav {
   text-align: center;
   position: relative;
   z-index: 1;
   transform-origin: center center;
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg))
+    scale(var(--sc, 1));
+  transform-style: preserve-3d;
   will-change: transform;
   transition: transform 0.42s var(--ease), z-index 0s linear 0.42s;
 }
 .flav:hover {
-  transform: scale(1.18);
+  --sc: 1.18;
   z-index: 5;
   transition: transform 0.42s var(--ease), z-index 0s;
 }
-/* the shape-masked photo well — scaled by the parent card on hover, so it
-   needs no transform of its own */
+/* .tok is the 3D stage that holds the token + its cast shadow. It owns a slow
+   idle float so the tokens feel alive at rest; the float is paused on hover so
+   the tilt reads cleanly. preserve-3d keeps the shadow's negative-Z depth. */
+.flav .tok {
+  position: relative;
+  transform-style: preserve-3d;
+  animation: flav-float 6.5s ease-in-out infinite;
+}
+.flav:hover .tok {
+  animation-play-state: paused;
+}
+/* staggered so the four tokens bob out of sync (more organic, less "wave") */
+.flav-grid > .flav:nth-child(2) .tok {
+  animation-delay: -1.6s;
+}
+.flav-grid > .flav:nth-child(3) .tok {
+  animation-delay: -3.2s;
+}
+.flav-grid > .flav:nth-child(4) .tok {
+  animation-delay: -4.8s;
+}
+/* shaped drop shadow: a blurred, dark clone of the silhouette sitting well
+   behind the token on the Z axis. Because it lives at negative Z under the
+   card's perspective, it parallax-shifts as the card tilts — the single
+   strongest "this is floating above the page" depth cue. It deepens and drops
+   further on hover as the token lifts. Kept OUTSIDE .ph so the blur isn't
+   clipped by the mask. */
+.flav .tok-shade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  -webkit-mask: var(--shape) center / 100% 100% no-repeat;
+  mask: var(--shape) center / 100% 100% no-repeat;
+  background: rgba(47, 29, 15, 0.5);
+  filter: blur(20px);
+  opacity: 0.32;
+  transform: translateZ(-60px) translateY(16px) scale(0.9);
+  transition: opacity 0.42s var(--ease), transform 0.42s var(--ease);
+}
+.flav:hover .tok-shade {
+  opacity: 0.5;
+  transform: translateZ(-95px) translateY(30px) scale(1);
+}
+/* the shape-masked photo well — raised on the Z axis so it parallaxes above the
+   label and its own shadow as the card tilts. */
 .flav .ph {
   aspect-ratio: 1;
   display: grid;
   place-items: center;
+  transform: translateZ(40px);
+  transform-style: preserve-3d;
   -webkit-mask: var(--shape) center / 100% 100% no-repeat;
   mask: var(--shape) center / 100% 100% no-repeat;
+}
+/* mouse-following glow, clipped to the splatter silhouette by the .ph mask so it
+   never reads as a rectangle. Per-tone colour set via --glow below. */
+.flav .ph-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: var(--go, 0);
+  background: radial-gradient(
+    120px at var(--gx, 50%) var(--gy, 50%),
+    var(--glow, var(--tangerine)),
+    transparent 60%
+  );
+  mix-blend-mode: screen;
+  transition: opacity 0.3s var(--ease);
+}
+/* specular sheen: a soft white highlight that tracks the cursor (same --gx/--gy
+   the tilt writes) so the token catches the light like a physical surface as it
+   turns. soft-light keeps it a gentle sheen, not a hotspot. */
+.flav .ph-sheen {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: var(--go, 0);
+  background: radial-gradient(
+    circle 150px at var(--gx, 50%) var(--gy, 50%),
+    rgba(255, 255, 255, 0.5),
+    transparent 55%
+  );
+  mix-blend-mode: soft-light;
+  transition: opacity 0.3s var(--ease);
+}
+@keyframes flav-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-9px);
+  }
+}
+.flav.c1 {
+  --glow: var(--tangerine);
+}
+.flav.c2 {
+  --glow: var(--blueberry);
+}
+.flav.c3 {
+  --glow: var(--matcha);
+}
+.flav.c4 {
+  --glow: var(--raspberry);
 }
 .flav.c1 .ph {
   background: var(--butter);
@@ -827,13 +931,42 @@ section > .wrap {
 .flav .ph img {
   width: 86%;
   height: auto;
+  transform: translateZ(0);
+  transition: transform 0.42s var(--ease);
+}
+/* image "pops" toward the viewer and lifts slightly on hover */
+.flav:hover .ph img {
+  transform: translateZ(50px) translateY(-6px);
 }
 @media (prefers-reduced-motion: reduce) {
   .flav {
     transition: none;
+    /* ignore any tilt/pop custom props JS may have written */
+    transform: none;
   }
   .flav:hover {
+    --sc: 1;
     transform: none;
+  }
+  .flav .ph img,
+  .flav:hover .ph img {
+    transform: none;
+    transition: none;
+  }
+  .flav .ph-glow,
+  .flav .ph-sheen {
+    display: none;
+  }
+  /* no idle float; keep a static, un-parallaxed drop shadow so tokens still
+     read with depth, just without motion. */
+  .flav .tok {
+    animation: none;
+  }
+  .flav .tok-shade,
+  .flav:hover .tok-shade {
+    transition: none;
+    transform: translateY(14px) scale(0.94);
+    opacity: 0.3;
   }
 }
 .flav .meta {

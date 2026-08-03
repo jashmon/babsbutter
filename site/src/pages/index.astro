@@ -80,14 +80,10 @@ const shelfRows = [
     </div>
   </header>
 
-  <!-- PRODUCT FEATURES + FLAVOURS — the merged spiral feature section (burst +
-       "Zero nasties" + stats, folding in the old why/stats sections), then the
-       "Pick your player" flavours grid. #why lands on the feature section,
-       #flavs on the flavours. -->
-  <FeatureBurst id="why" ctaHref="#flavs" stats={stats} />
-
-  <!-- FLAVOURS — brand-element shapes as the tub outlines -->
-  <section class="flavs" id="flavs">
+  <!-- FLAVOURS — the "Pick your player" grid; brand-element shapes as the tub
+       outlines. Now the first content section, so it carries the scalloped flour
+       wave in from the hero. #flavs lands here. -->
+  <section class="flavs wv" id="flavs" style="--wv-c:var(--flour)">
     <div class="wrap">
       <h2 class="rv">Pick your player</h2>
       <p class="lead rv">One serious churn, a colour for every craving.</p>
@@ -96,6 +92,11 @@ const shelfRows = [
       </div>
     </div>
   </section>
+
+  <!-- PRODUCT FEATURES — the merged spiral feature section (burst + "Zero
+       nasties" + stats, folding in the old why/stats sections). Sits below the
+       flavours grid now; #why lands on the feature section. -->
+  <FeatureBurst id="why" ctaHref="#stockists" stats={stats} />
 
   <!-- HOW IT'S CHURNED — photo steps; wave in from the flour flavours grid -->
   <section class="made wv" style="--wv-c:var(--flour)">

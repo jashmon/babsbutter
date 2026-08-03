@@ -4,7 +4,14 @@ type Props = Flavour;
 const { tone, shape, name, tagline, img, alt } = Astro.props;
 ---
 <article class={`flav ${tone} rv`}>
-  <div class="ph" style={`--shape:url('${shape}')`}><img src={img} alt={alt} loading="lazy" /></div>
+  <div class="tok" style={`--shape:url('${shape}')`}>
+    <span class="tok-shade" aria-hidden="true"></span>
+    <div class="ph">
+      <span class="ph-glow" aria-hidden="true"></span>
+      <span class="ph-sheen" aria-hidden="true"></span>
+      <img src={img} alt={alt} loading="lazy" />
+    </div>
+  </div>
   <div class="meta">
     <h3>{name}</h3>
     <span class="serif">{tagline}</span>

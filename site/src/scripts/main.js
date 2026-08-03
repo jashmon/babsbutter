@@ -246,6 +246,42 @@ if (!reduce) {
       b.style.transform = '';
     });
   });
+
+  // flavour-card 3D tilt + mouse-following glow. Same rAF-batched, transform-only
+  // idiom as the magnetic buttons above: JS only writes CSS custom properties
+  // (--rx/--ry rotation, --gx/--gy/--go glow), and global.css owns the actual
+  // transform + glow gradient. That keeps the CSS hover "pop" (--sc) composing
+  // cleanly with the tilt, and lets the transition on .flav ease the tilt back
+  // on leave instead of snapping. Only fires on real pointers.
+  document.querySelectorAll('.flav').forEach((card) => {
+    let pending = null;
+    card.addEventListener('pointermove', (e) => {
+      if (e.pointerType === 'touch') return;
+      const r = card.getBoundingClientRect();
+      const px = (e.clientX - r.left) / r.width; // 0..1 across the card
+      const py = (e.clientY - r.top) / r.height;
+      if (!pending)
+        pending = requestAnimationFrame(() => {
+          // invert Y so tilting toward the cursor (top → rotateX+, matches the
+          // reference), ±8deg range.
+          card.style.setProperty('--ry', `${(px - 0.5) * 16}deg`);
+          card.style.setProperty('--rx', `${(0.5 - py) * 16}deg`);
+          card.style.setProperty('--gx', `${px * 100}%`);
+          card.style.setProperty('--gy', `${py * 100}%`);
+          card.style.setProperty('--go', '0.5');
+          pending = null;
+        });
+    });
+    card.addEventListener('pointerleave', () => {
+      if (pending) {
+        cancelAnimationFrame(pending);
+        pending = null;
+      }
+      card.style.setProperty('--rx', '0deg');
+      card.style.setProperty('--ry', '0deg');
+      card.style.setProperty('--go', '0');
+    });
+  });
 }
 
 // ---- pause videos when off-screen (perf) -----------------------------------
