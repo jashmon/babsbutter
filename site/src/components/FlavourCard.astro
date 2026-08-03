@@ -9,8 +9,8 @@ const { tone, shape, name, tagline, img, alt } = Astro.props;
     <div class="ph">
       <span class="ph-glow" aria-hidden="true"></span>
       <span class="ph-sheen" aria-hidden="true"></span>
-      <img src={img} alt={alt} loading="lazy" />
     </div>
+    <img class="tok-img" src={img} alt={alt} loading="lazy" />
   </div>
   <div class="meta">
     <h3>{name}</h3>
