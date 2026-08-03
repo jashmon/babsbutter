@@ -3,6 +3,8 @@
 // as-is from public/assets/ via plain <img>/<video src>. A later pass should move the
 // images into src/assets/img/ and adopt Astro's <Image> component for automatic
 // resize/compression/format conversion (webp/avif). Video has no <Image> equivalent.
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import FeatureBurst from '../components/FeatureBurst.astro';
 import FlavourCard from '../components/FlavourCard.astro';
@@ -10,6 +12,44 @@ import RecipeCard from '../components/RecipeCard.astro';
 import { flavours } from '../data/flavours';
 import { recipes } from '../data/recipes';
 import { testimonials } from '../data/testimonials';
+
+// The two hero decorative shapes are inlined (not <img>) so main.js can
+// line-draw their outline on load via anime.js's createDrawable, then fade the
+// brand fill up — see playHeroIntro() + the .hero-shape rules in global.css.
+// Read at build time from the same source files the rest of the site uses.
+// Anchored to the project root (cwd during `astro dev`/`astro build`) rather
+// than import.meta.url, which points into the bundled output at build time.
+const shapeSvg = (name: string) =>
+  readFileSync(join(process.cwd(), 'public/assets/shapes', `${name}.svg`), 'utf8');
+const flowerSvg = shapeSvg('flower');
+const quatrefoilSvg = shapeSvg('quatrefoil');
+
+// Recipe "window" clip-path. The photos are clipped into the quatrefoil brand
+// shape; while the "Cook something happy" section is in view, main.js morphs
+// that shape into the rounded square below (anime.js morphTo) and eases it back
+// on scroll-away. Both paths are pre-normalised to the 0..1 objectBoundingBox
+// space so the clip scales with each (square) card and no transform is needed.
+// The quatrefoil path is pure M/C/c (coordinate pairs only), so scaling every
+// number alternately by (1/w, 1/h) normalises it exactly.
+const QUAT_W = 693.46;
+const QUAT_H = 706.42;
+const normalizePath = (d: string, sx: number, sy: number) => {
+  let i = 0;
+  return d.replace(/([A-Za-z])|(-?\d*\.?\d+)/g, (_m, cmd, num) => {
+    if (cmd) {
+      i = 0;
+      return cmd;
+    }
+    const v = parseFloat(num) * (i++ % 2 === 0 ? sx : sy);
+    return v.toFixed(5);
+  });
+};
+const quatrefoilD = normalizePath(quatrefoilSvg.match(/ d="([^"]+)"/)![1], 1 / QUAT_W, 1 / QUAT_H);
+// Rounded square in 0..1 space (corner radius 0.16 ≈ the quatrefoil's lobe
+// scale). Corners are cubic béziers, NOT arcs — anime's morphTo samples path
+// commands and doesn't handle `A`, so an arc target collapses to a single point.
+const recipeSquareD =
+  'M0.16,0 L0.84,0 C0.928368,0 1,0.071632 1,0.16 L1,0.84 C1,0.928368 0.928368,1 0.84,1 L0.16,1 C0.071632,1 0,0.928368 0,0.84 L0,0.16 C0,0.071632 0.071632,0 0.16,0 Z';
 
 // Product stats folded into the merged feature section (sample figures for
 // client review). The count-up is driven by main.js via [data-count].
@@ -55,8 +95,8 @@ const shelfRows = [
   <header class="hero" id="top">
     <img class="hero-bgimg" src="/assets/img/table-spread.jpg" alt="A table spread of warm bread, pastries and butter" />
     <div class="hero-scrim" aria-hidden="true"></div>
-    <img class="blob spin" src="/assets/shapes/flower.svg" alt="" style="width:min(46vw,560px);top:-8%;right:-10%;opacity:.4" />
-    <img class="blob bob2" src="/assets/shapes/quatrefoil.svg" alt="" style="width:min(28vw,320px);bottom:-6%;left:-8%;opacity:.35" />
+    <span class="blob spin hero-shape" aria-hidden="true" style="width:min(46vw,560px);top:-8%;right:-10%;opacity:.4" set:html={flowerSvg}></span>
+    <span class="blob bob2 hero-shape" aria-hidden="true" style="width:min(28vw,320px);bottom:-6%;left:-8%;opacity:.35" set:html={quatrefoilSvg}></span>
     <div class="float-i f1"><img src="/assets/illus/butter-stick.svg" alt="" /></div>
     <div class="float-i f2"><img src="/assets/illus/croissant.svg" alt="" /></div>
     <div class="float-i f3"><img src="/assets/illus/hearts.svg" alt="" /></div>
@@ -113,13 +153,31 @@ const shelfRows = [
 
   <!-- RECIPES -->
   <section class="recipes" id="recipes">
+    <!-- Per-card clip-paths for the recipe photos + the rounded-square target the
+         boundary morphs to on hover (see main.js). 0×0 so it never paints. Each
+         morphable shape (#rc-live-i) is a DIRECT child of the <svg>, not inside
+         <clipPath> — paths inside a clipPath aren't in the render tree, so their
+         getPointAtLength() can't be sampled. The clipPath references it live via
+         <use>, so morphing #rc-live-i re-clips only that card's photo. One per
+         card so hovering a single card morphs only its own boundary. -->
+    <svg width="0" height="0" aria-hidden="true" class="rc-defs">
+      {recipes.map((_, i) => (
+        <Fragment>
+          <path id={`rc-live-${i}`} class="rc-path" d={quatrefoilD} />
+          <clipPath id={`recipe-clip-${i}`} clipPathUnits="objectBoundingBox">
+            <use href={`#rc-live-${i}`} />
+          </clipPath>
+        </Fragment>
+      ))}
+      <path id="rc-square" d={recipeSquareD} />
+    </svg>
     <div class="wrap">
       <h2 class="rv">Cook something happy</h2>
       <p class="lead rv">Flick through. Get hungry. Repeat.</p>
     </div>
     <div class="wrap">
       <div class="r-track" data-lenis-prevent>
-        {recipes.map((r) => <RecipeCard {...r} />)}
+        {recipes.map((r, i) => <RecipeCard {...r} index={i} />)}
       </div>
     </div>
   </section>

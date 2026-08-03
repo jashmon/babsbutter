@@ -1,16 +1,81 @@
 import Lenis from 'lenis';
-import { animate } from 'motion';
+import { animate, createTimeline, stagger, createSpring, createDrawable, utils } from 'animejs';
 
 // Concept 7 · "Butter Playground" behaviour.
 // Everything here is transform/opacity only and degrades cleanly:
-//  - reveal-on-scroll (.rv -> .in), with an in-viewport "no-anim" fast path
-//  - count-up statistics
+//  - a choreographed hero intro (anime.js timeline, plays once after the
+//    preloader sweeps) with an SVG line-draw on the hero shapes
+//  - reveal-on-scroll (.rv -> .in), now a staggered anime cascade
+//  - count-up statistics (anime-driven)
 //  - a soft cursor blob that eases toward the pointer (rAF-batched)
-//  - magnetic buttons (.magnetic)
-// The blob + magnetic effects, plus all motion, are disabled under
-// prefers-reduced-motion; content stays fully visible either way.
+//  - magnetic buttons (.magnetic) and flavour-card tilt (rAF-batched)
+//  - the nav pill glide (anime.js spring)
+// anime.js owns entrances/sequences/SVG and value-driven micro-interactions;
+// the ambient idle loops (spin/bob/floaty/marquees) stay pure CSS. The blob +
+// magnetic effects, plus all motion, are disabled under prefers-reduced-motion;
+// content stays fully visible either way.
 
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// ---- hero intro: hidden entry-states -------------------------------------
+// Line-draw proxies for the hero shapes, created at setup and animated in
+// playHeroIntro() (createDrawable's return owns the animatable `draw` property).
+let heroShapeDrawables = null;
+// Set the hero's entry-states up front (opacity 0 / slight lift) so the intro
+// timeline can play them in once the preloader cover sweeps away. This runs
+// only when motion is allowed — under reduced motion (and with no JS) the hero
+// simply renders in place, fully visible. The deferred module runs after first
+// paint, but the full-screen preloader cover is already on top masking the
+// hero, so applying these states here never flashes. See playHeroIntro().
+if (!reduce) {
+  utils.set('.hero .eyebrow, .hero p, .hero .cta-row', { opacity: 0, translateY: 18 });
+  utils.set('.hero h1 .w', { opacity: 0, translateY: '0.5em' });
+  utils.set('.hero .float-i', { opacity: 0 });
+  // SVG shapes: stroke the outline (fill hidden), primed to draw in. The stroke
+  // is applied here — not in CSS — so reduced-motion / no-JS render the plain
+  // filled shapes exactly as before. createDrawable() returns proxy objects that
+  // own the animatable `draw` property; we keep them to animate in playHeroIntro.
+  if (document.querySelector('.hero-shape path')) {
+    utils.set('.hero-shape path', { stroke: '#c3dbe7', strokeWidth: 2.5, fillOpacity: 0 });
+    heroShapeDrawables = createDrawable('.hero-shape path');
+    utils.set(heroShapeDrawables, { draw: '0 0' });
+  }
+}
+
+// Plays the hero entrance once, called from the preloader's finish(). No-op
+// under reduced motion (entry-states above were never applied, so the hero is
+// already visible). Cleared inline transforms hand the floats/shapes back to
+// their CSS spin/bob idle loops.
+function playHeroIntro() {
+  if (reduce) return;
+  const tl = createTimeline({ defaults: { ease: 'out(3)', duration: 720 } });
+  tl.add('.hero .eyebrow', { opacity: [0, 1], translateY: [18, 0] })
+    .add(
+      '.hero h1 .w',
+      { opacity: [0, 1], translateY: ['0.5em', 0], duration: 820, delay: stagger(85) },
+      '-=440'
+    )
+    .add('.hero p', { opacity: [0, 1], translateY: [18, 0] }, '-=480')
+    .add('.hero .cta-row', { opacity: [0, 1], translateY: [18, 0] }, '-=560')
+    .add(
+      '.hero .float-i',
+      {
+        opacity: [0, 1],
+        duration: 620,
+        delay: stagger(90),
+      },
+      '-=560'
+    );
+
+  // SVG line-draw on the hero shapes, kicked off alongside the words: stroke the
+  // outline on (animate the drawables), then fade the brand fill up on the paths
+  // themselves. The shapes keep their CSS spin/bob idle throughout (that animates
+  // the wrapper's transform, untouched here).
+  if (heroShapeDrawables) {
+    animate(heroShapeDrawables, { draw: ['0 0', '0 1'], duration: 1500, ease: 'inOut(2)' });
+    animate('.hero-shape path', { fillOpacity: [0, 1], duration: 900, delay: 900, ease: 'out(2)' });
+  }
+}
 
 // ---- Lenis smooth scroll + scroll-linked depth -----------------------------
 // Native scroll stays the fallback: under reduced motion we skip Lenis and the
@@ -116,6 +181,9 @@ if (preloader) {
     done = true;
     document.documentElement.classList.add('loaded');
     lenis?.start(); // hand scrolling back once the cover sweeps up
+    // Kick the hero entrance a beat into the cover's upward sweep so the words
+    // are already rising as the page is revealed (no-op under reduced motion).
+    setTimeout(playHeroIntro, reduce ? 0 : 220);
     if (reduce) {
       preloader.remove();
       return;
@@ -147,16 +215,42 @@ if (preloader) {
     else addEventListener('load', go, { once: true });
     setTimeout(finish, 6000); // absolute fallback so scroll never stays locked
   }
+} else {
+  // No preloader in the DOM — nothing will call finish(), so play the hero
+  // intro directly rather than leaving its entry-states hidden.
+  playHeroIntro();
 }
 
 // ---- reveal on scroll -------------------------------------------------------
+// Each .rv fades and lifts into place as it enters. Siblings within the same
+// container cascade (delay by DOM index, capped) so grid rows — the made-steps,
+// the award badges — sweep in left-to-right instead of popping together. The
+// entrance transform is cleared on complete so any CSS hover/idle transform on
+// the element takes back over cleanly. Under reduced motion the elements are
+// never hidden and just get the (inert) `.in` class.
+const revealIn = (el) => {
+  const parent = el.parentElement;
+  const sibs = parent ? [...parent.querySelectorAll(':scope > .rv')] : [el];
+  const i = Math.max(0, sibs.indexOf(el));
+  animate(el, {
+    opacity: [0, 1],
+    translateY: [26, 0],
+    duration: 720,
+    ease: 'out(3)',
+    delay: Math.min(i, 6) * 70,
+    onComplete: () => {
+      el.style.transform = '';
+    },
+  });
+};
+
 const io = new IntersectionObserver(
   (entries) =>
     entries.forEach((e) => {
-      if (e.isIntersecting) {
-        e.target.classList.add('in');
-        io.unobserve(e.target);
-      }
+      if (!e.isIntersecting) return;
+      io.unobserve(e.target);
+      e.target.classList.add('in');
+      if (!reduce) revealIn(e.target);
     }),
   { threshold: 0.14 }
 );
@@ -168,6 +262,7 @@ document.querySelectorAll('.rv').forEach((el) => {
     el.classList.add('no-anim', 'in');
     requestAnimationFrame(() => requestAnimationFrame(() => el.classList.remove('no-anim')));
   } else {
+    if (!reduce) el.style.opacity = '0'; // hold hidden off-screen until revealed
     io.observe(el);
   }
 });
@@ -183,16 +278,99 @@ const cio = new IntersectionObserver(
         e.target.textContent = String(target);
         return;
       }
-      const t0 = performance.now();
-      (function tick(now) {
-        const p = Math.min(1, (now - t0) / 1200);
-        e.target.textContent = String(Math.round(target * (1 - Math.pow(1 - p, 3))));
-        if (p < 1) requestAnimationFrame(tick);
-      })(t0);
+      const state = { v: 0 };
+      animate(state, {
+        v: target,
+        duration: 1200,
+        ease: 'out(3)',
+        onUpdate: () => {
+          e.target.textContent = String(Math.round(state.v));
+        },
+      });
     }),
   { threshold: 0.6 }
 );
 document.querySelectorAll('[data-count]').forEach((el) => cio.observe(el));
+
+// ---- recipe "window" morph (hover) -----------------------------------------
+// Each recipe photo is clipped into the quatrefoil brand shape via its OWN
+// clip-path (#recipe-clip-i, driven by #rc-live-i). On hover that card's shape
+// morphs into a rounded square and a recessed "window" frame fades in (depth,
+// like looking through a pane); it eases back to the quatrefoil on pointer-leave.
+// anime drives the scrubbable, reversible 0→1 progress (so a quick in/out
+// reverses cleanly); we interpolate the sampled points ourselves because anime's
+// morphTo collapses these particular paths. Hover-capable pointers only, and
+// skipped under reduced motion — the photos then stay in their quatrefoil shape.
+const recipeCards = [...document.querySelectorAll('.r-card')];
+const rcSquare = document.querySelector('#rc-square');
+if (recipeCards.length && rcSquare && !reduce && matchMedia('(hover: hover)').matches) {
+  const N = 80;
+  const samplePath = (el) => {
+    const L = el.getTotalLength();
+    return Array.from({ length: N }, (_, i) => {
+      const p = el.getPointAtLength((L * i) / N);
+      return [p.x, p.y];
+    });
+  };
+  // Pair the two point sets so each quatrefoil point morphs to the *nearest*
+  // square point — otherwise mismatched start points / winding make the shape
+  // collapse through a twisted sliver mid-morph. Pick the winding + rotational
+  // offset of `b` that minimises the total squared distance to `a`.
+  const alignTo = (a, b) => {
+    const rev = [...b].reverse();
+    let best = null;
+    for (const arr of [b, rev]) {
+      for (let off = 0; off < N; off++) {
+        let sum = 0;
+        for (let i = 0; i < N; i++) {
+          const q = arr[(i + off) % N];
+          sum += (a[i][0] - q[0]) ** 2 + (a[i][1] - q[1]) ** 2;
+        }
+        if (!best || sum < best.sum) best = { sum, arr, off };
+      }
+    }
+    return Array.from({ length: N }, (_, i) => best.arr[(i + best.off) % N]);
+  };
+  // All photos share the same quatrefoil→square point pairing (identical shapes);
+  // sample it once, lazily, on the first hover (by then the clip <svg> is laid
+  // out, so getPointAtLength is valid). Each card sets `d` on its own path.
+  let quat = null;
+  let square = null;
+  const buildD = (t) => {
+    let d = '';
+    for (let i = 0; i < N; i++) {
+      const x = quat[i][0] + (square[i][0] - quat[i][0]) * t;
+      const y = quat[i][1] + (square[i][1] - quat[i][1]) * t;
+      d += (i === 0 ? 'M' : 'L') + x.toFixed(4) + ',' + y.toFixed(4);
+    }
+    return d + 'Z';
+  };
+
+  recipeCards.forEach((card, i) => {
+    const live = document.getElementById(`rc-live-${i}`);
+    if (!live) return;
+    const state = { t: 0 };
+    let tween = null;
+    const morphTo = (target) => {
+      if (!quat) {
+        quat = samplePath(live);
+        square = alignTo(quat, samplePath(rcSquare));
+      }
+      tween?.pause();
+      tween = animate(state, {
+        t: target,
+        duration: target ? 520 : 460,
+        ease: 'out(3)',
+        onUpdate: () => {
+          live.setAttribute('d', buildD(state.t));
+          card.style.setProperty('--win', state.t.toFixed(3));
+        },
+      });
+    };
+    card.addEventListener('pointerenter', () => morphTo(1));
+    card.addEventListener('pointerleave', () => morphTo(0));
+  });
+}
 
 // ---- pointer flourishes (motion only) --------------------------------------
 if (!reduce) {
@@ -329,7 +507,7 @@ vids.forEach((v) => {
 // ---- nav pill indicator ------------------------------------------------
 // A single shared pill glides between nav links (hover, keyboard focus, and
 // the last-clicked "active" link) instead of each link getting its own
-// hover background. Position/width are driven by Motion's spring easing for
+// hover background. Position/width are driven by anime.js spring easing for
 // the premium settle-with-a-touch-of-overshoot feel; everything collapses to
 // an instant, non-animated jump under prefers-reduced-motion.
 const navUl = document.querySelector('nav ul');
@@ -348,7 +526,7 @@ if (navUl && navPill) {
     if (!pillActive()) return;
     if (!el) {
       if (pillShown) {
-        animate(navPill, { opacity: 0 }, { duration: instant || reduce ? 0 : 0.2 });
+        animate(navPill, { opacity: 0, duration: instant || reduce ? 0 : 200, ease: 'out(2)' });
         pillShown = false;
       }
       return;
@@ -356,8 +534,9 @@ if (navUl && navPill) {
     const { x, width } = rectFor(el);
     animate(
       navPill,
-      { x, width, opacity: 1 },
-      instant || reduce ? { duration: 0 } : { type: 'spring', duration: 0.62, bounce: 0.08 }
+      instant || reduce
+        ? { translateX: x, width, opacity: 1, duration: 0 }
+        : { translateX: x, width, opacity: 1, ease: createSpring({ stiffness: 160, damping: 18 }) }
     );
     pillShown = true;
   };

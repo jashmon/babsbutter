@@ -1,10 +1,15 @@
 ---
 import type { Recipe } from '../data/recipes';
-type Props = Recipe;
-const { title, meta, img, alt } = Astro.props;
+type Props = Recipe & { index: number };
+const { title, meta, img, alt, index } = Astro.props;
+// Each card references its OWN clip-path so hovering morphs only this photo.
+const clip = `url(#recipe-clip-${index})`;
 ---
 <article class="r-card">
-  <div class="ph"><img src={img} alt={alt} loading="lazy" /></div>
+  <div class="ph" style={`clip-path:${clip};-webkit-clip-path:${clip}`}><img src={img} alt={alt} loading="lazy" /></div>
+  <!-- recessed "window" frame — invisible at rest, fades in (driven by --win on
+       the section) as the photo's boundary morphs to a rounded square. -->
+  <span class="win" aria-hidden="true"></span>
   <div class="cap">
     <h3>{title}</h3>
     <span>{meta}</span>

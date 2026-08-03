@@ -54,8 +54,8 @@ const features = [
           features.map((f, i) => (
             <span class="sh-spoke" style={`--rot:${f.rot}deg;--i:${i}`}>
               <svg viewBox="0 0 66 40" fill="none">
-                <path d="M4 10 C 26 0, 30 34, 54 22" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" />
-                <path d="M45 27 L55 22 L50 12" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
+                <path class="shaft" d="M4 11 C 24 2, 36 30, 54 21" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+                <path class="head" d="M45 28 Q 55 22 49 11" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
             </span>
           ))
@@ -104,6 +104,8 @@ const features = [
 </section>
 
 <script>
+  import { animate, createDrawable, stagger, utils } from 'animejs';
+
   // Reveal — the tub scales in first, then each arrowed feature bursts out from
   // behind it, then the copy/button settle. Gated on motion preference: the
   // hidden start states live under `.sh-feat.anim` (added here), so no-JS and
@@ -112,18 +114,44 @@ const features = [
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (feat && !reduceMotion) {
     feat.classList.add('anim');
+
+    // Prime the arrows for a line-draw reveal: they hold their final rotated
+    // position (CSS) but with the stroke undrawn, so they can draw themselves
+    // outward toward each callout when the section scrolls into view.
+    // NB: createDrawable() returns proxy objects that own the animatable `draw`
+    // property — you must animate *these*, not the raw <path> elements.
+    const shafts = createDrawable(feat.querySelectorAll('.sh-spoke .shaft'));
+    const heads = createDrawable(feat.querySelectorAll('.sh-spoke .head'));
+    utils.set([...shafts, ...heads], { draw: '0 0' });
+
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
-          if (e.isIntersecting) {
-            feat.classList.add('in-view');
-            // merged variant: once the burst has played centred, shrink it to
-            // the left and reveal the "Zero nasties" + stats column on the right
-            if (feat.classList.contains('merged')) {
-              setTimeout(() => feat.classList.add('settled'), 1500);
-            }
-            io.disconnect();
+          if (!e.isIntersecting) return;
+          feat.classList.add('in-view');
+
+          // The arrows draw outward one after another around the tub — each
+          // shaft strokes on, then its head snaps in just behind it. This is the
+          // "anime.js" flourish: smooth stroke-dash draw rather than a fade.
+          animate(shafts, {
+            draw: ['0 0', '0 1'],
+            duration: 300,
+            delay: stagger(85, { start: 340 }),
+            ease: 'out(3)',
+          });
+          animate(heads, {
+            draw: ['0 0', '0 1'],
+            duration: 210,
+            delay: stagger(85, { start: 600 }),
+            ease: 'out(2)',
+          });
+
+          // merged variant: once the burst has played centred, shrink it to
+          // the left and reveal the "Zero nasties" + stats column on the right
+          if (feat.classList.contains('merged')) {
+            setTimeout(() => feat.classList.add('settled'), 1500);
           }
+          io.disconnect();
         });
       },
       { threshold: 0.35 }
@@ -213,6 +241,11 @@ const features = [
     width: 100%;
     height: 100%;
   }
+  /* The arrows line-draw on scroll-in (createDrawable in the component script).
+     NB: no `vector-effect: non-scaling-stroke` here — it makes the browser
+     measure stroke-dashes in screen px while createDrawable measures the path
+     in user units, so the two disagree and the draw breaks. The stroke-width is
+     set a touch heavier instead, to stay crisp under the merged 0.62 scale. */
 
   /* feature callouts, positioned by their offset from centre */
   .sh-feat-list {
@@ -289,11 +322,8 @@ const features = [
     transform: translate(-50%, -50%) scale(0.35);
     transition: opacity 0.5s var(--ease), transform 0.6s var(--ease);
   }
-  .sh-feat.anim .sh-spoke {
-    opacity: 0;
-    transform: rotate(var(--rot)) translateX(24px);
-    transition: opacity 0.45s var(--ease), transform 0.55s var(--ease);
-  }
+  /* Spokes stay at their final position; their reveal is an anime.js line-draw
+     (the stroke draws outward toward each callout), primed to 0 in the script. */
   .sh-feat.anim .sh-feat-foot {
     opacity: 0;
     transform: translateY(16px);
@@ -308,11 +338,6 @@ const features = [
   .sh-feat.anim.in-view .sh-feat-jar {
     opacity: 1;
     transform: translate(-50%, -50%);
-  }
-  .sh-feat.anim.in-view .sh-spoke {
-    opacity: 1;
-    transform: rotate(var(--rot)) translateX(var(--gap, 132px));
-    transition-delay: calc(360ms + var(--i, 0) * 80ms);
   }
   .sh-feat.anim.in-view .sh-feat-node {
     opacity: 1;

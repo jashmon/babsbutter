@@ -490,6 +490,21 @@ nav ul a:active {
   }
 }
 
+/* Hero decorative shapes are inline SVG (not <img>) so main.js can line-draw
+   their outline on load (anime.js createDrawable), then fade the brand fill up.
+   The wrapper <span> keeps the .blob positioning + spin/bob idle; the SVG just
+   fills it. Under reduced motion / no JS the path renders plainly filled (the
+   stroke + hidden-fill entry-state is applied by JS only, never here). */
+.hero-shape svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible; /* the drawn stroke can sit a hair past the viewBox edge */
+}
+.hero-shape path {
+  vector-effect: non-scaling-stroke; /* even line weight across both shapes */
+}
+
 /* hero */
 .hero {
   min-height: 100dvh;
@@ -1176,18 +1191,45 @@ section > .wrap {
   display: none;
 }
 .r-card {
+  position: relative;
   scroll-snap-align: center;
   transition: transform 0.25s var(--ease);
 }
 .r-card:hover {
   transform: translateY(-6px);
 }
-/* photo clipped directly into the quatrefoil brand shape (Brand Elements –
-   Shapes), matching the flavour cards' use of shape outlines elsewhere */
+/* Photo clipped into the quatrefoil brand shape (Brand Elements – Shapes),
+   matching the flavour cards' use of shape outlines. The clip-path is an inline
+   SVG shape set PER CARD (#recipe-clip-i, applied via inline style in
+   RecipeCard.astro) rather than an image mask, so main.js can morph just this
+   card's boundary into a rounded "window" on hover (see .win below). */
 .r-card .ph {
   aspect-ratio: 1;
-  -webkit-mask: url('/assets/shapes/quatrefoil.svg') center / 100% 100% no-repeat;
-  mask: url('/assets/shapes/quatrefoil.svg') center / 100% 100% no-repeat;
+}
+/* Recessed "window" frame over the photo. Invisible at rest; --win (set on the
+   hovered .r-card by main.js, 0→1) fades it in as the boundary becomes a rounded
+   square — an inner shadow + top light-lip read as a pane you look through, with
+   a soft outer drop to lift it forward. Purely decorative. */
+.r-card .win {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 16%;
+  pointer-events: none;
+  opacity: var(--win, 0);
+  border: 1px solid rgba(47, 29, 15, 0.14);
+  box-shadow:
+    inset 0 2px 1px rgba(252, 247, 235, 0.4),
+    inset 0 16px 34px rgba(47, 29, 15, 0.3),
+    inset 0 -10px 24px rgba(47, 29, 15, 0.14),
+    0 22px 34px -16px rgba(47, 29, 15, 0.4);
+}
+@media (prefers-reduced-motion: reduce) {
+  .r-card .win {
+    display: none;
+  }
 }
 .r-card .ph img {
   width: 100%;
