@@ -111,7 +111,12 @@ if (!reduce) {
   // Depth: per-frame scale/fade/lift keyed off each block's distance from the
   // viewport centre. Positions come from offsetTop/offsetHeight (layout metrics
   // unaffected by transforms), so measuring can't feed back into the transform.
-  const items = [...document.querySelectorAll('section > .wrap')].map((el) => ({ el, top: 0, h: 0 }));
+  // `.no-depth` sections opt out: their content (SVG clip-path photos in
+  // recipes, rounded overflow-hidden + box-shadow photos in made) can't be
+  // GPU-composited, so animating the wrap's scale/opacity every scroll frame
+  // re-rasterizes them on the main thread and stutters. Skipping the transform
+  // there keeps scrolling smooth; the effect stays on every other section.
+  const items = [...document.querySelectorAll('section:not(.no-depth) > .wrap')].map((el) => ({ el, top: 0, h: 0 }));
   if (items.length) {
     document.documentElement.classList.add('depth-on');
     const measure = () => {
