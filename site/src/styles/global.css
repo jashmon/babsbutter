@@ -228,8 +228,8 @@ body > * {
   height: 40px;
   display: flex;
   align-items: center;
-  background: linear-gradient(90deg, var(--raspberry), var(--tangerine) 60%, var(--biscuit));
-  color: var(--flour);
+  background: linear-gradient(90deg, var(--dark-choc), var(--coffee-bean));
+  color: var(--butter);
 }
 .promo-inner {
   display: flex;
@@ -241,6 +241,35 @@ body > * {
   font-weight: 800;
   font-size: 12.5px;
   letter-spacing: 0.02em;
+}
+/* the message doubles as the popup trigger — reset the native button so it
+   reads as banner text, but stays clickable/keyboard-focusable */
+.promo-notify {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+  line-height: 1;
+  white-space: nowrap;
+}
+.promo-notify u {
+  text-underline-offset: 2px;
+}
+.promo-arrow {
+  transition: transform 0.2s var(--ease);
+}
+.promo-notify:hover .promo-arrow,
+.promo-notify:focus-visible .promo-arrow {
+  transform: translateX(3px);
+}
+.promo-notify:focus-visible {
+  outline: 2px solid var(--flour);
+  outline-offset: 3px;
+  border-radius: 4px;
 }
 .promo-social {
   display: flex;
@@ -424,8 +453,12 @@ nav ul a:active {
 .btn {
   display: inline-block;
   white-space: nowrap;
+  /* inherit so <button class="btn"> matches the <a class="btn"> siblings —
+     native buttons don't pick up the body font otherwise */
+  font-family: inherit;
   font-weight: 800;
   font-size: 15px;
+  line-height: 1.6;
   padding: 13px 26px;
   border-radius: 40px;
   background: var(--tangerine);
@@ -575,12 +608,12 @@ nav ul a:active {
 .hero h1 .w {
   display: inline-block;
 }
-/* "butter" picks up the same biscuit accent as the /shop hero's "Paradise" */
+/* "butter" picks up the biscuit accent; "energy." pops in brand tangerine */
 .hero h1 .w:nth-child(2) {
   color: var(--biscuit);
 }
-.hero h1 .w:nth-child(4) {
-  color: var(--biscuit);
+.hero h1 .w:last-child {
+  color: var(--tangerine);
 }
 .hero p {
   margin: 28px auto 40px;
@@ -2275,6 +2308,14 @@ html.nav-locked body {
   .promo-inner {
     justify-content: center;
   }
+  /* collapse the notify message to a short, single-line prompt so it never
+     clips inside the 40px bar on narrow screens */
+  .promo-long {
+    display: none;
+  }
+  .promo-notify {
+    font-size: 12px;
+  }
   .mq span {
     font-size: 18px;
     gap: 28px;
@@ -2534,6 +2575,228 @@ html.nav-locked body {
     font-size: 14px;
   }
   .hero .float-i {
+    display: none;
+  }
+}
+
+/* ===== "Notify me" popup (coming-soon waitlist + newsletter) ===============
+   Overlay + centred card. Behaviour (open/close/submit/auto-open) lives in
+   main.js. main.js removes the `hidden` attribute on init so this class system
+   takes over; `.notify-visible` gates visibility, so no-JS visitors never see
+   it. Sits above the preloader (9999) and nav (60). Reuses brand tokens. */
+.notify {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s var(--ease), visibility 0.3s var(--ease);
+}
+.notify.notify-visible {
+  opacity: 1;
+  visibility: visible;
+}
+.notify-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(47, 29, 15, 0.55);
+  backdrop-filter: blur(3px);
+  cursor: pointer;
+}
+.notify-panel {
+  position: relative;
+  z-index: 1;
+  width: min(92vw, 460px);
+  max-height: calc(100dvh - 48px);
+  overflow: auto;
+  background: var(--flour);
+  border: var(--hair);
+  border-radius: 28px;
+  box-shadow: var(--sh-lg);
+  padding: 44px 40px 36px;
+  text-align: center;
+  /* main.js sets the entrance transform-origin/scale; keep a sane resting state */
+  transform-origin: center bottom;
+}
+/* decorative brand shapes bleeding off the card corners */
+.notify-shape {
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.5;
+}
+.notify-shape.s1 {
+  width: 118px;
+  top: -46px;
+  right: -34px;
+  animation: spin 26s linear infinite;
+}
+.notify-shape.s2 {
+  width: 96px;
+  bottom: -38px;
+  left: -30px;
+  animation: bob 6s ease-in-out infinite alternate;
+}
+.notify-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  line-height: 1;
+  color: var(--dark-choc);
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.2s var(--ease), transform 0.2s var(--ease);
+}
+.notify-close:hover {
+  background: rgba(47, 29, 15, 0.08);
+  transform: rotate(90deg);
+}
+.notify-body,
+.notify-success {
+  position: relative;
+  z-index: 1;
+}
+.notify-eyebrow {
+  display: inline-block;
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--tangerine);
+  background: var(--butter);
+  border: var(--hair);
+  padding: 5px 14px;
+  border-radius: 30px;
+  margin-bottom: 16px;
+}
+.notify-title {
+  font-family: 'Roketto', sans-serif;
+  font-weight: 400;
+  line-height: 0.98;
+  font-size: clamp(28px, 6vw, 36px);
+  color: var(--dark-choc);
+}
+.notify-copy {
+  margin: 12px auto 0;
+  max-width: 34ch;
+  font-size: 15.5px;
+  line-height: 1.55;
+  color: var(--coffee-bean);
+}
+.notify-form {
+  margin-top: 22px;
+  text-align: left;
+}
+.notify-label {
+  display: block;
+  font-weight: 700;
+  font-size: 13px;
+  margin-bottom: 6px;
+  color: var(--dark-choc);
+}
+.notify-input {
+  width: 100%;
+  font-family: inherit;
+  font-size: 16px;
+  padding: 13px 16px;
+  color: var(--dark-choc);
+  background: #fff;
+  border: 1.5px solid rgba(47, 29, 15, 0.22);
+  border-radius: 14px;
+  transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
+}
+.notify-input::placeholder {
+  color: rgba(47, 29, 15, 0.4);
+}
+.notify-input:focus-visible {
+  outline: none;
+  border-color: var(--tangerine);
+  box-shadow: 0 0 0 3px rgba(233, 98, 36, 0.22);
+}
+.notify-input.is-invalid {
+  border-color: var(--raspberry);
+  box-shadow: 0 0 0 3px rgba(139, 35, 28, 0.18);
+}
+/* Web3Forms honeypot — off-screen, never focusable/tabbable for humans */
+.notify-hp {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+.notify-submit {
+  width: 100%;
+  margin-top: 14px;
+  text-align: center;
+}
+.notify-submit[disabled] {
+  opacity: 0.6;
+  cursor: default;
+  pointer-events: none;
+}
+.notify-msg {
+  min-height: 1.2em;
+  margin-top: 10px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--raspberry);
+}
+.notify-fine {
+  margin-top: 14px;
+  font-size: 12px;
+  color: rgba(47, 29, 15, 0.5);
+}
+.notify-success[hidden] {
+  display: none;
+}
+.notify-success-mark {
+  width: 64px;
+  margin: 0 auto 6px;
+}
+.notify-done {
+  margin-top: 22px;
+  background: var(--butter);
+}
+
+/* scroll lock while the popup is open (JS also stops Lenis) */
+html.notify-locked,
+html.notify-locked body {
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notify {
+    transition: none;
+  }
+  .notify-shape.s1,
+  .notify-shape.s2 {
+    animation: none;
+  }
+  .notify-close:hover {
+    transform: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .notify-panel {
+    padding: 40px 24px 30px;
+    border-radius: 24px;
+  }
+  .notify-shape {
     display: none;
   }
 }

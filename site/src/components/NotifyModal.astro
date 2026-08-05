@@ -1,0 +1,65 @@
+---
+// "Notify me" popup — coming-soon waitlist + newsletter signup. Static markup
+// only; open/close/submit behaviour lives in main.js (see the "notify popup"
+// section there). Rendered once from BaseLayout so it overlays every page.
+//
+// Email capture goes through Web3Forms (client-side POST, no backend). The
+// access key is a PUBLIC token — safe to ship in the page. Set it via the
+// PUBLIC_WEB3FORMS_KEY env var (site/.env or Vercel project env); until a real
+// key is provided the placeholder below leaves submits stubbed (main.js guards
+// on it and shows a console note instead of hitting the API).
+const accessKey = import.meta.env.PUBLIC_WEB3FORMS_KEY ?? 'YOUR_WEB3FORMS_ACCESS_KEY';
+---
+<div id="notify" class="notify" hidden aria-hidden="true">
+  <div class="notify-backdrop" data-notify-close aria-hidden="true"></div>
+
+  <div class="notify-panel" role="dialog" aria-modal="true" aria-labelledby="notify-title" aria-describedby="notify-copy">
+    <!-- decorative brand shapes -->
+    <img class="notify-shape s1 spin" src="/assets/shapes/quatrefoil.svg" alt="" aria-hidden="true" />
+    <img class="notify-shape s2 bob" src="/assets/shapes/flower.svg" alt="" aria-hidden="true" />
+
+    <button class="notify-close" type="button" aria-label="Close" data-notify-close>
+      <span aria-hidden="true">&times;</span>
+    </button>
+
+    <div class="notify-body">
+      <span class="notify-eyebrow">coming soon</span>
+      <h2 class="notify-title" id="notify-title">Be first to the butter.</h2>
+      <p class="notify-copy" id="notify-copy">
+        Babs is almost churned. Drop your email and we&rsquo;ll tell you the moment it goes
+        live &mdash; plus recipes and the odd butter dispatch.
+      </p>
+
+      <form class="notify-form" data-access-key={accessKey} novalidate>
+        <div class="notify-field">
+          <label class="notify-label" for="notify-email">Email address</label>
+          <input
+            id="notify-email"
+            class="notify-input"
+            type="email"
+            name="email"
+            inputmode="email"
+            autocomplete="email"
+            placeholder="you@example.com"
+            required
+          />
+        </div>
+        <!-- Web3Forms honeypot: real people never tick it. Hidden via CSS. -->
+        <input class="notify-hp" type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" aria-hidden="true" />
+        <button class="btn notify-submit" type="submit">Notify me</button>
+        <p class="notify-msg" role="status" aria-live="polite"></p>
+      </form>
+
+      <p class="notify-fine">No spam. Unsubscribe anytime.</p>
+    </div>
+
+    <div class="notify-success" hidden>
+      <img class="notify-success-mark" src="/assets/illus/hearts.svg" alt="" aria-hidden="true" />
+      <h2 class="notify-title">You&rsquo;re on the list!</h2>
+      <p class="notify-copy">
+        We&rsquo;ll email you the second Babs is churned and ready. Big butter energy, incoming.
+      </p>
+      <button class="btn notify-done" type="button" data-notify-close>Back to it</button>
+    </div>
+  </div>
+</div>

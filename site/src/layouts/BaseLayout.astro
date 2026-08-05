@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import NotifyModal from '../components/NotifyModal.astro';
 
 interface Props {
   title?: string;
@@ -80,7 +81,7 @@ const onPlantPage = path === '/plant-based';
           <li><a href={to('#recipes')}>Recipes</a></li>
           <li><a href={to('#faq')}>FAQ</a></li>
         </ul>
-        <a class="btn small" href={to('#cta')}>Get Babs</a>
+        <button class="btn small" type="button" data-notify-open>Get Babs</button>
         <!-- mobile only (hidden ≥1025px); drives the dropdown panel above -->
         <button
           id="nav-toggle"
@@ -96,6 +97,8 @@ const onPlantPage = path === '/plant-based';
     </nav>
 
     <slot />
+
+    <NotifyModal />
 
     <script src="../scripts/main.js"></script>
   </body>

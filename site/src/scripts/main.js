@@ -657,3 +657,219 @@ if (navEl && navToggle) {
     if (navOpen && !isMobileNav()) setNav(false);
   });
 }
+
+// ---- "notify me" popup (coming-soon waitlist + newsletter) ----------------
+// A centred overlay card. Email capture goes through Web3Forms (client-side
+// POST, no backend). Follows the mobile-menu idiom: class toggle + Lenis scroll
+// lock (native overflow:hidden alone won't hold — Lenis drives scrolling) +
+// Escape / backdrop close, all reduced-motion aware. Auto-opens once ~7s after
+// load, remembered via localStorage; also opened by any [data-notify-open].
+const notify = document.getElementById('notify');
+if (notify) {
+  const panel = notify.querySelector('.notify-panel');
+  const form = notify.querySelector('.notify-form');
+  const emailInput = notify.querySelector('.notify-input');
+  const msgEl = notify.querySelector('.notify-msg');
+  const submitBtn = notify.querySelector('.notify-submit');
+  const bodyEl = notify.querySelector('.notify-body');
+  const successEl = notify.querySelector('.notify-success');
+  const doneBtn = notify.querySelector('.notify-done');
+  const honeypot = notify.querySelector('.notify-hp');
+
+  // Set once the popup has AUTO-opened, so it auto-opens only once per visitor.
+  // Deliberately NOT set when the visitor opens it themselves via a trigger —
+  // manually previewing the popup shouldn't suppress the auto-open. (Renamed
+  // from the old `:dismissed` key, which was set on every close and could get
+  // stuck, so existing visitors get a clean slate.)
+  const SEEN_KEY = 'babs:notify:autoshown';
+  const SUB_KEY = 'babs:notify:subscribed';
+  const AUTO_OPEN_DELAY = 6000;
+  const KEY_PLACEHOLDER = 'YOUR_WEB3FORMS_ACCESS_KEY';
+  // localStorage can throw (private mode / disabled) — never let that break the UI
+  const store = {
+    get: (k) => {
+      try {
+        return localStorage.getItem(k);
+      } catch {
+        return null;
+      }
+    },
+    set: (k, v) => {
+      try {
+        localStorage.setItem(k, v);
+      } catch {}
+    },
+  };
+
+  // Hand off from the no-JS `hidden` attribute to the CSS class system, so
+  // visibility is now driven by `.notify-visible` (invisible until opened).
+  notify.removeAttribute('hidden');
+
+  let open = false;
+  let openedThisSession = false;
+  let lastTrigger = null;
+
+  // If they've already subscribed, opening the popup should land on the thank-you
+  // view rather than the form.
+  const showSubscribedView = () => {
+    bodyEl.hidden = true;
+    successEl.hidden = false;
+  };
+  if (store.get(SUB_KEY)) showSubscribedView();
+
+  const openNotify = () => {
+    if (open) return;
+    open = true;
+    openedThisSession = true;
+    lastTrigger = document.activeElement;
+    notify.classList.add('notify-visible');
+    notify.setAttribute('aria-hidden', 'false');
+    document.documentElement.classList.add('notify-locked');
+    lenis?.stop();
+    if (!reduce) {
+      utils.set(panel, { opacity: 0, scale: 0.92, translateY: 14 });
+      animate(panel, {
+        opacity: [0, 1],
+        scale: [0.92, 1],
+        translateY: [14, 0],
+        ease: createSpring({ stiffness: 170, damping: 18 }),
+        onComplete: () => {
+          panel.style.transform = '';
+        },
+      });
+    }
+    // focus the first actionable control in the visible view. Deferred two
+    // frames: `.notify` transitions from visibility:hidden, and the element
+    // stays non-focusable until that visible state has actually painted — a
+    // single rAF fires too early (focus() silently no-ops), so double-rAF.
+    const target = successEl.hidden ? emailInput : doneBtn;
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => (target || panel).focus({ preventScroll: true }))
+    );
+  };
+
+  const closeNotify = () => {
+    if (!open) return;
+    open = false;
+    notify.classList.remove('notify-visible');
+    notify.setAttribute('aria-hidden', 'true');
+    document.documentElement.classList.remove('notify-locked');
+    lenis?.start();
+    if (lastTrigger && lastTrigger.focus) lastTrigger.focus({ preventScroll: true });
+    lastTrigger = null;
+  };
+
+  // triggers
+  document.querySelectorAll('[data-notify-open]').forEach((el) => {
+    el.addEventListener('click', (e) => {
+      e.preventDefault();
+      openNotify();
+    });
+  });
+
+  // close: backdrop, close button, and the success "back to it" button all carry
+  // [data-notify-close]; panel content does not, so clicking inside won't close.
+  notify.addEventListener('click', (e) => {
+    if (e.target.closest('[data-notify-close]')) closeNotify();
+  });
+
+  // Escape + a simple focus trap while open (keydown only fires here when focus
+  // is within the popup, which it is once opened).
+  notify.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeNotify();
+      return;
+    }
+    if (e.key !== 'Tab') return;
+    const focusables = [
+      ...notify.querySelectorAll(
+        'a[href], button:not([disabled]), input:not([tabindex="-1"]), [tabindex]:not([tabindex="-1"])'
+      ),
+    ].filter((el) => el.offsetParent !== null); // drop hidden (display:none) controls
+    if (!focusables.length) return;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  });
+
+  // submit → Web3Forms
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = (emailInput.value || '').trim();
+    emailInput.classList.remove('is-invalid');
+    msgEl.textContent = '';
+
+    if (!email || !emailInput.checkValidity()) {
+      emailInput.classList.add('is-invalid');
+      msgEl.textContent = 'Please enter a valid email address.';
+      emailInput.focus();
+      return;
+    }
+
+    const accessKey = form.dataset.accessKey;
+    if (!accessKey || accessKey === KEY_PLACEHOLDER) {
+      // No real key yet — don't hit the API, just flag it (see NotifyModal.astro).
+      console.warn(
+        '[notify] Web3Forms access key not set. Set PUBLIC_WEB3FORMS_KEY to enable signups.'
+      );
+      msgEl.textContent = 'Signups aren’t connected yet — add your Web3Forms key.';
+      return;
+    }
+
+    submitBtn.disabled = true;
+    const label = submitBtn.textContent;
+    submitBtn.textContent = 'Sending…';
+    try {
+      const res = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          access_key: accessKey,
+          email,
+          subject: 'New Babs waitlist signup',
+          from_name: 'Babs Butter site',
+          botcheck: honeypot?.checked ? true : '',
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.success) {
+        store.set(SUB_KEY, '1');
+        showSubscribedView();
+        if (!reduce) {
+          utils.set(successEl, { opacity: 0, translateY: 10 });
+          animate(successEl, { opacity: [0, 1], translateY: [10, 0], duration: 420, ease: 'out(3)' });
+        }
+        doneBtn?.focus({ preventScroll: true });
+      } else {
+        throw new Error(data.message || 'Request failed');
+      }
+    } catch {
+      msgEl.textContent = 'Something went wrong. Please try again.';
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = label;
+    }
+  });
+
+  // auto-open once after the page settles, unless it's already auto-shown to
+  // this visitor or they've subscribed. Guarded by openedThisSession too, so if
+  // they manually opened it before the timer fires we don't pop it a second time.
+  const canAutoOpen = () => !store.get(SEEN_KEY) && !store.get(SUB_KEY);
+  if (canAutoOpen()) {
+    const startTimer = () =>
+      setTimeout(() => {
+        if (canAutoOpen() && !open && !openedThisSession) {
+          store.set(SEEN_KEY, '1'); // consume the one-time auto-open
+          openNotify();
+        }
+      }, AUTO_OPEN_DELAY);
+    if (document.readyState === 'complete') startTimer();
+    else addEventListener('load', startTimer, { once: true });
+  }
+}

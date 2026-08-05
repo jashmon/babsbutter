@@ -80,10 +80,14 @@ const shelfRows = [
 ];
 ---
 <BaseLayout title="Babs Butter · Big Butter Energy">
-  <!-- OFFER STRIP — fixed announcement bar above the nav -->
+  <!-- OFFER STRIP — fixed announcement bar above the nav. Doubles as a
+       coming-soon notify prompt: the message opens the newsletter popup. -->
   <div class="promo" role="region" aria-label="Store announcement">
     <div class="wrap promo-inner">
-      <span class="promo-msg">Free delivery on orders over ₹800 · churn-fresh, cold-shipped</span>
+      <button class="promo-msg promo-notify" type="button" data-notify-open>
+        <span class="promo-long">Babs is almost churned — </span><u>get notified</u><span class="promo-long"> the moment we go live</span>
+        <span class="promo-arrow" aria-hidden="true">→</span>
+      </button>
       <div class="promo-social" aria-hidden="true">
         <span>@babsbutter</span>
         <span class="promo-cur">INR ₹</span>
@@ -320,7 +324,7 @@ const shelfRows = [
     <div class="wrap">
       <h2 class="rv">Go on, <em>butter</em> something.</h2>
       <p class="rv">Find your nearest shelf, or get it delivered cold, fast and churn-fresh.</p>
-      <a class="btn cream magnetic rv" href="#stockists">Find Babs near you</a>
+      <button class="btn cream magnetic rv" type="button" data-notify-open>Get notified when we launch</button>
     </div>
   </section>
 
