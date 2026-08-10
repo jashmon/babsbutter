@@ -172,45 +172,6 @@ h3 {
   }
 }
 
-/* soft cursor blob. Softness comes from the gradient's own falloff, not a
-   CSS `filter: blur()` — a filter forces a separate GPU compositing layer,
-   and that layer's blur was bleeding through the anti-aliased edges of the
-   wave-divider masks wherever the cursor passed near a section seam. */
-/* Composited ON TOP of the page (not behind it) via mix-blend-mode, so it
-   tints whatever is already rendered there instead of relying on section
-   transparency to "peek through". That was the real, root cause of the wave
-   seam artifact: any patch of the page the blob rendered BEHIND that wasn't
-   fully opaque (a wave mask's transparent cutout, a section with no declared
-   background) let the blob's glow bleed through in a hard, mask-shaped patch.
-   Rendering above everything and blending removes that dependency entirely —
-   the glow is now visually consistent everywhere, waves included, with
-   nothing to patch section-by-section. */
-#blob {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 240px;
-  height: 240px;
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 40;
-  mix-blend-mode: screen;
-  background: radial-gradient(
-    circle,
-    rgba(248, 198, 125, 0.4) 0%,
-    rgba(248, 198, 125, 0.22) 30%,
-    rgba(248, 198, 125, 0.08) 50%,
-    transparent 72%
-  );
-  transform: translate(-50%, -50%);
-  transition: opacity 0.4s;
-  will-change: transform;
-}
-@media (prefers-reduced-motion: reduce) {
-  #blob {
-    display: none;
-  }
-}
 body > * {
   position: relative;
   z-index: 1;
@@ -480,8 +441,11 @@ nav ul a:active {
   padding: 10px 20px;
   font-size: 13px;
 }
-.btn.blue {
-  background: var(--butterfly-pea);
+.btn.orange {
+  background: var(--tangerine);
+}
+.btn.offwhite {
+  background: var(--flour);
 }
 .btn.cream {
   background: var(--butter);
@@ -1987,35 +1951,40 @@ details[open] .a p {
 
 /* CTA — full-bleed tangerine (concept 2) */
 .cta {
-  background: var(--tangerine);
+  background: transparent;
   color: var(--flour);
   text-align: center;
   overflow: hidden;
 }
-.cta .q,
-.cta .f {
+.cta::after {
+  content: '';
   position: absolute;
+  left: 0;
+  bottom: -1px;
+  width: 100%;
+  height: 42px;
+  background: var(--dark-choc);
+  -webkit-mask: url('/assets/shapes/wave-divider.svg') repeat-x bottom / 140px 42px;
+  mask: url('/assets/shapes/wave-divider.svg') repeat-x bottom / 140px 42px;
+  z-index: 3;
   pointer-events: none;
 }
-/* Both shapes sit fully inside the card now (was bleeding past the section's
-   own edge). overflow:hidden always clips to a straight rectangle, and this
-   section's top and bottom neighbours are wave dividers — a shape clipped
-   flat right where the boundary curves looked like a jagged, unfinished cut.
-   Keeping clearance (plus the small bob range) means nothing ever crosses
-   into a wave zone to be clipped in the first place. */
-.cta .q {
-  width: 300px;
-  left: -40px;
-  top: 30px;
-  opacity: 0.3;
-  animation: bob 12s ease-in-out infinite alternate;
+.cta-bg,
+.cta-scrim {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
 }
-.cta .f {
-  width: 240px;
-  right: -20px;
-  bottom: 40px;
-  opacity: 0.3;
-  animation: bob 15s ease-in-out infinite alternate-reverse;
+.cta-bg {
+  object-fit: cover;
+  transform: scale(1.06);
+  z-index: 0;
+}
+.cta-scrim {
+  background: linear-gradient(110deg, rgba(47, 29, 15, 0.72), rgba(47, 29, 15, 0.34));
+  z-index: 0;
 }
 .cta h2 {
   font-size: clamp(44px, 7vw, 104px);
@@ -2050,6 +2019,9 @@ footer {
    background. This compound selector matches the class specificity to win. */
 footer.wv {
   background: var(--dark-choc);
+}
+footer.wv::before {
+  content: none;
 }
 footer .wrap {
   position: relative;
@@ -2361,14 +2333,6 @@ html.nav-locked body {
   .ipanel .txt {
     padding: 40px 22px;
   }
-  .cta .q {
-    width: 200px;
-    left: -70px;
-  }
-  .cta .f {
-    width: 170px;
-    right: -55px;
-  }
   /* decorative floaters shrink rather than disappear, so the section keeps its
      playful motion without crowding the copy */
   .ing-float {
@@ -2470,9 +2434,6 @@ html.nav-locked body {
    sticks after a tap, which would leave a card frozen mid-effect — so those
    get a press state instead, keeping the same motion language. */
 @media (hover: none) {
-  #blob {
-    display: none; /* cursor glow has no meaning without a cursor */
-  }
   .flav:hover {
     transform: none;
     z-index: 1;

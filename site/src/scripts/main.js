@@ -379,32 +379,6 @@ if (recipeCards.length && rcSquare && !reduce && matchMedia('(hover: hover)').ma
 
 // ---- pointer flourishes (motion only) --------------------------------------
 if (!reduce) {
-  // soft cursor blob (transform-only, rAF-batched)
-  const blob = document.getElementById('blob');
-  if (blob) {
-    let tx = innerWidth / 2,
-      ty = innerHeight / 2,
-      bx = tx,
-      by = ty,
-      raf = null;
-    blob.style.transform = `translate(${bx}px,${by}px) translate(-50%,-50%)`;
-    const loop = () => {
-      bx += (tx - bx) * 0.12;
-      by += (ty - by) * 0.12;
-      blob.style.transform = `translate(${bx}px,${by}px) translate(-50%,-50%)`;
-      if (Math.abs(tx - bx) > 0.5 || Math.abs(ty - by) > 0.5) {
-        raf = requestAnimationFrame(loop);
-      } else {
-        raf = null;
-      }
-    };
-    addEventListener('pointermove', (e) => {
-      tx = e.clientX;
-      ty = e.clientY;
-      if (!raf) loop();
-    });
-  }
-
   // magnetic buttons
   document.querySelectorAll('.magnetic').forEach((b) => {
     let pending = null;

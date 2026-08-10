@@ -110,8 +110,8 @@ const shelfRows = [
       <h1><span class="w">Big</span> <span class="w">butter</span> <span class="w">energy.</span></h1>
       <p>Slow-churned, clean-label butter that takes the cream seriously and nothing else. Come play.</p>
       <div class="cta-row">
-        <a class="btn biscuit magnetic" href="#flavs">Pick a flavour</a>
-        <a class="btn blue" href="#why">Why it's better</a>
+        <a class="btn orange magnetic" href="#flavs">Pick a flavour</a>
+        <a class="btn offwhite" href="#why">Why it's better</a>
       </div>
     </div>
 
@@ -254,9 +254,7 @@ const shelfRows = [
     </div>
   </section>
 
-  <!-- AWARDS + RETAIL — the shelf pins (sticky) while the photo panel below
-       scrolls up and over it; see .stack-over in global.css + the bottom-pin in main.js -->
-  <div class="stack-over">
+  <!-- AWARDS + RETAIL -->
   <section class="shelf wv" id="stockists" style="--wv-c:var(--butter)">
     <div class="shelf-bg" aria-hidden="true">
       <div class="shelf-carousel">
@@ -287,19 +285,6 @@ const shelfRows = [
     </div>
   </section>
 
-  <!-- FULL-BLEED PHOTO PANEL — wavy top edge is cut into the panel itself (see
-       .ipanel mask in global.css); butterfly-pea wave out to the FAQ below -->
-  <section class="ipanel wv">
-    <img src="/assets/img/bread-basket.jpg" alt="Warm bread and butter on the table" loading="lazy" />
-    <div class="scrim" aria-hidden="true"></div>
-    <div class="txt">
-      <span class="idx">No. 01 — the golden rule</span>
-      <h3>Warm bread deserves better.</h3>
-      <p>Room-temperature Babs, a heavy hand, and no regrets. That's the whole technique.</p>
-    </div>
-  </section>
-  </div>
-
   <!-- FAQ -->
   <section class="faq" id="faq">
     <div class="wrap faq-grid">
@@ -319,8 +304,8 @@ const shelfRows = [
 
   <!-- CTA — full-bleed tangerine, concept-2 style -->
   <section class="cta wv" id="cta" style="--wv-c:var(--butterfly-pea)">
-    <img class="q" src="/assets/shapes/quatrefoil.svg" alt="" />
-    <img class="f" src="/assets/shapes/butter-curl.svg" alt="" />
+    <img class="cta-bg" src="/assets/img/bread-basket.jpg" alt="" aria-hidden="true" />
+    <div class="cta-scrim" aria-hidden="true"></div>
     <div class="wrap">
       <h2 class="rv">Go on, <em>butter</em> something.</h2>
       <p class="rv">Find your nearest shelf, or get it delivered cold, fast and churn-fresh.</p>
@@ -328,7 +313,7 @@ const shelfRows = [
     </div>
   </section>
 
-  <footer class="wv" style="--wv-c:var(--tangerine)">
+  <footer class="wv" style="--wv-c:var(--dark-choc)">
     <div class="wrap">
       <div class="f-grid">
         <div><img src="/assets/logos/secondary-flour.svg" alt="Babs Butter" /></div>
