@@ -668,13 +668,15 @@ nav ul a:active {
 }
 .mq .track {
   display: flex;
-  /* no outer gap: the 40px spacing between copies lives inside each span as
-     trailing padding, so the track is exactly two identical units wide and the
-     -50% loop wraps without a seam. */
+  /* Four identical copies keep the track covered even on wide displays. There
+     is no flex gap: the spacing between copies lives inside each span, making
+     every quarter of the track exactly the same width. */
+  gap: 0;
   white-space: nowrap;
   width: max-content;
   animation: mqx 24s linear infinite;
   will-change: transform;
+  backface-visibility: hidden;
 }
 .mq span {
   font-family: 'Roketto', sans-serif;
@@ -682,6 +684,7 @@ nav ul a:active {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   display: flex;
+  flex: none;
   align-items: center;
   gap: 40px;
   padding-right: 40px;
@@ -690,8 +693,11 @@ nav ul a:active {
   height: 26px;
 }
 @keyframes mqx {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
   to {
-    transform: translateX(-50%);
+    transform: translate3d(-25%, 0, 0);
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -2291,9 +2297,6 @@ html.nav-locked body {
   }
   .mq span {
     font-size: 18px;
-    gap: 28px;
-  }
-  .mq .track {
     gap: 28px;
   }
   .mq img {
