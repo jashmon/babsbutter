@@ -817,7 +817,7 @@ section > .wrap {
 }
 .flav-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 28px;
 }
 /* Card is now open (no box) — the brand-shape holds the packaging photo, so the
@@ -869,6 +869,9 @@ section > .wrap {
 }
 .flav-grid > .flav:nth-child(4) .tok {
   animation-delay: -4.8s;
+}
+.flav-grid > .flav:nth-child(5) .tok {
+  animation-delay: -6.4s;
 }
 /* shaped drop shadow: a blurred, dark clone of the silhouette sitting well
    behind the token on the Z axis. Because it lives at negative Z under the
@@ -944,40 +947,41 @@ section > .wrap {
   }
 }
 .flav.c1 {
-  --glow: var(--tangerine);
+  --flavour: #e96324;
+  --glow: #e96324;
 }
 .flav.c2 {
-  --glow: var(--blueberry);
+  --flavour: #8b231c;
+  --glow: #8b231c;
 }
 .flav.c3 {
-  --glow: var(--matcha);
+  --flavour: #3c431c;
+  --glow: #3c431c;
 }
 .flav.c4 {
-  --glow: var(--raspberry);
+  --flavour: #1c4276;
+  --glow: #1c4276;
 }
-.flav.c1 .ph {
-  background: var(--butter);
+.flav.c5 {
+  --flavour: #b2204e;
+  --glow: #b2204e;
 }
-.flav.c2 .ph {
-  background: var(--butterfly-pea);
+.flav .ph {
+  background: var(--flavour);
 }
-.flav.c3 .ph {
-  background: var(--biscuit);
-}
-.flav.c4 .ph {
-  background: var(--matcha);
-}
-/* the tub photo lives OUTSIDE the masked shape as its own 3D layer, so the
-   silhouette mask can neither clip nor flatten it — it can genuinely lift out
-   of the token toward the viewer. Absolutely centred over the shape and coplanar
-   with it at rest (matching translateZ), it pops well forward on hover for a
-   real parallax "pop-out" that breaks past the splatter edge. */
+/* The supplied square lid artwork uses the exact packaging colour assigned by
+   --flavour above. Mask the SVG itself with the same silhouette as the stage,
+   so its square bounds disappear and the existing 3D pop lifts one cohesive
+   shaped token rather than a square floating over a differently coloured blob. */
 .flav .tok-img {
   position: absolute;
   inset: 0;
   margin: auto;
-  width: 86%;
-  height: auto;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  -webkit-mask: var(--shape) center / 100% 100% no-repeat;
+  mask: var(--shape) center / 100% 100% no-repeat;
   transform: translateZ(40px);
   transition: transform 0.42s var(--ease);
   pointer-events: none;
@@ -1037,17 +1041,8 @@ section > .wrap {
   display: inline-block;
   margin-top: 12px;
 }
-.flav.c1 .chip {
-  background: var(--tangerine);
-}
-.flav.c2 .chip {
-  background: var(--blueberry);
-}
-.flav.c3 .chip {
-  background: var(--matcha);
-}
-.flav.c4 .chip {
-  background: var(--raspberry);
+.flav .chip {
+  background: var(--flavour);
 }
 
 /* why  -  bouncy icon tiles. Section breaks are the brand wave (.wv), so no

@@ -1,9 +1,9 @@
-// Flavour cards. `tone` maps to the .c1-.c4 packaging colour pairings in
+// Flavour cards. `tone` maps to the .c1-.c5 packaging colour pairings in
 // global.css (one consistent system, one distinct colour per flavour, per the
 // brand-guide packaging colour system). `shape` is the brand-element outline
 // (Brand Elements – Shapes) each tub sits inside.
 export interface Flavour {
-  tone: 'c1' | 'c2' | 'c3' | 'c4';
+  tone: 'c1' | 'c2' | 'c3' | 'c4' | 'c5';
   shape: string;
   name: string;
   tagline: string;
@@ -20,19 +20,19 @@ export const flavours: Flavour[] = [
     tone: 'c1',
     shape: '/assets/shapes/ribbed-circle.svg',
     name: 'Classic Salted',
-    tagline: 'the everyday hero',
-    img: '/assets/img/tubs/tub-salted.jpg',
-    alt: 'Babs salted buttrly spread tub',
+    tagline: 'the classic',
+    img: '/assets/img/tubs/lid-design-01.svg',
+    alt: 'Babs classic salted butter lid design',
     weight: '200g tub',
     price: '₹280',
   },
   {
     tone: 'c2',
     shape: '/assets/shapes/ribbed-circle.svg',
-    name: 'High Protein',
-    tagline: 'lower calorie, still butter',
-    img: '/assets/img/tubs/tub-protein.jpg',
-    alt: 'Babs high protein lower calorie buttrly spread tub',
+    name: 'A2 Butter',
+    tagline: 'gut-loving makkhan',
+    img: '/assets/img/tubs/lid-design-02.svg',
+    alt: 'Babs A2 butter lid design',
     weight: '200g tub',
     price: '₹340',
   },
@@ -40,20 +40,30 @@ export const flavours: Flavour[] = [
     tone: 'c3',
     shape: '/assets/shapes/ribbed-circle.svg',
     name: 'Plant Based',
-    tagline: 'dairy-free, still rich',
-    img: '/assets/img/tubs/tub-plant.jpg',
-    alt: 'Babs plant based buttrly spread tub',
+    tagline: 'dairy-free',
+    img: '/assets/img/tubs/lid-design-03.svg',
+    alt: 'Babs flavour lid design 03',
     weight: '200g tub',
     price: '₹320',
   },
   {
     tone: 'c4',
     shape: '/assets/shapes/ribbed-circle.svg',
-    name: 'Dairy Free',
-    tagline: 'cruelty-free and proud',
-    img: '/assets/img/tubs/tub-dairyfree.jpg',
-    alt: 'Babs dairy free spread tub',
+    name: 'High Protein',
+    tagline: 'fuel with no compromise',
+    img: '/assets/img/tubs/lid-design-04.svg',
+    alt: 'Babs high protein butter lid design',
     weight: '200g tub',
-    price: '₹320',
+    price: '₹340',
+  },
+  {
+    tone: 'c5',
+    shape: '/assets/shapes/ribbed-circle.svg',
+    name: 'Unsalted Butter',
+    tagline: 'for the chefs',
+    img: '/assets/img/tubs/lid-design-05.svg',
+    alt: 'Babs unsalted butter lid design',
+    weight: '200g tub',
+    price: '₹280',
   },
 ];

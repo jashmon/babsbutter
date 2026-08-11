@@ -55,8 +55,8 @@ const recipeSquareD =
 // client review). The count-up is driven by main.js via [data-count].
 const stats = [
   { num: 82, label: '% butterfat' },
-  { num: 3, label: 'ingredients' },
-  { num: 48, label: 'hrs to shelf' },
+  { num: 10, label: 'mins to soften at room temperature' },
+  { num: 5, label: 'more variants' },
 ];
 
 // Split into three columns for the auto-scrolling marquee. Each column's cards
@@ -79,13 +79,13 @@ const shelfRows = [
   { cls: 'r5', imgs: shelfPhotos },
 ];
 ---
-<BaseLayout title="Babs Butter · Big Butter Energy">
+<BaseLayout title="Babs Butter · Butter that takes the cream">
   <!-- OFFER STRIP — fixed announcement bar above the nav. Doubles as a
        coming-soon notify prompt: the message opens the newsletter popup. -->
   <div class="promo" role="region" aria-label="Store announcement">
     <div class="wrap promo-inner">
       <button class="promo-msg promo-notify" type="button" data-notify-open>
-        <span class="promo-long">Babs is almost churned — </span><u>get notified</u><span class="promo-long"> the moment we go live</span>
+        <span class="promo-long">Coming soon — </span><u>be first to the butter</u><span class="promo-long"> and stay in the swirl</span>
         <span class="promo-arrow" aria-hidden="true">→</span>
       </button>
       <div class="promo-social" aria-hidden="true">
@@ -106,20 +106,20 @@ const shelfRows = [
     <div class="float-i f3"><img src="/assets/illus/hearts.svg" alt="" /></div>
     <div class="float-i f4"><img src="/assets/illus/butter-swirl.svg" alt="" /></div>
     <div class="wrap">
-      <span class="eyebrow">slow-churned &amp; a little silly</span>
-      <h1><span class="w">Big</span> <span class="w">butter</span> <span class="w">energy.</span></h1>
-      <p>Slow-churned, clean-label butter that takes the cream seriously and nothing else. Come play.</p>
+      <span class="eyebrow">🧈 precision churned &amp; super delectable</span>
+      <h1><span class="w">Butter</span> <span class="w">that takes</span> <span class="w">the cream.</span></h1>
+      <p>For the conscious eater who doesn&rsquo;t settle for anything less than delicious.</p>
       <div class="cta-row">
-        <a class="btn orange magnetic" href="#flavs">Pick a flavour</a>
-        <a class="btn offwhite" href="#why">Why it's better</a>
+        <a class="btn orange magnetic" href="#flavs">Explore our butters</a>
+        <a class="btn offwhite" href="#why">Why Babs</a>
       </div>
     </div>
 
     <!-- TICKER TAPE — anchored to the base of the hero, tilted like a sticker -->
     <div class="mq tilt-l" aria-hidden="true">
       <div class="track">
-        <span>Slow-churned <img src="/assets/illus/butter-swirl.svg" alt="" /> Clean label <img src="/assets/illus/bread-butter.svg" alt="" /> Family approved <img src="/assets/illus/hearts.svg" alt="" /> Plant-based too <img src="/assets/illus/vegan.svg" alt="" /></span>
-        <span>Slow-churned <img src="/assets/illus/butter-swirl.svg" alt="" /> Clean label <img src="/assets/illus/bread-butter.svg" alt="" /> Family approved <img src="/assets/illus/hearts.svg" alt="" /> Plant-based too <img src="/assets/illus/vegan.svg" alt="" /></span>
+        <span>Chef made <img src="/assets/illus/butter-swirl.svg" alt="" /> Clean label <img src="/assets/illus/bread-butter.svg" alt="" /> Family approved <img src="/assets/illus/hearts.svg" alt="" /> Plant-based too <img src="/assets/illus/vegan.svg" alt="" /></span>
+        <span>Chef made <img src="/assets/illus/butter-swirl.svg" alt="" /> Clean label <img src="/assets/illus/bread-butter.svg" alt="" /> Family approved <img src="/assets/illus/hearts.svg" alt="" /> Plant-based too <img src="/assets/illus/vegan.svg" alt="" /></span>
       </div>
     </div>
   </header>
@@ -131,7 +131,7 @@ const shelfRows = [
     <div class="flav-bg" aria-hidden="true"></div>
     <div class="wrap">
       <h2 class="rv">Pick your player</h2>
-      <p class="lead rv">One serious churn, a colour for every craving.</p>
+      <p class="lead rv">Different dietary needs call for different superpowers.</p>
       <div class="flav-grid">
         {flavours.map((f) => <FlavourCard {...f} />)}
       </div>
@@ -146,11 +146,11 @@ const shelfRows = [
   <!-- HOW IT'S CHURNED — photo steps; wave in from the flour flavours grid -->
   <section class="made wv no-depth" style="--wv-c:var(--flour)">
     <div class="wrap">
-      <h2 class="rv">From cream to keeper</h2>
+      <h2 class="rv">From milk to butter</h2>
       <div class="made-grid">
-        <div class="made-step rv"><span class="n">01</span><div class="ph"><img src="/assets/img/scoops.jpg" alt="Fresh cream being cultured" loading="lazy" /></div><h3>Culture</h3><p>Fresh cream ferments overnight with live cultures, the old-world way.</p></div>
-        <div class="made-step rv"><span class="n">02</span><div class="ph"><img src="/assets/img/baking-bowl.jpg" alt="Small-batch cold churn" loading="lazy" /></div><h3>Churn</h3><p>Turned cold and slow in small batches so the fat keeps its structure.</p></div>
-        <div class="made-step rv"><span class="n">03</span><div class="ph"><img src="/assets/img/butter-cube-dark.jpg" alt="A finished cube of cultured butter" loading="lazy" /></div><h3>Taste &amp; seal</h3><p>Every batch is tasted, then sealed cold and shipped within 48 hours.</p></div>
+        <div class="made-step rv"><span class="n">01</span><div class="ph"><img src="/assets/img/scoops.jpg" alt="Fresh cream being heated" loading="lazy" /></div><h3>Cream &amp; heat</h3><p>Milk becomes cream, and then meets some warmth — just enough to knock out anything unwanted.</p></div>
+        <div class="made-step rv"><span class="n">02</span><div class="ph"><img src="/assets/img/baking-bowl.jpg" alt="Small-batch cold churn" loading="lazy" /></div><h3>Churn</h3><p>Turn cold and slow to create the most delicious butter.</p></div>
+        <div class="made-step rv"><span class="n">03</span><div class="ph"><img src="/assets/img/butter-cube-dark.jpg" alt="A finished cube of butter" loading="lazy" /></div><h3>Taste &amp; seal</h3><p>Every batch is tasted, then sealed cold in our premium packaging and shipped.</p></div>
       </div>
     </div>
   </section>
@@ -176,8 +176,8 @@ const shelfRows = [
       <path id="rc-square" d={recipeSquareD} />
     </svg>
     <div class="wrap">
-      <h2 class="rv">Cook something happy</h2>
-      <p class="lead rv">Flick through. Get hungry. Repeat.</p>
+      <h2 class="rv">Get the insider swirls!</h2>
+      <p class="lead rv">Recipes. Updates. The buttery details.</p>
     </div>
     <div class="wrap">
       <div class="r-track" data-lenis-prevent>
@@ -195,12 +195,12 @@ const shelfRows = [
     <div class="ing-float i4"><img src="/assets/illus/bread-butter.svg" alt="" /></div>
     <div class="ing-float i5"><img src="/assets/illus/exclamation.svg" alt="" /></div>
     <div class="wrap">
-      <h2 class="rv">The whole ingredient list</h2>
-      <p class="lead rv">Yes, that's really all of it. Everything else floated away.</p>
+      <h2 class="rv">Our hero ingredients</h2>
+      <p class="lead rv">Things we rely on!</p>
       <div class="ing-stage rv">
-        <span class="pill p1"><img src="/assets/illus/butter-swirl.svg" alt="" />cultured cream</span>
+        <span class="pill p1"><img src="/assets/illus/butter-swirl.svg" alt="" />high quality 100% milk</span>
         <span class="pill p2"><img src="/assets/illus/butter-knife.svg" alt="" />sea salt</span>
-        <span class="pill p3"><img src="/assets/illus/butter-dish.svg" alt="" />time</span>
+        <span class="pill p3"><img src="/assets/illus/butter-dish.svg" alt="" />the Babs signature churn</span>
       </div>
     </div>
   </section>
@@ -208,14 +208,14 @@ const shelfRows = [
   <!-- VIDEO — full bleed, no white space; biscuit wave in from the ingredients above -->
   <section class="vid wv" style="--wv-c:var(--biscuit)">
     <video src="/assets/video/butter-table.mp4" poster="/assets/video/butter-table-poster.jpg" autoplay muted playsinline preload="auto" aria-label="A fresh stick of butter with warm bread and pastries on the table"></video>
-    <span class="tag">🎬 fresh from the churn</span>
+    <span class="tag">🎬 bread &amp; butter with Babs</span>
   </section>
 
   <!-- TICKER TAPE reprise — tilted the other way -->
   <div class="mq tilt-r solo" aria-hidden="true">
     <div class="track">
-      <span>Slow-churned <img src="/assets/illus/butter-swirl.svg" alt="" /> Clean label <img src="/assets/illus/bread-butter.svg" alt="" /> Family approved <img src="/assets/illus/hearts.svg" alt="" /> Plant-based too <img src="/assets/illus/vegan.svg" alt="" /></span>
-      <span>Slow-churned <img src="/assets/illus/butter-swirl.svg" alt="" /> Clean label <img src="/assets/illus/bread-butter.svg" alt="" /> Family approved <img src="/assets/illus/hearts.svg" alt="" /> Plant-based too <img src="/assets/illus/vegan.svg" alt="" /></span>
+      <span>Chef made <img src="/assets/illus/butter-swirl.svg" alt="" /> Clean label <img src="/assets/illus/bread-butter.svg" alt="" /> Family approved <img src="/assets/illus/hearts.svg" alt="" /> Plant-based too <img src="/assets/illus/vegan.svg" alt="" /></span>
+      <span>Chef made <img src="/assets/illus/butter-swirl.svg" alt="" /> Clean label <img src="/assets/illus/bread-butter.svg" alt="" /> Family approved <img src="/assets/illus/hearts.svg" alt="" /> Plant-based too <img src="/assets/illus/vegan.svg" alt="" /></span>
     </div>
   </div>
 
@@ -225,9 +225,9 @@ const shelfRows = [
     <img class="blob bob2" src="/assets/shapes/flower.svg" alt="" style="width:min(24vw,280px);bottom:4%;right:-6%;opacity:.35" />
     <div class="wrap">
       <div class="q-head rv">
-        <span class="eyebrow">🧈 the group chat</span>
-        <h2 id="quotes-heading">Buttered up, in their own words</h2>
-        <p>Bakers, breakfast people and one dad who reads every label — here's what the churn does for them.</p>
+        <span class="eyebrow">🧈 what&rsquo;s the verdict?</span>
+        <h2 id="quotes-heading">From our amazing customers, in their own words</h2>
+        <p>Chefs, foodies, fitness enthusiasts, and an uncle who reads every label… Here&rsquo;s what Babs does for them.</p>
       </div>
       <div class="q-cols" role="region" aria-label="Scrolling testimonials">
         {tCols.map((col, c) => (
@@ -268,19 +268,21 @@ const shelfRows = [
       </div>
     </div>
     <div class="wrap">
-      <h2 class="rv">Shiny things &amp; where to grab us</h2>
+      <h2 class="rv">Where to grab us</h2>
       <div class="badges">
-        <div class="b rv"><span class="yr">2026</span><span>Great Taste, two stars</span></div>
-        <div class="b rv"><span class="yr">2026</span><span>Clean Label Pantry Award</span></div>
-        <div class="b rv"><span class="yr">2026</span><span>Best New Dairy Brand</span></div>
+        <div class="b rv"><span>Delhi</span></div>
+        <div class="b rv"><span>Mumbai</span></div>
+        <div class="b rv"><span>Bangalore</span></div>
+        <div class="b rv"><span>Nagpur</span></div>
       </div>
       <div class="retail rv">
-        <p>On shelves at the good grocers, delivered churn-fresh — or at your door in ten minutes.</p>
+        <p>On shelves at the good grocers. Or at your door in ten minutes.</p>
         <div class="row quick">
           <a class="qcom" href="#" aria-label="Order on Zepto"><img src="/assets/logos/zepto.svg" alt="Zepto" /></a>
           <a class="qcom" href="#" aria-label="Order on Blinkit"><img class="bl" src="/assets/logos/blinkit.svg" alt="Blinkit" /><span>blinkit</span></a>
+          <span>Instamart</span>
         </div>
-        <div class="row"><span>Nature's Basket</span><span>Foodhall</span><span>Le Marché</span><span>Modern Bazaar</span><span>babsbutter.in</span></div>
+        <div class="row"><span>Nature's Basket</span><span>Foodhall</span><span>Le Marché</span><span>Modern Bazaar</span><span>babsbutter.com</span></div>
       </div>
     </div>
   </section>
@@ -290,14 +292,14 @@ const shelfRows = [
     <div class="wrap faq-grid">
       <div class="faq-side">
         <h2 class="rv">Good questions</h2>
-        <p class="rv">Everything people ask us at farmers' markets, minus the free samples.</p>
+        <p class="rv">Curiosity makes everything butter!</p>
         <img class="faq-illus" src="/assets/illus/exclamation.svg" alt="" aria-hidden="true" />
       </div>
       <div class="faq-list">
-        <details class="rv"><summary>What does "cultured" mean? <span class="x">+</span></summary><div class="a"><p>The cream ferments overnight with live cultures before churning. Deeper flavour, gentle tang, easier to digest.</p></div></details>
-        <details class="rv"><summary>Is the plant-based tub actually good? <span class="x">+</span></summary><div class="a"><p>Churned like our dairy butter, from oat cream and cold-pressed oils. It browns, bakes and fools butter loyalists.</p></div></details>
-        <details class="rv"><summary>Where can I buy Babs? <span class="x">+</span></summary><div class="a"><p>Premium grocers across the metros, Zepto and Blinkit in minutes, or straight from babsbutter.in in an insulated box.</p></div></details>
-        <details class="rv"><summary>How long does a tub last? <span class="x">+</span></summary><div class="a"><p>Three months chilled, unopened. Opened, about a week, and not because it spoils.</p></div></details>
+        <details class="rv"><summary>How is butter high protein and lower calorie? <span class="x">+</span></summary><div class="a"><p>We took the fat down and brought the protein up — so our high protein lower calorie spread fits your macros without giving up the point of butter.</p></div></details>
+        <details class="rv"><summary>Is the plant-based tub actually good? <span class="x">+</span></summary><div class="a"><p>High quality plant-based ingredients churned to perfection. It cooks, browns, bakes, and fools butter aficionados.</p></div></details>
+        <details class="rv"><summary>Where can I buy Babs? <span class="x">+</span></summary><div class="a"><p>Coming soon pan India, starting with Mumbai, Delhi, Bangalore and Nagpur in November 2026.</p></div></details>
+        <details class="rv"><summary>How long does a tub last? <span class="x">+</span></summary><div class="a"><p>Three months, chilled.</p></div></details>
       </div>
     </div>
   </section>
@@ -307,9 +309,9 @@ const shelfRows = [
     <img class="cta-bg" src="/assets/img/bread-basket.jpg" alt="" aria-hidden="true" />
     <div class="cta-scrim" aria-hidden="true"></div>
     <div class="wrap">
-      <h2 class="rv">Go on, <em>butter</em> something.</h2>
-      <p class="rv">Find your nearest shelf, or get it delivered cold, fast and churn-fresh.</p>
-      <button class="btn cream magnetic rv" type="button" data-notify-open>Get notified when we launch</button>
+      <h2 class="rv">Coming <em>soon.</em></h2>
+      <p class="rv">Once you go Babs, you won&rsquo;t want to go back!</p>
+      <button class="btn cream magnetic rv" type="button" data-notify-open>Stay in the swirl</button>
     </div>
   </section>
 
@@ -317,11 +319,11 @@ const shelfRows = [
     <div class="wrap">
       <div class="f-grid">
         <div><img src="/assets/logos/secondary-flour.svg" alt="Babs Butter" /></div>
-        <div><h4>Shop</h4><ul><li><a href="#flavs">Classic Salted</a></li><li><a href="#flavs">High Protein</a></li><li><a href="#flavs">Plant-Based</a></li><li><a href="#flavs">Dairy Free</a></li></ul></div>
-        <div><h4>Explore</h4><ul><li><a href="#why">Why Babs</a></li><li><a href="#recipes">Recipes</a></li><li><a href="#faq">FAQ</a></li></ul></div>
-        <div><h4>Follow</h4><ul><li><a href="#">@babsbutterofficial</a></li><li><a href="#">babsbutter.in</a></li></ul></div>
+        <div><h4>Products</h4><ul><li><a href="#flavs">Classic Salted</a></li><li><a href="#flavs">A2 Butter</a></li><li><a href="#flavs">Plant-Based</a></li><li><a href="#flavs">High Protein</a></li><li><a href="#flavs">Unsalted Butter</a></li></ul></div>
+        <div><h4>Explore</h4><ul><li><a href="#why">Why Babs</a></li><li><a href="#cta">Contact Us</a></li><li><a href="#faq">FAQ</a></li></ul></div>
+        <div><h4>Follow</h4><ul><li><a href="#">@babsbutterofficial</a></li><li><a href="#">babsbutter.com</a></li></ul></div>
       </div>
-      <div class="f-base"><span>© 2026 Babs Butter. Healthy never tasted this rich.</span><span>Privacy · Terms</span></div>
+      <div class="f-base"><span>© 2026 Babs Butter.</span><span>Privacy · Terms</span></div>
     </div>
   </footer>
 </BaseLayout>

@@ -8,8 +8,8 @@ interface Props {
 }
 
 const {
-  title = 'Babs Butter · Big Butter Energy',
-  description = 'Slow-churned, clean-label butter that takes the cream seriously and nothing else. Come play.',
+  title = 'Babs Butter · Butter that takes the cream',
+  description = 'Butter for the conscious eater who doesn’t settle for anything less than delicious.',
 } = Astro.props;
 
 // The nav lives here, so its in-page anchors have to resolve from any route.
@@ -72,14 +72,13 @@ const onPlantPage = path === '/plant-based';
         </a>
         <ul id="nav-links">
           <span class="nav-pill" aria-hidden="true"></span>
-          <li>
-            <a href="/plant-based" aria-current={onPlantPage ? 'page' : undefined}>Plant-Based</a>
-          </li>
           <li><a href={to('#why')}>Why Babs</a></li>
-          <li><a href={to('#recipes')}>Recipes</a></li>
+          <li><a href={to('#flavs')}>Butters</a></li>
+          <li><a href="/plant-based" aria-current={onPlantPage ? 'page' : undefined}>Plant based</a></li>
           <li><a href={to('#faq')}>FAQ</a></li>
+          <li><a href={to('#cta')}>Contact Us</a></li>
         </ul>
-        <button class="btn small" type="button" data-notify-open>Get Babs</button>
+        <button class="btn small" type="button" data-notify-open>Stay in the swirl</button>
         <!-- mobile only (hidden ≥1025px); drives the dropdown panel above -->
         <button
           id="nav-toggle"

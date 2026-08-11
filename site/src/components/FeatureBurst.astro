@@ -21,16 +21,16 @@ interface Props {
   // these stats reveal on the right — folding the old why + stats sections in.
   stats?: Stat[];
 }
-const { id, ctaHref = '#sh-grid', ctaLabel = 'Get Babs', stats } = Astro.props;
+const { id, ctaHref = '#sh-grid', ctaLabel = 'Stay in the swirl', stats } = Astro.props;
 const isMerged = Array.isArray(stats) && stats.length > 0;
 
 const features = [
-  { icon: '/assets/illus/butter-swirl.svg', label: 'Slow-churned',   dx: -286, dy: -166, rot: -150, side: 'l' },
+  { icon: '/assets/illus/butter-swirl.svg', label: 'Golden goodness', dx: -286, dy: -166, rot: -150, side: 'l' },
   { icon: '/assets/illus/bread-butter.svg', label: 'Clean label',    dx: 286,  dy: -166, rot: -30,  side: 'r' },
   { icon: '/assets/illus/vegan.svg',        label: 'No palm oil',     dx: 344,  dy: 0,    rot: 0,    side: 'r' },
-  { icon: '/assets/illus/butter-dish.svg',  label: 'Cultured cream',  dx: 286,  dy: 166,  rot: 30,   side: 'r' },
-  { icon: '/assets/illus/butter-knife.svg', label: 'Flaky sea salt',  dx: -286, dy: 166,  rot: 150,  side: 'l' },
-  { icon: '/assets/illus/hearts.svg',       label: 'Small batch',     dx: -344, dy: 0,    rot: 180,  side: 'l' },
+  { icon: '/assets/illus/butter-dish.svg',  label: 'Pasteurised cream', dx: 286, dy: 166, rot: 30, side: 'r' },
+  { icon: '/assets/illus/butter-knife.svg', label: 'Sea salt',        dx: -286, dy: 166,  rot: 150,  side: 'l' },
+  { icon: '/assets/illus/hearts.svg',       label: 'No added colour', dx: -344, dy: 0,    rot: 180,  side: 'l' },
 ];
 ---
 
@@ -41,8 +41,8 @@ const features = [
   <div class:list={['wrap', { 'sh-feat-merge': isMerged }]}>
     {!isMerged && (
       <Fragment>
-        <h2 class="sh-feat-say">Butter that's <em>good for you</em> and still fun at parties.</h2>
-        <p class="sh-feat-sub">Cultured cream, a slow cold churn, and a label short enough to read out loud. That's the whole recipe. The rest is just us having a good time with it.</p>
+        <h2 class="sh-feat-say">No <em>nasties.</em></h2>
+        <p class="sh-feat-sub">Precision churned, nothing to hide. We spent our energy on quality and flavour, not filler ingredients.</p>
       </Fragment>
     )}
 
@@ -66,7 +66,7 @@ const features = [
         <span class="sh-jar-shape"><img src="/assets/img/tubs/tub-salted.jpg" alt="A tub of Babs Classic Salted butter" /></span>
       </div>
 
-      <ul class="sh-feat-list" aria-label="What's in every tub">
+      <ul class="sh-feat-list" aria-label="What makes Babs better">
         {
           features.map((f, i) => (
             <li class={`sh-feat-node ${f.side}`} style={`--dx:${f.dx}px;--dy:${f.dy}px;--i:${i}`}>
@@ -82,8 +82,8 @@ const features = [
     {
       isMerged ? (
         <div class="sh-feat-info">
-          <h2 class="sh-feat-say">Zero <em>nasties.</em></h2>
-          <p class="sh-feat-sub">Everything worth putting in a butter, and nothing that shouldn't be — the whole list fits on the lid.</p>
+          <h2 class="sh-feat-say">No <em>nasties.</em></h2>
+          <p class="sh-feat-sub">Precision churned, nothing to hide. We spent our energy on quality and flavour, not filler ingredients.</p>
           <div class="sh-stats">
             {stats!.map((s) => (
               <div class="sh-stat">
