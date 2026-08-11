@@ -95,9 +95,18 @@ const shelfRows = [
     </div>
   </div>
 
-  <!-- HERO — full-bleed lifestyle photo background -->
+  <!-- HERO — full-bleed stop-motion video background -->
   <header class="hero" id="top">
-    <img class="hero-bgimg" src="/assets/img/table-spread.jpg" alt="A table spread of warm bread, pastries and butter" />
+    <video
+      class="hero-bgimg"
+      src="/assets/video/hero-stop-motion.mp4"
+      poster="/assets/video/hero-stop-motion-poster.jpg"
+      autoplay
+      muted
+      playsinline
+      preload="auto"
+      aria-label="Butter being spread in a stop-motion sequence"
+    ></video>
     <div class="hero-scrim" aria-hidden="true"></div>
     <span class="blob spin hero-shape" aria-hidden="true" style="width:min(46vw,560px);top:-8%;right:-10%;opacity:.4" set:html={flowerSvg}></span>
     <span class="blob bob2 hero-shape" aria-hidden="true" style="width:min(28vw,320px);bottom:-6%;left:-8%;opacity:.35" set:html={quatrefoilSvg}></span>

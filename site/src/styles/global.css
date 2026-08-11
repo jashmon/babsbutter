@@ -517,9 +517,9 @@ nav ul a:active {
      seam rather than being covered by it */
   z-index: 2;
 }
-/* full-bleed lifestyle photo filling the hero (same shot as the /shop hero).
-   object-fit:cover, no scale — it sits flush inside the hero box so nothing
-   spills past the tilted marquee at the base. */
+/* Full-bleed stop-motion footage. object-fit:cover keeps every viewport filled
+   without stretching, while the hero itself clips the media cleanly behind the
+   tilted marquee at its base. */
 .hero-bgimg {
   position: absolute;
   inset: 0;
@@ -969,24 +969,30 @@ section > .wrap {
 .flav .ph {
   background: var(--flavour);
 }
-/* The supplied square lid artwork uses the exact packaging colour assigned by
-   --flavour above. Mask the SVG itself with the same silhouette as the stage,
-   so its square bounds disappear and the existing 3D pop lifts one cohesive
-   shaped token rather than a square floating over a differently coloured blob. */
-.flav .tok-img {
+/* Keep the animated outer token at its original size, but inset the square lid
+   artwork inside it. The packaging background matches --flavour exactly, so
+   the inset blends into the full-size shape while keeping the flavour name and
+   fine print away from the scalloped mask edge. */
+.flav .tok-art {
   position: absolute;
   inset: 0;
   margin: auto;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  display: grid;
+  place-items: center;
   -webkit-mask: var(--shape) center / 100% 100% no-repeat;
   mask: var(--shape) center / 100% 100% no-repeat;
   transform: translateZ(40px);
   transition: transform 0.42s var(--ease);
   pointer-events: none;
 }
-.flav:hover .tok-img {
+.flav .tok-img {
+  width: 86%;
+  height: 86%;
+  object-fit: contain;
+}
+.flav:hover .tok-art {
   transform: translateZ(110px) translateY(-16px);
 }
 @media (prefers-reduced-motion: reduce) {
@@ -999,8 +1005,8 @@ section > .wrap {
     --sc: 1;
     transform: none;
   }
-  .flav .tok-img,
-  .flav:hover .tok-img {
+  .flav .tok-art,
+  .flav:hover .tok-art {
     transform: none;
     transition: none;
   }
