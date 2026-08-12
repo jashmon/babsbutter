@@ -116,10 +116,21 @@ if (!reduce) {
   // GPU-composited, so animating the wrap's scale/opacity every scroll frame
   // re-rasterizes them on the main thread and stutters. Skipping the transform
   // there keeps scrolling smooth; the effect stays on every other section.
-  const items = [...document.querySelectorAll('section:not(.no-depth) > .wrap')].map((el) => ({ el, top: 0, h: 0 }));
+  const items = [...document.querySelectorAll('section:not(.no-depth) > .wrap')].map((el) => ({
+    el,
+    top: 0,
+    h: 0,
+    active: false,
+    lastValues: '',
+  }));
   if (items.length) {
     document.documentElement.classList.add('depth-on');
+    let viewportH = Math.max(innerHeight, 1);
+    let measureFrame = 0;
+
     const measure = () => {
+      measureFrame = 0;
+      viewportH = Math.max(innerHeight, 1);
       for (const it of items) {
         let node = it.el,
           y = 0;
@@ -130,33 +141,64 @@ if (!reduce) {
         }
         it.top = y;
       }
+      update();
     };
-    const update = () => {
-      const vc = innerHeight / 2,
-        sc = window.scrollY;
+
+    // Fonts, responsive copy and lazy media can all alter the document's
+    // section offsets. Coalesce those layout changes into one measurement per
+    // frame rather than repeatedly forcing layout from resize/load callbacks.
+    const scheduleMeasure = () => {
+      if (measureFrame) return;
+      measureFrame = requestAnimationFrame(measure);
+    };
+
+    const update = (scrollState) => {
+      const vc = viewportH / 2,
+        sc = typeof scrollState?.scroll === 'number' ? scrollState.scroll : window.scrollY,
+        nearStart = sc - viewportH * 1.25,
+        nearEnd = sc + viewportH * 2.25;
+
       for (const it of items) {
-        let n = (it.top - sc + it.h / 2 - vc) / innerHeight;
+        // Only nearby sections keep compositor layers and receive per-frame
+        // style writes. The generous buffer primes each section more than a
+        // viewport before it can appear, so the visible depth motion is
+        // unchanged while far-away layers no longer consume GPU memory.
+        const active = it.top + it.h >= nearStart && it.top <= nearEnd;
+        if (active !== it.active) {
+          it.active = active;
+          it.el.classList.toggle('depth-active', active);
+        }
+        if (!active) continue;
+
+        let n = (it.top - sc + it.h / 2 - vc) / viewportH;
         n = n < -1 ? -1 : n > 1 ? 1 : n;
         const a0 = Math.abs(n),
           a = a0 * a0 * (3 - 2 * a0), // smoothstep so the centre band stays crisp
-          s = it.el.style;
-        s.setProperty('--ds', (1 - 0.12 * a).toFixed(4)); // scale → 0.88 at the edges
-        s.setProperty('--do', (1 - 0.5 * a).toFixed(4)); // opacity → 0.5 at the edges
-        s.setProperty('--dy', (n * 36).toFixed(2) + 'px'); // parallax lift, signed by side
+          ds = (1 - 0.12 * a).toFixed(4),
+          opacity = (1 - 0.5 * a).toFixed(4),
+          dy = (n * 36).toFixed(2) + 'px',
+          values = `${ds}|${opacity}|${dy}`;
+
+        // At the clamped ends several Lenis frames resolve to identical
+        // values. Skipping those no-op writes avoids needless style invalidation.
+        if (values === it.lastValues) continue;
+        it.lastValues = values;
+        const s = it.el.style;
+        s.setProperty('--ds', ds); // scale → 0.88 at the edges
+        s.setProperty('--do', opacity); // opacity → 0.5 at the edges
+        s.setProperty('--dy', dy); // parallax lift, signed by side
       }
     };
     measure();
-    update();
     lenis.on('scroll', update);
-    addEventListener('resize', () => {
-      measure();
-      update();
-    });
+    addEventListener('resize', scheduleMeasure);
     // Late layout shifts (fonts, lazy images) move the anchors — remeasure once loaded.
-    addEventListener('load', () => {
-      measure();
-      update();
-    });
+    addEventListener('load', scheduleMeasure);
+
+    if ('ResizeObserver' in window) {
+      const depthResizeObserver = new ResizeObserver(scheduleMeasure);
+      items.forEach((it) => depthResizeObserver.observe(it.el));
+    }
   }
 
   // Sticky-cover parallax: the stockists shelf pins while the photo panel below
@@ -469,6 +511,39 @@ if (vids.length && 'IntersectionObserver' in window) {
   vids.forEach((v) => vio.observe(v));
 }
 
+// ---- pause ambient motion outside the viewport --------------------------
+// Transform-only idle loops are inexpensive individually, but this long page
+// has several of them running at once (five shelf rows, testimonial columns,
+// flavour tokens, ingredients and two marquees). Pause each group only while
+// it is well outside the viewport, and resume it before it scrolls into view.
+// The animation state/timing while visible is untouched; this simply prevents
+// off-screen compositing work from competing with Lenis during a scroll.
+if (!reduce && 'IntersectionObserver' in window) {
+  const motionGroups = [
+    ...document.querySelectorAll('header, section, .mq.solo, .mq.pb-mq'),
+  ].map((el) => ({ el, visible: true }));
+  const motionGroupByElement = new WeakMap(motionGroups.map((group) => [group.el, group]));
+
+  const syncMotionGroup = (group) => {
+    group.el.classList.toggle('ambient-paused', document.hidden || !group.visible);
+  };
+
+  const motionObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        const group = motionGroupByElement.get(entry.target);
+        if (!group) return;
+        group.visible = entry.isIntersecting;
+        syncMotionGroup(group);
+      });
+    },
+    { rootMargin: '240px 0px' }
+  );
+
+  motionGroups.forEach((group) => motionObserver.observe(group.el));
+  document.addEventListener('visibilitychange', () => motionGroups.forEach(syncMotionGroup));
+}
+
 // ---- manual seamless loop -----------------------------------------------
 // The native `loop` attribute was showing a brief dark flash at the restart
 // point on some setups — the browser treats the loop boundary similarly to a
@@ -555,9 +630,10 @@ if (navEl) {
   let navScrolled = null;
   let navTicking = false;
 
-  const syncNav = () => {
+  const syncNav = (scrollState) => {
     navTicking = false;
-    const next = window.scrollY > SCROLL_TRIGGER;
+    const scrollY = typeof scrollState?.scroll === 'number' ? scrollState.scroll : window.scrollY;
+    const next = scrollY > SCROLL_TRIGGER;
     if (next === navScrolled) return;
     navScrolled = next;
     navEl.classList.toggle('navbar--scrolled', next);
@@ -570,7 +646,11 @@ if (navEl) {
   };
 
   syncNav();
-  addEventListener('scroll', onNavScroll, { passive: true });
+  // Lenis already emits once per animation frame, so use that signal directly
+  // instead of scheduling a second scroll rAF. Native scroll remains the
+  // reduced-motion fallback when Lenis is intentionally disabled.
+  if (lenis) lenis.on('scroll', syncNav);
+  else addEventListener('scroll', onNavScroll, { passive: true });
 }
 
 // ---- mobile menu --------------------------------------------------------

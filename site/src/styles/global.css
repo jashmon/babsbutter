@@ -735,6 +735,8 @@ html.depth-on section:not(.no-depth) > .wrap {
   transform: translate3d(0, var(--dy, 0), 0) scale(var(--ds, 1));
   opacity: var(--do, 1);
   transform-origin: 50% 50%;
+}
+html.depth-on section:not(.no-depth) > .wrap.depth-active {
   will-change: transform, opacity;
 }
 @media (prefers-reduced-motion: reduce) {
@@ -742,6 +744,32 @@ html.depth-on section:not(.no-depth) > .wrap {
     transform: none;
     opacity: 1;
   }
+}
+
+/* Long-running decorative loops are paused by main.js only while their parent
+   group is off screen. Visible animation, hover pauses and reduced-motion
+   behaviour remain exactly as authored. */
+.ambient-paused .blob,
+.ambient-paused .float-i,
+.ambient-paused .mq .track,
+.ambient-paused .tok,
+.ambient-paused .ing-float,
+.ambient-paused .ing-stage .pill,
+.ambient-paused .q-track,
+.ambient-paused .shelf-bg .mrow,
+.ambient-paused .faq-illus,
+.ambient-paused .pb-float,
+.ambient-paused .pb-tub-shape,
+.ambient-paused .pb-cta-shape,
+.ambient-paused .sh-jar-shape,
+.mq.ambient-paused .track,
+.mq.solo.ambient-paused .track {
+  animation-play-state: paused !important;
+}
+.ambient-paused .flav,
+.ambient-paused .mq .track,
+.ambient-paused .shelf-bg .mrow {
+  will-change: auto;
 }
 
 /* ===== wave section breaks (Brand Elements – Shapes, Element 5) ============
@@ -1483,7 +1511,7 @@ section > .wrap {
 }
 @keyframes q-scroll {
   to {
-    transform: translateY(-50%);
+    transform: translate3d(0, -50%, 0);
   }
 }
 
@@ -1736,7 +1764,7 @@ section > .wrap {
 }
 @keyframes shelf-mqx {
   to {
-    transform: translateX(-50%);
+    transform: translate3d(-50%, 0, 0);
   }
 }
 @media (prefers-reduced-motion: reduce) {
