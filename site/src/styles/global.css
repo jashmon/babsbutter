@@ -879,7 +879,7 @@ section > .wrap {
   transition: transform 0.42s var(--ease), z-index 0s linear 0.42s;
 }
 .flav:hover {
-  --sc: 1.18;
+  --sc: 1.5;
   z-index: 5;
   transition: transform 0.42s var(--ease), z-index 0s;
 }
@@ -1022,8 +1022,12 @@ section > .wrap {
   pointer-events: none;
 }
 .flav .tok-img {
-  width: 86%;
-  height: 86%;
+  /* The supplied lid SVGs carry their flavour name and legal line very close
+     to the square artwork edge. Give that artwork a larger safe area inside
+     the scalloped token so every line survives the mask at rest and through
+     the 1.5x pop, while the matching .ph colour continues to the silhouette. */
+  width: 76%;
+  height: 76%;
   object-fit: contain;
 }
 .flav:hover .tok-art {
