@@ -111,11 +111,11 @@ if (!reduce) {
   // Depth: per-frame scale/fade/lift keyed off each block's distance from the
   // viewport centre. Positions come from offsetTop/offsetHeight (layout metrics
   // unaffected by transforms), so measuring can't feed back into the transform.
-  // `.no-depth` sections opt out: their content (SVG clip-path photos in
-  // recipes, rounded overflow-hidden + box-shadow photos in made) can't be
-  // GPU-composited, so animating the wrap's scale/opacity every scroll frame
-  // re-rasterizes them on the main thread and stutters. Skipping the transform
-  // there keeps scrolling smooth; the effect stays on every other section.
+  // `.no-depth` sections opt out: masked images, 3D cards, radial SVG artwork
+  // and review grids are already complex paint/composite regions. Transforming
+  // their entire wrapper again on every scroll frame forces costly layer
+  // rebuilds. Skipping the global depth effect there keeps their own motion
+  // intact and lets Lenis spend each frame on scrolling rather than repainting.
   const items = [...document.querySelectorAll('section:not(.no-depth) > .wrap')].map((el) => ({
     el,
     top: 0,

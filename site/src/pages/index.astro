@@ -59,10 +59,6 @@ const stats = [
   { num: 5, label: 'more variants' },
 ];
 
-// Split into three columns for the auto-scrolling marquee. Each column's cards
-// are duplicated in the markup below so the vertical loop is seamless.
-const tCols = [testimonials.slice(0, 3), testimonials.slice(3, 6), testimonials.slice(6, 9)];
-
 // Brand-element shapes cycled onto testimonial avatars (Brand Elements – Shapes).
 const qShapes = ['/assets/shapes/quatrefoil.svg', '/assets/shapes/flower.svg', '/assets/shapes/ribbed-circle.svg'];
 
@@ -138,7 +134,7 @@ const shelfRows = [
   <!-- FLAVOURS — the "Pick your player" grid; brand-element shapes as the tub
        outlines. Now the first content section, so it carries the scalloped flour
        wave in from the hero. #flavs lands here. -->
-  <section class="flavs wv" id="flavs" style="--wv-c:var(--flour)">
+  <section class="flavs wv no-depth" id="flavs" style="--wv-c:var(--flour)">
     <div class="flav-bg" aria-hidden="true"></div>
     <div class="wrap">
       <h2 class="rv">Pick your player</h2>
@@ -198,7 +194,7 @@ const shelfRows = [
   </section>
 
   <!-- INGREDIENTS — floating playground -->
-  <section class="ing wv" id="ingredients" style="--wv-c:var(--flour)">
+  <section class="ing wv no-depth" id="ingredients" style="--wv-c:var(--flour)">
     <img class="blob spin" src="/assets/shapes/ribbed-circle.svg" alt="" style="width:min(24vw,260px);top:-4%;left:-6%;opacity:.25" />
     <div class="ing-float i1"><img src="/assets/illus/croissant.svg" alt="" /></div>
     <div class="ing-float i2"><img src="/assets/illus/butter-stick.svg" alt="" /></div>
@@ -233,7 +229,7 @@ const shelfRows = [
   </div>
 
   <!-- TESTIMONIALS — no wave here; the tilted banner is the only break after the video -->
-  <section class="quotes" aria-labelledby="quotes-heading">
+  <section class="quotes no-depth" aria-labelledby="quotes-heading">
     <img class="blob bob" src="/assets/shapes/quatrefoil.svg" alt="" style="width:min(20vw,220px);top:6%;left:-5%;opacity:.35" />
     <img class="blob bob2" src="/assets/shapes/flower.svg" alt="" style="width:min(24vw,280px);bottom:4%;right:-6%;opacity:.35" />
     <div class="wrap">
@@ -242,28 +238,20 @@ const shelfRows = [
         <h2 id="quotes-heading">From our amazing customers, in their own words</h2>
         <p>Chefs, foodies, fitness enthusiasts, and an uncle who reads every label… Here&rsquo;s what Babs does for them.</p>
       </div>
-      <div class="q-cols" role="region" aria-label="Scrolling testimonials">
-        {tCols.map((col, c) => (
-          <div class={`q-col q-col-${c + 1}`}>
-            <ul class="q-track">
-              {[0, 1].map((dup) =>
-                col.map((t, i) => (
-                  <li class="q-card" aria-hidden={dup === 1 ? 'true' : 'false'}>
-                    <img class="q-shape" src={qShapes[(i + c) % qShapes.length]} alt="" aria-hidden="true" />
-                    <blockquote>{t.text}</blockquote>
-                    <figure class="q-who">
-                      <span class="q-ava" style={`--shape:url('${qShapes[(i + c + 1) % qShapes.length]}')`}>
-                        <img src={t.image} alt={`Photo of ${t.name}`} width="52" height="52" loading="lazy" />
-                      </span>
-                      <figcaption><cite>{t.name}<span>{t.role}</span></cite></figcaption>
-                    </figure>
-                  </li>
-                ))
-              )}
-            </ul>
-          </div>
+      <ul class="q-cols" aria-label="Customer testimonials">
+        {testimonials.map((t, i) => (
+          <li class="q-card">
+            <img class="q-shape" src={qShapes[i % qShapes.length]} alt="" aria-hidden="true" />
+            <blockquote>{t.text}</blockquote>
+            <figure class="q-who">
+              <span class="q-ava" style={`--shape:url('${qShapes[(i + 1) % qShapes.length]}')`}>
+                <img src={t.image} alt={`Photo of ${t.name}`} width="52" height="52" loading="lazy" />
+              </span>
+              <figcaption><cite>{t.name}<span>{t.role}</span></cite></figcaption>
+            </figure>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   </section>
 

@@ -37,7 +37,7 @@ const features = [
 <!-- FEATURE BAND — central tub with features bursting out in all directions.
      When `stats` are passed it becomes the merged two-column layout (burst left,
      "Zero nasties" + stats right); otherwise it's the centred single column. -->
-<section class:list={['sh-feat wv', { merged: isMerged }]} id={id} style="--wv-c:var(--flour)">
+<section class:list={['sh-feat wv no-depth', { merged: isMerged }]} id={id} style="--wv-c:var(--flour)">
   <div class:list={['wrap', { 'sh-feat-merge': isMerged }]}>
     {!isMerged && (
       <Fragment>
@@ -54,8 +54,8 @@ const features = [
           features.map((f, i) => (
             <span class="sh-spoke" style={`--rot:${f.rot}deg;--i:${i}`}>
               <svg viewBox="0 0 66 40" fill="none">
-                <path class="shaft" d="M4 11 C 24 2, 36 30, 54 21" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
-                <path class="head" d="M45 28 Q 55 22 49 11" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+                <path class="shaft" d="M4 20 C 20 7, 36 31, 54 20" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+                <path class="head" d="M45 11 L55 20 L45 29" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
             </span>
           ))
@@ -206,15 +206,15 @@ const features = [
   .sh-jar-shape {
     display: grid;
     place-items: center;
-    width: 300px;
-    height: 300px;
+    width: 330px;
+    height: 330px;
     background: #e96324;
     -webkit-mask: url('/assets/shapes/ribbed-circle.svg') center / 100% 100% no-repeat;
     mask: url('/assets/shapes/ribbed-circle.svg') center / 100% 100% no-repeat;
     animation: bob 9s ease-in-out infinite alternate;
   }
   .sh-jar-shape img {
-    width: 82%;
+    width: 86%;
     height: auto;
   }
 
@@ -235,7 +235,7 @@ const features = [
     margin-top: -20px;
     color: var(--tangerine);
     transform-origin: 0 50%;
-    transform: rotate(var(--rot)) translateX(var(--gap, 132px));
+    transform: rotate(var(--rot)) translateX(var(--gap, 148px));
   }
   .sh-spoke svg {
     width: 100%;
