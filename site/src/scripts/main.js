@@ -387,6 +387,24 @@ if (!reduce) {
       card.style.setProperty('--go', '0');
     });
   });
+
+  // Touch has no hover state, so give the flavour tokens the same 1.5× pop on
+  // a deliberate tap. It settles back automatically and only one token may be
+  // expanded at a time, preventing overlapping labels or a stuck mobile state.
+  if (matchMedia('(hover: none)').matches) {
+    let popTimer = 0;
+    document.querySelectorAll('.flav').forEach((card) => {
+      card.addEventListener('pointerup', (e) => {
+        if (e.pointerType !== 'touch') return;
+        clearTimeout(popTimer);
+        document.querySelectorAll('.flav.is-popped').forEach((el) => {
+          if (el !== card) el.classList.remove('is-popped');
+        });
+        card.classList.add('is-popped');
+        popTimer = setTimeout(() => card.classList.remove('is-popped'), 1500);
+      });
+    });
+  }
 }
 
 // ---- pause videos when off-screen (perf) -----------------------------------

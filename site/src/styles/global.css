@@ -860,6 +860,11 @@ section > .wrap {
   z-index: 5;
   transition: transform 0.42s var(--ease), z-index 0s;
 }
+.flav.is-popped {
+  --sc: 1.5;
+  z-index: 5;
+  transition: transform 0.42s var(--ease), z-index 0s;
+}
 /* .tok is the 3D stage that holds the token + its cast shadow. It owns a slow
    idle float so the tokens feel alive at rest; the float is paused on hover so
    the tilt reads cleanly. preserve-3d keeps the shadow's negative-Z depth. */
@@ -2412,10 +2417,13 @@ html.nav-locked body {
     transform: none;
     z-index: 1;
   }
+  .flav.is-popped,
   .flav:active {
-    transform: scale(1.04);
+    --sc: 1.5;
+    transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg))
+      scale(var(--sc));
     z-index: 5;
-    transition: transform 0.22s var(--ease), z-index 0s;
+    transition: transform 0.42s var(--ease), z-index 0s;
   }
   .r-card:hover,
   .why-card:hover,
@@ -2444,6 +2452,25 @@ html.nav-locked body {
     background: transparent;
     color: inherit;
     transform: none;
+  }
+}
+
+/* On touch devices, the ingredients are the section's primary visual moment.
+   Keep their gentle float running even during a finger scroll; other heavier
+   decorative loops still pause to preserve scroll responsiveness. */
+@media (max-width: 768px), (hover: none), (pointer: coarse) {
+  html.is-scrolling .ing-float,
+  html.is-scrolling .ing-stage .pill {
+    animation-play-state: running !important;
+  }
+
+  .flav-grid {
+    /* Reserve breathing room around the expanded 1.5× token so it remains
+       readable rather than visually colliding with its neighbour. */
+    row-gap: 38px;
+  }
+  .flav {
+    transform-origin: 50% 42%;
   }
 }
 
