@@ -1,4 +1,3 @@
-import Lenis from 'lenis';
 import { animate, createTimeline, stagger, createSpring, createDrawable, utils } from 'animejs';
 
 // Concept 7 · "Butter Playground" behaviour.
@@ -77,143 +76,52 @@ function playHeroIntro() {
   }
 }
 
-// ---- Lenis smooth scroll + scroll-linked depth -----------------------------
-// Native scroll stays the fallback: under reduced motion we skip Lenis and the
-// depth effect entirely, and CSS html{scroll-behavior:smooth} keeps anchor nav
-// pleasant. With motion allowed, Lenis eases the wheel/scroll, and each
-// section's inner content recedes (scale + fade + lift) as it passes above the
-// viewport centre while incoming content rises forward into place — so outgoing
-// sections fall back as new ones come to the front. The transform is applied to
-// the inner `.wrap` only, leaving the full-bleed section bands/borders seamless.
-let lenis = null;
-if (!reduce) {
-  lenis = new Lenis({ lerp: 0.12, wheelMultiplier: 1, smoothWheel: true });
-  const raf = (t) => {
-    lenis.raf(t);
-    requestAnimationFrame(raf);
-  };
-  requestAnimationFrame(raf);
-
-  // In-page anchors glide via Lenis instead of the native hash jump. The ids
-  // live on the <section>/<header> bands (never on the transformed .wrap), so
-  // scrollTo targets stay accurate.
-  document.querySelectorAll('a[href^="#"]').forEach((a) => {
-    a.addEventListener('click', (e) => {
-      const id = a.getAttribute('href');
-      if (id === '#') return;
-      const target = id === '#top' ? 0 : document.querySelector(id);
-      if (target === null) return;
-      e.preventDefault();
-      lenis.scrollTo(target, { offset: -12, duration: 1.1 });
-    });
+// ---- native scrolling ------------------------------------------------------
+// The previous Lenis + depth setup updated multiple section transforms on every
+// animation frame. With masked artwork, large video and 3D flavour tokens that
+// made ordinary wheel scrolling expensive. Native scrolling keeps the visual
+// design intact while letting the browser's compositor move the page directly.
+// Anchor links retain the same gentle motion through the native smooth-scroll
+// API, without a permanent JavaScript rAF loop.
+document.querySelectorAll('a[href^="#"]').forEach((a) => {
+  a.addEventListener('click', (e) => {
+    const id = a.getAttribute('href');
+    if (id === '#') return;
+    const target = id === '#top' ? document.documentElement : document.querySelector(id);
+    if (!target) return;
+    e.preventDefault();
+    const top = id === '#top' ? 0 : window.scrollY + target.getBoundingClientRect().top - 12;
+    window.scrollTo({ top, behavior: reduce ? 'auto' : 'smooth' });
   });
+});
 
-  // Depth: per-frame scale/fade/lift keyed off each block's distance from the
-  // viewport centre. Positions come from offsetTop/offsetHeight (layout metrics
-  // unaffected by transforms), so measuring can't feed back into the transform.
-  // `.no-depth` sections opt out: masked images, 3D cards, radial SVG artwork
-  // and review grids are already complex paint/composite regions. Transforming
-  // their entire wrapper again on every scroll frame forces costly layer
-  // rebuilds. Skipping the global depth effect there keeps their own motion
-  // intact and lets Lenis spend each frame on scrolling rather than repainting.
-  const items = [...document.querySelectorAll('section:not(.no-depth) > .wrap')].map((el) => ({
-    el,
-    top: 0,
-    h: 0,
-    active: false,
-    lastValues: '',
-  }));
-  if (items.length) {
-    document.documentElement.classList.add('depth-on');
-    let viewportH = Math.max(innerHeight, 1);
-    let measureFrame = 0;
+// Decorative loops are beautiful at rest but needn't compete with scrolling.
+// This brief class is applied only while native scroll is moving, and lifts
+// immediately once it settles; no content, layout or interaction is changed.
+if (!reduce) {
+  let scrollStopTimer = 0;
+  addEventListener(
+    'scroll',
+    () => {
+      document.documentElement.classList.add('is-scrolling');
+      clearTimeout(scrollStopTimer);
+      scrollStopTimer = setTimeout(() => document.documentElement.classList.remove('is-scrolling'), 110);
+    },
+    { passive: true }
+  );
+}
 
-    const measure = () => {
-      measureFrame = 0;
-      viewportH = Math.max(innerHeight, 1);
-      for (const it of items) {
-        let node = it.el,
-          y = 0;
-        it.h = it.el.offsetHeight;
-        while (node) {
-          y += node.offsetTop;
-          node = node.offsetParent;
-        }
-        it.top = y;
-      }
-      update();
-    };
-
-    // Fonts, responsive copy and lazy media can all alter the document's
-    // section offsets. Coalesce those layout changes into one measurement per
-    // frame rather than repeatedly forcing layout from resize/load callbacks.
-    const scheduleMeasure = () => {
-      if (measureFrame) return;
-      measureFrame = requestAnimationFrame(measure);
-    };
-
-    const update = (scrollState) => {
-      const vc = viewportH / 2,
-        sc = typeof scrollState?.scroll === 'number' ? scrollState.scroll : window.scrollY,
-        nearStart = sc - viewportH * 1.25,
-        nearEnd = sc + viewportH * 2.25;
-
-      for (const it of items) {
-        // Only nearby sections keep compositor layers and receive per-frame
-        // style writes. The generous buffer primes each section more than a
-        // viewport before it can appear, so the visible depth motion is
-        // unchanged while far-away layers no longer consume GPU memory.
-        const active = it.top + it.h >= nearStart && it.top <= nearEnd;
-        if (active !== it.active) {
-          it.active = active;
-          it.el.classList.toggle('depth-active', active);
-        }
-        if (!active) continue;
-
-        let n = (it.top - sc + it.h / 2 - vc) / viewportH;
-        n = n < -1 ? -1 : n > 1 ? 1 : n;
-        const a0 = Math.abs(n),
-          a = a0 * a0 * (3 - 2 * a0), // smoothstep so the centre band stays crisp
-          ds = (1 - 0.12 * a).toFixed(4),
-          opacity = (1 - 0.5 * a).toFixed(4),
-          dy = (n * 36).toFixed(2) + 'px',
-          values = `${ds}|${opacity}|${dy}`;
-
-        // At the clamped ends several Lenis frames resolve to identical
-        // values. Skipping those no-op writes avoids needless style invalidation.
-        if (values === it.lastValues) continue;
-        it.lastValues = values;
-        const s = it.el.style;
-        s.setProperty('--ds', ds); // scale → 0.88 at the edges
-        s.setProperty('--do', opacity); // opacity → 0.5 at the edges
-        s.setProperty('--dy', dy); // parallax lift, signed by side
-      }
-    };
-    measure();
-    lenis.on('scroll', update);
-    addEventListener('resize', scheduleMeasure);
-    // Late layout shifts (fonts, lazy images) move the anchors — remeasure once loaded.
-    addEventListener('load', scheduleMeasure);
-
-    if ('ResizeObserver' in window) {
-      const depthResizeObserver = new ResizeObserver(scheduleMeasure);
-      items.forEach((it) => depthResizeObserver.observe(it.el));
-    }
-  }
-
-  // Sticky-cover parallax: the stockists shelf pins while the photo panel below
-  // scrolls up over it (.stack-over in the CSS). CSS sticks it at top:0, which
-  // is right when the shelf fits the viewport; when it's taller we bottom-pin it
-  // (negative top) so its full content stays visible until the panel covers it.
-  const shelf = document.querySelector('.stack-over > .shelf');
-  if (shelf) {
-    const pin = () => {
-      shelf.style.top = Math.min(0, innerHeight - shelf.offsetHeight) + 'px';
-    };
-    pin();
-    addEventListener('resize', pin);
-    addEventListener('load', pin); // fonts/lazy images can grow the shelf
-  }
+// Sticky-cover parallax: the stockists shelf pins while the photo panel below
+// scrolls up over it. This is measured only after layout changes, never during
+// a scroll frame.
+const shelf = document.querySelector('.stack-over > .shelf');
+if (shelf) {
+  const pin = () => {
+    shelf.style.top = Math.min(0, innerHeight - shelf.offsetHeight) + 'px';
+  };
+  pin();
+  addEventListener('resize', pin);
+  addEventListener('load', pin);
 }
 
 // ---- preloader ("churning…") ------------------------------------------------
@@ -221,13 +129,11 @@ if (!reduce) {
 // Under reduced motion the blocking full-viewport cover is removed outright.
 const preloader = document.getElementById('preloader');
 if (preloader) {
-  lenis?.stop(); // hold scroll under the cover while the churn plays
   let done = false;
   const finish = () => {
     if (done) return;
     done = true;
     document.documentElement.classList.add('loaded');
-    lenis?.start(); // hand scrolling back once the cover sweeps up
     // Kick the hero entrance a beat into the cover's upward sweep so the words
     // are already rising as the page is revealed (no-op under reduced motion).
     setTimeout(playHeroIntro, reduce ? 0 : 220);
@@ -646,11 +552,7 @@ if (navEl) {
   };
 
   syncNav();
-  // Lenis already emits once per animation frame, so use that signal directly
-  // instead of scheduling a second scroll rAF. Native scroll remains the
-  // reduced-motion fallback when Lenis is intentionally disabled.
-  if (lenis) lenis.on('scroll', syncNav);
-  else addEventListener('scroll', onNavScroll, { passive: true });
+  addEventListener('scroll', onNavScroll, { passive: true });
 }
 
 // ---- mobile menu --------------------------------------------------------
@@ -671,8 +573,6 @@ if (navEl && navToggle) {
     navToggle.setAttribute('aria-expanded', String(open));
     navToggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
     document.documentElement.classList.toggle('nav-locked', open);
-    if (open) lenis?.stop();
-    else lenis?.start();
   };
 
   navToggle.addEventListener('click', (e) => {
@@ -680,12 +580,8 @@ if (navEl && navToggle) {
     setNav(!navOpen);
   });
 
-  // Close after choosing a destination. This MUST run before the anchor
-  // handler registered further up (which calls lenis.scrollTo): while the menu
-  // is open Lenis is stopped and scroll is locked, so a scrollTo issued first
-  // would be discarded and the link would appear to do nothing. Listening on
-  // the <ul> in the capture phase gets us in ahead of the <a>'s own listeners,
-  // so scrolling is unlocked by the time the anchor handler fires.
+  // Close before an in-page anchor runs so the panel is out of the way when the
+  // browser begins its native smooth scroll.
   navLinksEl?.addEventListener(
     'click',
     (e) => {
@@ -779,7 +675,6 @@ if (notify) {
     notify.classList.add('notify-visible');
     notify.setAttribute('aria-hidden', 'false');
     document.documentElement.classList.add('notify-locked');
-    lenis?.stop();
     if (!reduce) {
       utils.set(panel, { opacity: 0, scale: 0.92, translateY: 14 });
       animate(panel, {
@@ -808,7 +703,6 @@ if (notify) {
     notify.classList.remove('notify-visible');
     notify.setAttribute('aria-hidden', 'true');
     document.documentElement.classList.remove('notify-locked');
-    lenis?.start();
     if (lastTrigger && lastTrigger.focus) lastTrigger.focus({ preventScroll: true });
     lastTrigger = null;
   };

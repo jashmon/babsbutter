@@ -31,7 +31,7 @@ const { id = 'sh-grid', footHref = '/#stockists', footLabel = 'Find a stockist' 
   </div>
 
   <div class="wrap">
-    <ul class="sh-track" data-lenis-prevent>
+    <ul class="sh-track">
       {
         flavours.map((f) => (
           <li class={`sh-prod ${f.tone}`}>
@@ -60,8 +60,7 @@ const { id = 'sh-grid', footHref = '/#stockists', footLabel = 'Find a stockist' 
 </section>
 
 <script>
-  // Carousel arrows — scroll the track by roughly one card. data-lenis-prevent
-  // on the track already hands wheel/touch scroll back to the browser.
+  // Carousel arrows — scroll the track by roughly one card.
   const track = document.querySelector<HTMLElement>('.sh-track');
   if (track) {
     document.querySelectorAll<HTMLButtonElement>('.sh-arw').forEach((btn) => {

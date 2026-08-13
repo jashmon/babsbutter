@@ -17,8 +17,8 @@ const {
 } = Astro.props;
 
 // The nav lives here, so its in-page anchors have to resolve from any route.
-// On the homepage they stay bare hashes (main.js hands those to Lenis for the
-// smooth scroll); anywhere else they're prefixed so they navigate home first.
+// On the homepage they stay bare hashes for native smooth scrolling; anywhere
+// else they're prefixed so they navigate home first.
 const isHome = Astro.url.pathname === '/' || Astro.url.pathname === '';
 const to = (hash: string) => (isHome ? hash : `/${hash}`);
 const path = Astro.url.pathname.replace(/\/$/, '');
