@@ -914,7 +914,10 @@ if (notify) {
   // auto-open once after the page settles, unless it's already auto-shown to
   // this visitor or they've subscribed. Guarded by openedThisSession too, so if
   // they manually opened it before the timer fires we don't pop it a second time.
-  const canAutoOpen = () => !store.get(SEEN_KEY) && !store.get(SUB_KEY);
+  const canAutoOpen = () =>
+    document.body.dataset.suppressNotifyAutoOpen !== 'true' &&
+    !store.get(SEEN_KEY) &&
+    !store.get(SUB_KEY);
   if (canAutoOpen()) {
     const startTimer = () =>
       setTimeout(() => {

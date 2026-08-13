@@ -5,11 +5,15 @@ import NotifyModal from '../components/NotifyModal.astro';
 interface Props {
   title?: string;
   description?: string;
+  suppressNotifyAutoOpen?: boolean;
+  robots?: string;
 }
 
 const {
   title = 'Babs Butter · Butter that takes the cream',
   description = 'Butter for the conscious eater who doesn’t settle for anything less than delicious.',
+  suppressNotifyAutoOpen = false,
+  robots,
 } = Astro.props;
 
 // The nav lives here, so its in-page anchors have to resolve from any route.
@@ -27,6 +31,7 @@ const onPlantPage = path === '/plant-based';
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
     <meta name="description" content={description} />
+    {robots && <meta name="robots" content={robots} />}
     <link rel="icon" href="/favicon.svg" />
 
     <!--
@@ -52,7 +57,7 @@ const onPlantPage = path === '/plant-based';
     <link rel="preload" href="/assets/fonts/PublicSans.ttf" as="font" type="font/ttf" crossorigin />
     <link rel="stylesheet" href="/assets/fonts.css" />
   </head>
-  <body>
+  <body data-suppress-notify-auto-open={suppressNotifyAutoOpen ? 'true' : undefined}>
     <!-- Preloader: spinning Babs mark + "churning…", sweeps up on load (see global.css).
          JS-gated (hidden without JS) and removed outright under reduced motion. -->
     <div id="preloader" class="preloader" aria-hidden="true">

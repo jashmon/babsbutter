@@ -1,0 +1,188 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+interface Props {
+  code: '400' | '404';
+}
+
+const { code } = Astro.props;
+const isNotFound = code === '404';
+const content = isNotFound
+  ? {
+      title: 'Page not found · Babs Butter',
+      description: 'This page slipped off the toast. Head back to Babs Butter.',
+      line: 'This page slipped off the toast.',
+      action: 'Back to Babs',
+    }
+  : {
+      title: 'Bad request · Babs Butter',
+      description: 'That request came in under-churned. Start again with Babs Butter.',
+      line: 'That request came in under-churned.',
+      action: 'Start again',
+    };
+---
+
+<BaseLayout title={content.title} description={content.description} suppressNotifyAutoOpen robots="noindex, follow">
+  <main class="error-page">
+    <img class="error-icon error-butter" src="/assets/illus/butter-stick.svg" alt="" aria-hidden="true" />
+    <img class="error-icon error-knife" src="/assets/illus/butter-knife.svg" alt="" aria-hidden="true" />
+
+    <div class="error-content">
+      <div class="error-code" aria-label={`Error ${code}`}>
+        <span aria-hidden="true">{code[0]}</span>
+        <img src="/assets/logos/icon-tangerine.svg" alt="" aria-hidden="true" />
+        <span aria-hidden="true">{code[2]}</span>
+      </div>
+
+      <h1>{content.line}</h1>
+      <a class="error-action" href="/">{content.action}</a>
+    </div>
+  </main>
+</BaseLayout>
+
+<style>
+  .error-page {
+    position: relative;
+    min-height: 100svh;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    padding: 130px 24px 48px;
+    background: var(--flour);
+    color: var(--dark-choc);
+  }
+
+  .error-content {
+    position: relative;
+    z-index: 1;
+    width: min(100%, 760px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .error-code {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(3px, 0.8vw, 11px);
+    font-family: 'Roketto', sans-serif;
+    font-size: clamp(118px, 17vw, 220px);
+    line-height: 0.7;
+    letter-spacing: -0.025em;
+    color: var(--tangerine);
+  }
+
+  .error-code img {
+    width: 0.69em;
+    height: 0.69em;
+    flex: 0 0 auto;
+    animation: error-turn 18s linear infinite;
+  }
+
+  h1 {
+    max-width: 680px;
+    margin-top: clamp(34px, 5vw, 58px);
+    font-family: 'Roketto', sans-serif;
+    font-size: clamp(38px, 5.1vw, 68px);
+    font-weight: 400;
+    line-height: 0.98;
+    letter-spacing: -0.018em;
+    text-wrap: balance;
+  }
+
+  .error-action {
+    min-height: 52px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 34px;
+    padding: 13px 27px;
+    border: 1px solid rgba(47, 29, 15, 0.38);
+    border-radius: 999px;
+    background: var(--tangerine);
+    font-weight: 850;
+    line-height: 1;
+    box-shadow: 4px 5px 0 rgba(47, 29, 15, 0.16);
+    transition: transform 240ms var(--ease), box-shadow 240ms var(--ease), background-color 240ms var(--ease);
+  }
+
+  .error-action:hover {
+    background: var(--biscuit);
+    transform: translateY(-3px);
+    box-shadow: 6px 8px 0 rgba(47, 29, 15, 0.17);
+  }
+
+  .error-action:focus-visible {
+    outline: 3px solid var(--blueberry);
+    outline-offset: 4px;
+  }
+
+  .error-icon {
+    position: absolute;
+    width: clamp(58px, 7vw, 92px);
+    pointer-events: none;
+  }
+
+  .error-butter {
+    left: clamp(18px, 7vw, 110px);
+    bottom: clamp(32px, 9vh, 100px);
+    transform: rotate(-13deg);
+  }
+
+  .error-knife {
+    right: clamp(18px, 7vw, 110px);
+    top: clamp(118px, 18vh, 190px);
+    transform: rotate(24deg);
+  }
+
+  @keyframes error-turn {
+    to { transform: rotate(360deg); }
+  }
+
+  @media (max-width: 600px) {
+    .error-page {
+      padding: 112px 18px 36px;
+    }
+
+    .error-code {
+      font-size: clamp(104px, 34vw, 150px);
+    }
+
+    h1 {
+      margin-top: 34px;
+      font-size: clamp(36px, 11vw, 48px);
+    }
+
+    .error-action {
+      width: min(100%, 270px);
+      margin-top: 28px;
+    }
+
+    .error-icon {
+      width: 54px;
+      opacity: 0.88;
+    }
+
+    .error-butter {
+      left: 18px;
+      bottom: 30px;
+    }
+
+    .error-knife {
+      right: 17px;
+      top: 102px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .error-code img {
+      animation: none;
+    }
+
+    .error-action {
+      transition: none;
+    }
+  }
+</style>
