@@ -10,8 +10,10 @@ const { tone, shape, name, tagline, img, alt } = Astro.props;
       <span class="ph-glow" aria-hidden="true"></span>
       <span class="ph-sheen" aria-hidden="true"></span>
     </div>
-    <span class="tok-art">
-      <img class="tok-img" src={img} alt={alt} loading="lazy" />
+    <span class="tok-lift">
+      <span class="tok-art">
+        <img class="tok-img" src={img} alt={alt} loading="lazy" />
+      </span>
     </span>
   </div>
   <div class="meta">
