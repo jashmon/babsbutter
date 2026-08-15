@@ -26,11 +26,11 @@ const isMerged = Array.isArray(stats) && stats.length > 0;
 
 const features = [
   { icon: '/assets/illus/butter-swirl.svg', label: 'Golden goodness', dx: -286, dy: -166, rot: -150, side: 'l' },
-  { icon: '/assets/illus/bread-butter.svg', label: 'Clean label',    dx: 286,  dy: -166, rot: -30,  side: 'r' },
-  { icon: '/assets/illus/vegan.svg',        label: 'No palm oil',     dx: 344,  dy: 0,    rot: 0,    side: 'r' },
-  { icon: '/assets/illus/butter-dish.svg',  label: 'Pasteurised cream', dx: 286, dy: 166, rot: 30, side: 'r' },
-  { icon: '/assets/illus/butter-knife.svg', label: 'Sea salt',        dx: -286, dy: 166,  rot: 150,  side: 'l' },
-  { icon: '/assets/illus/hearts.svg',       label: 'No added colour', dx: -344, dy: 0,    rot: 180,  side: 'l' },
+  { icon: '/assets/illus/clean-label.svg',  label: 'Clean label',    dx: 286,  dy: -166, rot: -30,  side: 'r' },
+  { icon: '/assets/illus/palm-free.svg',    label: 'No palm oil',     dx: 344,  dy: 0,    rot: 0,    side: 'r' },
+  { icon: '/assets/illus/pasteurised-cream.svg', label: 'Pasteurised cream', dx: 286, dy: 166, rot: 30, side: 'r' },
+  { icon: '/assets/illus/sea-salt.svg',     label: 'Sea salt',        dx: -286, dy: 166,  rot: 150,  side: 'l' },
+  { icon: '/assets/illus/colour-free.svg',  label: 'No added colour', dx: -344, dy: 0,    rot: 180,  side: 'l' },
 ];
 ---
 
@@ -44,6 +44,13 @@ const features = [
         <h2 class="sh-feat-say">No <em>nasties.</em></h2>
         <p class="sh-feat-sub">Precision churned, nothing to hide. We spent our energy on quality and flavour, not filler ingredients.</p>
       </Fragment>
+    )}
+
+    {isMerged && (
+      <div class="sh-feat-mobile-intro">
+        <h2 class="sh-feat-say">No <em>nasties.</em></h2>
+        <p class="sh-feat-sub">Precision churned, nothing to hide. We spent our energy on quality and flavour, not filler ingredients.</p>
+      </div>
     )}
 
     <div class="sh-feat-stage">
@@ -434,6 +441,9 @@ const features = [
   .sh-feat.merged {
     text-align: center;
   }
+  .sh-feat-mobile-intro {
+    display: none;
+  }
   .sh-feat.merged .sh-feat-info {
     margin-top: 28px;
   }
@@ -514,6 +524,149 @@ const features = [
     .sh-feat.merged.anim.settled .sh-feat-info {
       opacity: 1;
       transform: none;
+    }
+  }
+
+  /* Phone-only version of the desktop burst. The original mobile fallback
+     flattened this into a static list and removed the hand-drawn arrows; this
+     keeps the product moment, with the labels arranged around a compact tub. */
+  @media (max-width: 680px) {
+    .sh-feat.merged .sh-feat-mobile-intro {
+      display: block;
+      margin: 0 auto 6px;
+      text-align: center;
+    }
+    .sh-feat.merged .sh-feat-info .sh-feat-say,
+    .sh-feat.merged .sh-feat-info .sh-feat-sub {
+      display: none;
+    }
+    .sh-feat.merged .sh-feat-mobile-intro .sh-feat-sub {
+      max-width: 27ch;
+      margin-top: 12px;
+      font-size: 16px;
+      line-height: 1.45;
+    }
+    .sh-feat.merged .sh-radial {
+      position: relative;
+      display: block;
+      width: min(100%, 390px);
+      height: 386px;
+      max-width: none;
+      margin: 12px auto 0;
+    }
+    .sh-feat.merged .sh-spokes {
+      display: block;
+    }
+    .sh-feat.merged .sh-spoke {
+      width: 46px;
+      height: 30px;
+      margin-top: -15px;
+      --gap: 82px;
+    }
+    .sh-feat.merged .sh-feat-jar {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .sh-feat.merged .sh-jar-shape {
+      width: 150px;
+      height: 150px;
+    }
+    .sh-feat.merged .sh-feat-list {
+      position: absolute;
+      inset: 0;
+      display: block;
+      width: auto;
+      max-width: none;
+      margin: 0;
+    }
+    .sh-feat.merged .sh-feat-node,
+    .sh-feat.merged .sh-feat-node.l {
+      position: absolute;
+      display: flex;
+      width: auto;
+      gap: 6px;
+      justify-content: initial;
+      line-height: 1;
+      white-space: nowrap;
+      transform: none;
+    }
+    .sh-feat.merged .sh-feat-node.l {
+      flex-direction: row-reverse;
+    }
+    .sh-feat.merged .sh-feat-node:nth-child(1) { top: 14px; left: 8px; }
+    .sh-feat.merged .sh-feat-node:nth-child(2) { top: 14px; right: 8px; }
+    .sh-feat.merged .sh-feat-node:nth-child(3) { top: 84px; right: 0; }
+    .sh-feat.merged .sh-feat-node:nth-child(4) { right: 2px; bottom: 14px; }
+    .sh-feat.merged .sh-feat-node:nth-child(5) { bottom: 14px; left: 12px; }
+    .sh-feat.merged .sh-feat-node:nth-child(6) { top: 84px; left: 0; }
+    .sh-feat.merged .sh-feat-ic {
+      width: 43px;
+      height: 43px;
+      box-shadow: var(--sh-sm);
+    }
+    .sh-feat.merged .sh-feat-ic img {
+      width: 25px;
+      height: 25px;
+    }
+    .sh-feat.merged .sh-feat-label {
+      font-size: clamp(13px, 3.8vw, 16px);
+    }
+    .sh-feat.merged.anim .sh-feat-jar {
+      transform: translate(-50%, -50%) scale(0.72);
+    }
+    .sh-feat.merged.anim.in-view .sh-feat-jar {
+      transform: translate(-50%, -50%);
+    }
+    .sh-feat.merged.anim .sh-feat-node {
+      opacity: 0;
+      transform: translateY(10px) scale(0.88);
+    }
+    .sh-feat.merged.anim.in-view .sh-feat-node {
+      opacity: 1;
+      transform: none;
+      transition-delay: calc(420ms + var(--i, 0) * 80ms);
+    }
+    .sh-feat.merged .sh-feat-info {
+      margin-top: 12px;
+    }
+    .sh-feat.merged .sh-stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px 8px;
+      margin: 22px 0 26px;
+      text-align: center;
+    }
+    .sh-feat.merged .sh-stat-num {
+      font-size: clamp(38px, 12vw, 50px);
+    }
+    .sh-feat.merged .sh-stat p {
+      margin-top: 6px;
+      font-size: 9px;
+      line-height: 1.25;
+      letter-spacing: 0.045em;
+    }
+  }
+
+  @media (max-width: 390px) {
+    .sh-feat.merged .sh-radial {
+      height: 370px;
+    }
+    .sh-feat.merged .sh-feat-label {
+      font-size: 13px;
+    }
+    .sh-feat.merged .sh-feat-node:nth-child(1) { left: 0; }
+    .sh-feat.merged .sh-feat-node:nth-child(2) { right: 0; }
+    .sh-feat.merged .sh-feat-node:nth-child(4) { right: 4px; }
+    .sh-feat.merged .sh-feat-node:nth-child(5) { left: 2px; }
+  }
+
+  @media (max-width: 360px) {
+    .sh-feat.merged .sh-feat-node:nth-child(4) .sh-feat-label {
+      width: 98px;
+      white-space: normal;
+      line-height: 1.08;
     }
   }
 </style>
