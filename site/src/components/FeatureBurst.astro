@@ -499,6 +499,7 @@ const features = [
     .sh-feat.merged .sh-feat-node,
     .sh-feat.merged .sh-feat-node.l {
       position: absolute;
+      inset: auto;
       display: flex;
       width: auto;
       gap: 6px;
@@ -510,21 +511,21 @@ const features = [
     .sh-feat.merged .sh-feat-node.l {
       flex-direction: row-reverse;
     }
-    .sh-feat.merged .sh-feat-node:nth-child(1) { top: 24px; left: 0; }
-    .sh-feat.merged .sh-feat-node:nth-child(2) { top: 24px; right: 0; }
-    .sh-feat.merged .sh-feat-node:nth-child(3) { top: 146px; right: 0; }
-    .sh-feat.merged .sh-feat-node:nth-child(4) { right: 0; bottom: 20px; }
-    .sh-feat.merged .sh-feat-node:nth-child(5) { bottom: 20px; left: 0; }
-    .sh-feat.merged .sh-feat-node:nth-child(6) { top: 146px; left: 0; }
+    .sh-feat.merged .sh-feat-node:nth-child(1) { top: 51px; left: 0; }
+    .sh-feat.merged .sh-feat-node:nth-child(2) { top: 51px; right: 0; }
+    .sh-feat.merged .sh-feat-node:nth-child(3) { top: 148px; right: 0; }
+    .sh-feat.merged .sh-feat-node:nth-child(4) { right: 0; bottom: 51px; }
+    .sh-feat.merged .sh-feat-node:nth-child(5) { bottom: 51px; left: 0; }
+    .sh-feat.merged .sh-feat-node:nth-child(6) { top: 148px; left: 0; }
     /* The middle callouts have the least horizontal room on a phone. Keep
        their labels outside the tub while the icon hugs its edge. */
     .sh-feat.merged .sh-feat-node:nth-child(3),
     .sh-feat.merged .sh-feat-node:nth-child(6) {
-      width: 145px;
+      width: 100px;
     }
     .sh-feat.merged .sh-feat-node:nth-child(3) .sh-feat-label,
     .sh-feat.merged .sh-feat-node:nth-child(6) .sh-feat-label {
-      width: 96px;
+      width: 51px;
       white-space: normal;
       line-height: 1.05;
     }
