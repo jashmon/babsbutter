@@ -1,11 +1,9 @@
 ---
 // FeatureBurst — the radial "spiral reveal" product-info band: the tub sits
-// dead-centre and six features fan out around it, each with a hand-drawn arrow
-// pointing outward. On scroll-in the tub lands, then arrows shoot out and the
-// callouts burst from behind it in all directions. A reusable component
+// dead-centre and six features fan out around it. On scroll-in the tub lands,
+// then the callouts burst from behind it in all directions. A reusable component
 // (everything here is Astro-scoped so it travels with it).
 //   dx/dy — the node's offset (px) from centre at desktop size.
-//   rot   — the outward direction (deg) the arrow points, = atan2(dy, dx).
 //   side  — 'l' nodes hang left of the tub (icon on the tub side, text reading
 //           outward), 'r' nodes mirror that on the right.
 interface Stat {
@@ -25,12 +23,12 @@ const { id, ctaHref = '#sh-grid', ctaLabel = 'Stay in the swirl', stats } = Astr
 const isMerged = Array.isArray(stats) && stats.length > 0;
 
 const features = [
-  { icon: '/assets/illus/butter-swirl.svg', label: 'Golden goodness', dx: -286, dy: -166, rot: -150, side: 'l' },
-  { icon: '/assets/illus/clean-label.svg',  label: 'Clean label',    dx: 286,  dy: -166, rot: -30,  side: 'r' },
-  { icon: '/assets/illus/palm-free.svg',    label: 'No palm oil',     dx: 344,  dy: 0,    rot: 0,    side: 'r' },
-  { icon: '/assets/illus/pasteurised-cream.svg', label: 'Pasteurised cream', dx: 286, dy: 166, rot: 30, side: 'r' },
-  { icon: '/assets/illus/sea-salt.svg',     label: 'Sea salt',        dx: -286, dy: 166,  rot: 150,  side: 'l' },
-  { icon: '/assets/illus/colour-free.svg',  label: 'No added colour', dx: -344, dy: 0,    rot: 180,  side: 'l' },
+  { icon: '/assets/illus/butter-swirl.svg', label: 'Golden goodness', dx: -286, dy: -166, side: 'l' },
+  { icon: '/assets/illus/clean-label.svg', label: 'Clean label', dx: 286, dy: -166, side: 'r' },
+  { icon: '/assets/illus/palm-free.svg', label: 'No palm oil', dx: 344, dy: 0, side: 'r' },
+  { icon: '/assets/illus/pasteurised-cream.svg', label: 'Pasteurised cream', dx: 286, dy: 166, side: 'r' },
+  { icon: '/assets/illus/sea-salt.svg', label: 'Sea salt', dx: -286, dy: 166, side: 'l' },
+  { icon: '/assets/illus/colour-free.svg', label: 'No added colour', dx: -344, dy: 0, side: 'l' },
 ];
 ---
 
@@ -55,20 +53,6 @@ const features = [
 
     <div class="sh-feat-stage">
       <div class="sh-radial">
-      <!-- arrows radiating from the tub, one per feature direction -->
-      <div class="sh-spokes" aria-hidden="true">
-        {
-          features.map((f, i) => (
-            <span class="sh-spoke" style={`--rot:${f.rot}deg;--i:${i}`}>
-              <svg viewBox="0 0 66 40" fill="none">
-                <path class="shaft" d="M4 20 C 20 7, 36 31, 54 20" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
-                <path class="head" d="M45 11 L55 20 L45 29" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
-              </svg>
-            </span>
-          ))
-        }
-      </div>
-
       <div class="sh-feat-jar">
         <span class="sh-jar-shape"><img src="/assets/img/tubs/lid-design-01.svg" alt="Babs Classic Salted butter lid design" /></span>
       </div>
@@ -111,9 +95,7 @@ const features = [
 </section>
 
 <script>
-  import { animate, createDrawable, stagger, utils } from 'animejs';
-
-  // Reveal — the tub scales in first, then each arrowed feature bursts out from
+  // Reveal — the tub scales in first, then each feature bursts out from
   // behind it, then the copy/button settle. Gated on motion preference: the
   // hidden start states live under `.sh-feat.anim` (added here), so no-JS and
   // reduced-motion visitors always see the band fully in place.
@@ -122,36 +104,11 @@ const features = [
   if (feat && !reduceMotion) {
     feat.classList.add('anim');
 
-    // Prime the arrows for a line-draw reveal: they hold their final rotated
-    // position (CSS) but with the stroke undrawn, so they can draw themselves
-    // outward toward each callout when the section scrolls into view.
-    // NB: createDrawable() returns proxy objects that own the animatable `draw`
-    // property — you must animate *these*, not the raw <path> elements.
-    const shafts = createDrawable(feat.querySelectorAll('.sh-spoke .shaft'));
-    const heads = createDrawable(feat.querySelectorAll('.sh-spoke .head'));
-    utils.set([...shafts, ...heads], { draw: '0 0' });
-
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
           if (!e.isIntersecting) return;
           feat.classList.add('in-view');
-
-          // The arrows draw outward one after another around the tub — each
-          // shaft strokes on, then its head snaps in just behind it. This is the
-          // "anime.js" flourish: smooth stroke-dash draw rather than a fade.
-          animate(shafts, {
-            draw: ['0 0', '0 1'],
-            duration: 300,
-            delay: stagger(85, { start: 340 }),
-            ease: 'out(3)',
-          });
-          animate(heads, {
-            draw: ['0 0', '0 1'],
-            duration: 210,
-            delay: stagger(85, { start: 600 }),
-            ease: 'out(2)',
-          });
 
           // merged variant: once the burst has played centred, shrink it to
           // the left and reveal the "Zero nasties" + stats column on the right
@@ -208,7 +165,7 @@ const features = [
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    z-index: 3; /* above spokes + nodes, so callouts tuck behind it on reveal */
+    z-index: 3; /* callouts tuck behind it on reveal */
   }
   .sh-jar-shape {
     display: grid;
@@ -224,35 +181,6 @@ const features = [
     width: 86%;
     height: auto;
   }
-
-  /* arrows: each anchored at the stage centre, rotated to its feature's
-     direction, then pushed outward along that line by --gap. */
-  .sh-spokes {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    pointer-events: none;
-  }
-  .sh-spoke {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 62px;
-    height: 40px;
-    margin-top: -20px;
-    color: var(--tangerine);
-    transform-origin: 0 50%;
-    transform: rotate(var(--rot)) translateX(var(--gap, 148px));
-  }
-  .sh-spoke svg {
-    width: 100%;
-    height: 100%;
-  }
-  /* The arrows line-draw on scroll-in (createDrawable in the component script).
-     NB: no `vector-effect: non-scaling-stroke` here — it makes the browser
-     measure stroke-dashes in screen px while createDrawable measures the path
-     in user units, so the two disagree and the draw breaks. The stroke-width is
-     set a touch heavier instead, to stay crisp under the merged 0.62 scale. */
 
   /* feature callouts, positioned by their offset from centre */
   .sh-feat-list {
@@ -329,8 +257,6 @@ const features = [
     transform: translate(-50%, -50%) scale(0.35);
     transition: opacity 0.5s var(--ease), transform 0.6s var(--ease);
   }
-  /* Spokes stay at their final position; their reveal is an anime.js line-draw
-     (the stroke draws outward toward each callout), primed to 0 in the script. */
   .sh-feat.anim .sh-feat-foot {
     opacity: 0;
     transform: translateY(16px);
@@ -379,9 +305,6 @@ const features = [
       gap: 24px;
       max-width: 440px;
       margin: 36px auto 8px;
-    }
-    .sh-spokes {
-      display: none;
     }
     .sh-feat-jar {
       position: static;
@@ -550,18 +473,9 @@ const features = [
       position: relative;
       display: block;
       width: min(100%, 390px);
-      height: 386px;
+      height: 338px;
       max-width: none;
       margin: 12px auto 0;
-    }
-    .sh-feat.merged .sh-spokes {
-      display: block;
-    }
-    .sh-feat.merged .sh-spoke {
-      width: 46px;
-      height: 30px;
-      margin-top: -15px;
-      --gap: 82px;
     }
     .sh-feat.merged .sh-feat-jar {
       position: absolute;
@@ -595,12 +509,12 @@ const features = [
     .sh-feat.merged .sh-feat-node.l {
       flex-direction: row-reverse;
     }
-    .sh-feat.merged .sh-feat-node:nth-child(1) { top: 14px; left: 8px; }
-    .sh-feat.merged .sh-feat-node:nth-child(2) { top: 14px; right: 8px; }
-    .sh-feat.merged .sh-feat-node:nth-child(3) { top: 84px; right: 0; }
-    .sh-feat.merged .sh-feat-node:nth-child(4) { right: 2px; bottom: 14px; }
-    .sh-feat.merged .sh-feat-node:nth-child(5) { bottom: 14px; left: 12px; }
-    .sh-feat.merged .sh-feat-node:nth-child(6) { top: 84px; left: 0; }
+    .sh-feat.merged .sh-feat-node:nth-child(1) { top: 24px; left: 0; }
+    .sh-feat.merged .sh-feat-node:nth-child(2) { top: 24px; right: 0; }
+    .sh-feat.merged .sh-feat-node:nth-child(3) { top: 146px; right: 0; }
+    .sh-feat.merged .sh-feat-node:nth-child(4) { right: 0; bottom: 20px; }
+    .sh-feat.merged .sh-feat-node:nth-child(5) { bottom: 20px; left: 0; }
+    .sh-feat.merged .sh-feat-node:nth-child(6) { top: 146px; left: 0; }
     .sh-feat.merged .sh-feat-ic {
       width: 43px;
       height: 43px;
@@ -651,15 +565,15 @@ const features = [
 
   @media (max-width: 390px) {
     .sh-feat.merged .sh-radial {
-      height: 370px;
+      height: 338px;
     }
     .sh-feat.merged .sh-feat-label {
       font-size: 13px;
     }
-    .sh-feat.merged .sh-feat-node:nth-child(1) { left: 0; }
-    .sh-feat.merged .sh-feat-node:nth-child(2) { right: 0; }
-    .sh-feat.merged .sh-feat-node:nth-child(4) { right: 4px; }
-    .sh-feat.merged .sh-feat-node:nth-child(5) { left: 2px; }
+    .sh-feat.merged .sh-feat-node:nth-child(1) { left: -2px; }
+    .sh-feat.merged .sh-feat-node:nth-child(2) { right: -2px; }
+    .sh-feat.merged .sh-feat-node:nth-child(4) { right: -2px; }
+    .sh-feat.merged .sh-feat-node:nth-child(5) { left: -2px; }
   }
 
   @media (max-width: 360px) {
