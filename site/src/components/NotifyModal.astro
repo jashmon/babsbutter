@@ -5,10 +5,12 @@
 //
 // Email capture goes through Web3Forms (client-side POST, no backend). The
 // access key is a PUBLIC token — safe to ship in the page. Set it via the
-// PUBLIC_WEB3FORMS_KEY env var (site/.env or Vercel project env); until a real
-// key is provided the placeholder below leaves submits stubbed (main.js guards
-// on it and shows a console note instead of hitting the API).
-const accessKey = import.meta.env.PUBLIC_WEB3FORMS_KEY ?? 'YOUR_WEB3FORMS_ACCESS_KEY';
+// PUBLIC_WEB3FORMS_KEY env var (site/.env or Vercel project env), or use the
+// registered Babs form key fallback below.
+// Web3Forms access keys are public client-side routing tokens. Keep the env
+// override for local/Vercel configuration, with the registered Babs form key
+// as a deployment-safe fallback so Git-connected builds can receive signups.
+const accessKey = import.meta.env.PUBLIC_WEB3FORMS_KEY ?? '975868fd-84a5-494a-a71d-5852ad69467c';
 ---
 <div id="notify" class="notify" hidden aria-hidden="true">
   <div class="notify-backdrop" data-notify-close aria-hidden="true"></div>
