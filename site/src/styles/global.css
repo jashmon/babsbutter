@@ -1127,7 +1127,7 @@ section > .wrap {
   font-size: 16px;
 }
 
-/* how it's churned — photo steps (more photography, concept-8 style) */
+/* how it's churned — one continuous photographic process strip */
 .made {
   text-align: center;
 }
@@ -1138,22 +1138,29 @@ section > .wrap {
 .made-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 32px;
+  gap: 0;
   text-align: left;
+  overflow: hidden;
+}
+.made-step {
+  min-width: 0;
+  background: var(--flour);
 }
 .made-step .n {
+  display: block;
+  padding: 0 32px 16px;
   font-family: 'Roketto', sans-serif;
   font-size: 56px;
   color: var(--tangerine);
   letter-spacing: 0.08em;
 }
 .made-step .ph {
-  border: var(--hair);
-  border-radius: 22px;
+  border: 0;
+  border-radius: 0;
   overflow: hidden;
   aspect-ratio: 4/3;
-  margin: 14px 0 20px;
-  box-shadow: var(--sh-md);
+  margin: 0 0 24px;
+  box-shadow: none;
 }
 .made-step .ph img {
   width: 100%;
@@ -1165,10 +1172,12 @@ section > .wrap {
   transform: scale(1.06);
 }
 .made-step h3 {
+  padding: 0 32px;
   font-size: 24px;
   margin-bottom: 8px;
 }
 .made-step p {
+  padding: 0 32px 32px;
   color: rgba(47, 29, 15, 0.7);
   font-size: 15px;
 }
