@@ -1139,6 +1139,7 @@ section > .wrap {
   content: none;
 }
 .made .wrap {
+  position: relative;
   max-width: none;
   min-height: var(--made-height);
   margin: 0;
@@ -1233,6 +1234,9 @@ section > .wrap {
   color: rgba(252, 247, 235, 0.88);
   font-size: clamp(14px, 1.2vw, 17px);
   line-height: 1.45;
+}
+.made-swipe-progress {
+  display: none;
 }
 
 /* count-up numbers */
@@ -2335,8 +2339,22 @@ html.nav-locked body {
   .hero .hero-shape {
     display: none;
   }
-  .hero .mq.tilt-l {
+  /* Phone screens need these ribbons to land as solid, full-width bands.
+     The desktop rotation and negative solo margin overlap their edges by a
+     few device pixels, which reads as a zig-zag seam on high-density screens. */
+  .mq.tilt-l,
+  .mq.tilt-r {
     transform: none;
+  }
+  .mq.solo {
+    margin: 0;
+  }
+  .hero .mq {
+    position: relative;
+    z-index: 3;
+    background-color: var(--dark-choc);
+    border-color: var(--dark-choc);
+    opacity: 1;
   }
   .promo-social {
     display: none;
@@ -2371,6 +2389,31 @@ html.nav-locked body {
   .made-step .ph {
     aspect-ratio: auto;
     border-radius: 0;
+  }
+  /* A low-key touch cue for the full-screen process panels. It stays outside
+     the copy area and only appears where the story can be swiped sideways. */
+  .made-swipe-progress {
+    position: absolute;
+    right: 0;
+    bottom: 13px;
+    left: 0;
+    z-index: 2;
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    pointer-events: none;
+  }
+  .made-swipe-progress span {
+    width: 13px;
+    height: 3px;
+    border-radius: 999px;
+    background: rgba(252, 247, 235, 0.42);
+    transform-origin: center;
+    transition: transform 260ms var(--ease), background-color 260ms var(--ease);
+  }
+  .made-swipe-progress .is-active {
+    transform: scaleX(2.15);
+    background: var(--butter);
   }
   /* flavour tubs: two-up with tighter gutters and proportionally smaller
      labels, so the blobs read as product cards rather than full-bleed images */

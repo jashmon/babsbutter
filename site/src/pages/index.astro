@@ -159,8 +159,30 @@ const shelfRows = [
         <div class="made-step rv"><span class="n">02</span><div class="ph"><img src="/assets/img/baking-bowl.jpg" alt="Small-batch cold churn" loading="lazy" /></div><h3>Churn</h3><p>Turn cold and slow to create the most delicious butter.</p></div>
         <div class="made-step rv"><span class="n">03</span><div class="ph"><img src="/assets/img/butter-cube-dark.jpg" alt="A finished cube of butter" loading="lazy" /></div><h3>Taste &amp; seal</h3><p>Every batch is tasted, then sealed cold in our premium packaging and shipped.</p></div>
       </div>
+      <!-- A quiet mobile-only progress cue: it confirms that this photo story
+           continues sideways without adding another competing illustration. -->
+      <div class="made-swipe-progress" aria-hidden="true">
+        <span class="is-active"></span><span></span><span></span>
+      </div>
     </div>
   </section>
+
+  <script>
+    // Keep the tiny process indicator in sync with the native horizontal swipe.
+    // The photos remain the interaction; this is simply a subtle orientation cue.
+    document.querySelectorAll<HTMLElement>('.made-grid').forEach((grid) => {
+      const bars = grid.parentElement?.querySelectorAll<HTMLElement>('.made-swipe-progress span');
+      if (!bars?.length) return;
+
+      const updateProgress = () => {
+        const index = Math.min(bars.length - 1, Math.max(0, Math.round(grid.scrollLeft / grid.clientWidth)));
+        bars.forEach((bar, barIndex) => bar.classList.toggle('is-active', barIndex === index));
+      };
+
+      grid.addEventListener('scroll', updateProgress, { passive: true });
+      updateProgress();
+    });
+  </script>
 
   <!-- RECIPES -->
   <section class="recipes no-depth" id="recipes">
