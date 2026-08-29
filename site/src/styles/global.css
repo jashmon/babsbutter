@@ -2330,6 +2330,14 @@ html.nav-locked body {
   .hero {
     padding-top: 96px;
   }
+  /* Keep the mobile hero-to-ticker boundary crisp. The desktop tape tilt and
+     low decorative blob create a soft diagonal seam on narrow viewports. */
+  .hero .hero-shape {
+    display: none;
+  }
+  .hero .mq.tilt-l {
+    transform: none;
+  }
   .promo-social {
     display: none;
   }
@@ -2351,8 +2359,18 @@ html.nav-locked body {
   .mq img {
     height: 20px;
   }
+  /* One complete process panel per swipe. The old 16:10 override shortened
+     the absolutely positioned photo, leaving a dark block below it. */
+  .made-grid {
+    grid-template-columns: repeat(3, 100vw);
+    overscroll-behavior-inline: contain;
+  }
+  .made-step {
+    scroll-snap-stop: always;
+  }
   .made-step .ph {
-    aspect-ratio: 16/10;
+    aspect-ratio: auto;
+    border-radius: 0;
   }
   /* flavour tubs: two-up with tighter gutters and proportionally smaller
      labels, so the blobs read as product cards rather than full-bleed images */
@@ -2476,8 +2494,7 @@ html.nav-locked body {
     grid-template-columns: 1fr;
     gap: 32px;
   }
-  .cta .card,
-  .made-step .ph {
+  .cta .card {
     border-radius: 24px;
   }
 }

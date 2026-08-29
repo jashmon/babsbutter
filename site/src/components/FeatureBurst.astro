@@ -514,8 +514,9 @@ const features = [
     .sh-feat.merged .sh-feat-node.l {
       flex-direction: row-reverse;
     }
-    /* Six fixed points on one circle around the stationary 150px lid. The
-       icon centres share a 97px radius; labels always extend outward. */
+    /* Six fixed points around the stationary 150px lid. The horizontal pair
+       sits a touch farther out to optically clear the wider scalloped sides;
+       labels always extend outward. */
     .sh-feat.merged .sh-feat-node:nth-child(1) {
       top: calc(50% - 105px);
       right: calc(50% + 27px);
@@ -526,7 +527,7 @@ const features = [
     }
     .sh-feat.merged .sh-feat-node:nth-child(3) {
       top: calc(50% - 22px);
-      left: calc(50% + 75px);
+      left: calc(50% + clamp(76px, 21vw, 82px));
     }
     .sh-feat.merged .sh-feat-node:nth-child(4) {
       top: calc(50% + 62px);
@@ -538,7 +539,7 @@ const features = [
     }
     .sh-feat.merged .sh-feat-node:nth-child(6) {
       top: calc(50% - 22px);
-      right: calc(50% + 75px);
+      right: calc(50% + clamp(76px, 21vw, 82px));
     }
     /* The middle callouts have the least horizontal room on a phone. Keep
        their labels outside the tub while the icon hugs its edge. */
@@ -641,7 +642,7 @@ const features = [
       left: calc(50% + 15px);
     }
     .sh-feat.merged .sh-feat-node:nth-child(3) {
-      left: calc(50% + 75px);
+      left: calc(50% + 76px);
     }
     .sh-feat.merged .sh-feat-node:nth-child(4) {
       top: calc(50% + 67px);
@@ -655,7 +656,7 @@ const features = [
       right: calc(50% + 15px);
     }
     .sh-feat.merged .sh-feat-node:nth-child(6) {
-      right: calc(50% + 75px);
+      right: calc(50% + 76px);
     }
     .sh-feat.merged .sh-feat-node:nth-child(3),
     .sh-feat.merged .sh-feat-node:nth-child(6) {
