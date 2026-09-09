@@ -1,5 +1,6 @@
 # build output
 dist/
+.vercel/
 # generated types
 .astro/
 
@@ -18,3 +19,5 @@ pnpm-debug.log*
 
 # macOS
 .DS_Store
+.vercel
+.env*

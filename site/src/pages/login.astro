@@ -1,0 +1,35 @@
+---
+import '../styles/global.css';
+
+const hasError = Astro.url.searchParams.get('error') === '1';
+const requestedReturnTo = Astro.url.searchParams.get('returnTo') || '/';
+const returnTo = requestedReturnTo.startsWith('/') && !requestedReturnTo.startsWith('//') ? requestedReturnTo : '/';
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Babs Butter</title>
+    <link rel="icon" href="/favicon.svg" />
+    <link rel="stylesheet" href="/assets/fonts.css" />
+  </head>
+  <body class="login-page">
+    <main class="login-shell">
+      <section class="login-panel" aria-label="Password required">
+        <div class="login-brand">
+          <img src="/assets/logos/primary-tangerine.svg" alt="Babs Butter" />
+        </div>
+
+        {hasError && <p class="login-alert" role="alert">Incorrect password.</p>}
+
+        <form class="login-form" action="/api/login" method="post">
+          <input type="hidden" name="returnTo" value={returnTo} />
+          <label class="login-label" for="password">Password</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Enter password" required autofocus />
+          <button class="btn orange login-submit" type="submit">Enter</button>
+        </form>
+      </section>
+    </main>
+  </body>
+</html>

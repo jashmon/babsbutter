@@ -83,7 +83,12 @@ const onPlantPage = path === '/plant-based';
           <li><a href={to('#faq')}>FAQ</a></li>
           <li><a href={to('#cta')}>Contact Us</a></li>
         </ul>
-        <button class="btn small" type="button" data-notify-open>Stay in the swirl</button>
+        <div class="nav-actions">
+          <button class="btn small" type="button" data-notify-open>Stay in the swirl</button>
+          <form class="logout-form" action="/api/logout" method="post">
+            <button class="logout-link" type="submit">Sign out</button>
+          </form>
+        </div>
         <!-- mobile only (hidden ≥1025px); drives the dropdown panel above -->
         <button
           id="nav-toggle"
